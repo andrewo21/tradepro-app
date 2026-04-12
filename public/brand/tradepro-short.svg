@@ -1,0 +1,11 @@
+<svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+
+  <!-- SHORT EMBLEM — same geometry and scale as full logo -->
+  <g transform="scale(0.42)" transform-origin="0 0">
+    <path d="M62 20 H213 Q233 20 213 44 H62 Z" fill="black"/>
+    <rect x="80" y="54" width="32" height="126" fill="black"/>
+    <rect x="128" y="20" width="28" height="150" fill="black"/>
+    <rect x="62" y="180" width="109" height="24" fill="black"/>
+  </g>
+
+</svg>

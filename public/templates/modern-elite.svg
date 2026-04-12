@@ -1,0 +1,39 @@
+<svg width="300" height="200" viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+  <rect width="300" height="200" fill="white" stroke="#E5E7EB" stroke-width="2"/>
+
+  <!-- Top accent bar -->
+  <rect x="20" y="20" width="260" height="8" fill="#1F2937"/>
+
+  <!-- Name + title block -->
+  <rect x="20" y="36" width="160" height="18" fill="#F3F4F6"/>
+  <rect x="20" y="58" width="120" height="8" fill="#E5E7EB"/>
+
+  <!-- Right-side highlight card -->
+  <rect x="200" y="36" width="80" height="60" fill="#F9FAFB" stroke="#E5E7EB" stroke-width="1"/>
+
+  <!-- Section header -->
+  <rect x="20" y="82" width="70" height="10" fill="#D1D5DB"/>
+  <rect x="100" y="86" width="180" height="2" fill="#E5E7EB"/>
+
+  <!-- Two-column content rows -->
+  <rect x="20" y="100" width="120" height="6" fill="#E5E7EB"/>
+  <rect x="160" y="100" width="120" height="6" fill="#E5E7EB"/>
+
+  <rect x="20" y="114" width="110" height="6" fill="#E5E7EB"/>
+  <rect x="160" y="114" width="100" height="6" fill="#E5E7EB"/>
+
+  <!-- Bullet row -->
+  <circle cx="28" cy="138" r="3" fill="#D1D5DB"/>
+  <rect x="40" y="135" width="200" height="6" fill="#E5E7EB"/>
+
+  <circle cx="28" cy="152" r="3" fill="#D1D5DB"/>
+  <rect x="40" y="149" width="180" height="6" fill="#E5E7EB"/>
+
+  <!-- Bottom accent line -->
+  <rect x="20" y="168" width="260" height="2" fill="#E5E7EB"/>
+
+  <!-- Label -->
+  <text x="150" y="190" font-family="Inter, sans-serif" font-size="12" fill="#4B5563" text-anchor="middle">
+    Modern Elite
+  </text>
+</svg>
