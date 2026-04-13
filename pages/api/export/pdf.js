@@ -1,4 +1,3 @@
-// ⭐ FORCE VERCEL TO DEPLOY AS A REAL NODE SERVERLESS FUNCTION
 export const config = {
   runtime: "nodejs",
   api: {
