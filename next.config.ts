@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ["@sparticuz/chromium"],
 
   experimental: {
-    // keep any experimental flags you need
+    // keep anything else you need
   },
 };
 

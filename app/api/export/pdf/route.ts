@@ -2,16 +2,19 @@ import { NextResponse } from "next/server";
 import chromium from "@sparticuz/chromium";
 import puppeteer from "puppeteer-core";
 
-// ✅ Server-safe list of allowed resume templates (FULL 9)
+// ⭐ REQUIRED FOR PUPPETEER ON NEXT.JS 16
+export const runtime = "nodejs";
+
+// ⭐ Prevent static optimization
+export const dynamic = "force-dynamic";
+
+// Allowed templates
 const ALLOWED_RESUME_TEMPLATES = [
-  // STANDARD
   "basic-two-column",
   "modern-blue",
   "sidebar-green",
   "standard-contemporary",
   "standard-classic",
-
-  // PREMIUM
   "executive-classic",
   "executive-luxe",
   "modern-elite",
@@ -21,24 +24,19 @@ const ALLOWED_RESUME_TEMPLATES = [
 type ResumeTemplateKey = (typeof ALLOWED_RESUME_TEMPLATES)[number];
 type PdfTemplateKey = ResumeTemplateKey | "cover-letter";
 
-export const dynamic = "force-dynamic";
-
+// ⭐ Launch Chromium (Vercel-compatible)
 async function launchBrowser() {
   const executablePath = await chromium.executablePath();
 
   return puppeteer.launch({
     args: chromium.args,
-    
     executablePath,
-    headless: true, // chromium.headless is deprecated
+    headless: true,
   });
 }
 
 export async function POST(req: Request) {
   try {
-    // -----------------------------
-    // 1. Parse payload safely
-    // -----------------------------
     const payload = await req.json();
 
     if (!payload || !payload.template) {
@@ -53,7 +51,7 @@ export async function POST(req: Request) {
     const premiumUnlocked = payload.premiumUnlocked ?? false;
 
     // -----------------------------
-    // 2. COVER LETTER PDF
+    // COVER LETTER PDF
     // -----------------------------
     if (isCoverLetter) {
       console.log("[PDF] Cover letter export started");
@@ -72,9 +70,9 @@ export async function POST(req: Request) {
       const pdfUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/pdf/cover-letter`;
       console.log("[PDF] Cover letter URL:", pdfUrl);
 
-      page.on("console", (msg) => {
-        console.log("[PDF console][cover-letter]:", msg.text());
-      });
+      page.on("console", (msg) =>
+        console.log("[PDF console][cover-letter]:", msg.text())
+      );
 
       await page.goto(pdfUrl, { waitUntil: "networkidle0" });
 
@@ -113,14 +111,14 @@ export async function POST(req: Request) {
     }
 
     // -----------------------------
-    // 3. RESUME PDF
+    // RESUME PDF
     // -----------------------------
     console.log("[PDF] Resume export started for template:", templateId);
 
     const isAllowedResumeTemplate =
       ALLOWED_RESUME_TEMPLATES.includes(templateId as ResumeTemplateKey);
 
-    if (!isCoverLetter && !isAllowedResumeTemplate) {
+    if (!isAllowedResumeTemplate) {
       console.error("[PDF] Invalid resume template:", templateId);
       return NextResponse.json(
         { error: "Invalid template" },
@@ -128,9 +126,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // -----------------------------
-    // PREMIUM GATING
-    // -----------------------------
     const isPremiumTemplate =
       templateId === "executive-classic" ||
       templateId === "executive-luxe" ||
@@ -151,9 +146,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // -----------------------------
-    // 4. Puppeteer PDF Generation (Vercel-compatible)
-    // -----------------------------
     const browser = await launchBrowser();
     const page = await browser.newPage();
 
@@ -168,9 +160,9 @@ export async function POST(req: Request) {
     const pdfUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/pdf/${templateId}`;
     console.log("[PDF] Resume URL:", pdfUrl);
 
-    page.on("console", (msg) => {
-      console.log("[PDF console][resume]:", msg.text());
-    });
+    page.on("console", (msg) =>
+      console.log("[PDF console][resume]:", msg.text())
+    );
 
     await page.goto(pdfUrl, { waitUntil: "networkidle0" });
 
