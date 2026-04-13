@@ -291,7 +291,7 @@ export default function HomePage() {
           </h2>
           <p className="text-neutral-700 mb-6 max-w-xl">
             Not a resume that just works, but a resume that projects confidence,
-            pride, and excitement.
+            pride, and excitement..
           </p>
 
           <Link
