@@ -1,12 +1,5 @@
-import { NextResponse } from "next/server";
 import chromium from "@sparticuz/chromium";
 import puppeteer from "puppeteer-core";
-
-// ⭐ REQUIRED FOR PUPPETEER ON NEXT.JS 16
-export const runtime = "nodejs";
-
-// ⭐ Prevent static optimization
-export const dynamic = "force-dynamic";
 
 // Allowed templates
 const ALLOWED_RESUME_TEMPLATES = [
@@ -19,12 +12,9 @@ const ALLOWED_RESUME_TEMPLATES = [
   "executive-luxe",
   "modern-elite",
   "modern-professional",
-] as const;
+];
 
-type ResumeTemplateKey = (typeof ALLOWED_RESUME_TEMPLATES)[number];
-type PdfTemplateKey = ResumeTemplateKey | "cover-letter";
-
-// ⭐ Launch Chromium (Vercel-compatible)
+// Launch Chromium (Vercel-compatible)
 async function launchBrowser() {
   const executablePath = await chromium.executablePath();
 
@@ -35,18 +25,19 @@ async function launchBrowser() {
   });
 }
 
-export async function POST(req: Request) {
+export default async function handler(req, res) {
   try {
-    const payload = await req.json();
-
-    if (!payload || !payload.template) {
-      return NextResponse.json(
-        { error: "Missing template in request payload" },
-        { status: 400 }
-      );
+    if (req.method !== "POST") {
+      return res.status(405).json({ error: "Method not allowed" });
     }
 
-    const templateId = payload.template as PdfTemplateKey;
+    const payload = JSON.parse(req.body);
+
+    if (!payload || !payload.template) {
+      return res.status(400).json({ error: "Missing template in request payload" });
+    }
+
+    const templateId = payload.template;
     const isCoverLetter = templateId === "cover-letter";
     const premiumUnlocked = payload.premiumUnlocked ?? false;
 
@@ -86,28 +77,22 @@ export async function POST(req: Request) {
       });
 
       await page.waitForFunction(() => {
-        return (window as any).__COVER_LETTER_READY__ === true;
+        return globalThis.__COVER_LETTER_READY__ === true;
       });
 
-      const pdfBuffer = Buffer.from(
-        await page.pdf({
-          printBackground: true,
-          preferCSSPageSize: true,
-          margin: { top: "0", right: "0", bottom: "0", left: "0" },
-        })
-      );
+      const pdfBuffer = await page.pdf({
+        printBackground: true,
+        preferCSSPageSize: true,
+        margin: { top: "0", right: "0", bottom: "0", left: "0" },
+      });
 
       await browser.close();
 
       console.log("[PDF] Cover letter export completed");
 
-      return new NextResponse(pdfBuffer, {
-        status: 200,
-        headers: {
-          "Content-Type": "application/pdf",
-          "Content-Disposition": "attachment; filename=cover-letter.pdf",
-        },
-      });
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("Content-Disposition", "attachment; filename=cover-letter.pdf");
+      return res.status(200).send(pdfBuffer);
     }
 
     // -----------------------------
@@ -115,15 +100,11 @@ export async function POST(req: Request) {
     // -----------------------------
     console.log("[PDF] Resume export started for template:", templateId);
 
-    const isAllowedResumeTemplate =
-      ALLOWED_RESUME_TEMPLATES.includes(templateId as ResumeTemplateKey);
+    const isAllowedResumeTemplate = ALLOWED_RESUME_TEMPLATES.includes(templateId);
 
     if (!isAllowedResumeTemplate) {
       console.error("[PDF] Invalid resume template:", templateId);
-      return NextResponse.json(
-        { error: "Invalid template" },
-        { status: 400 }
-      );
+      return res.status(400).json({ error: "Invalid template" });
     }
 
     const isPremiumTemplate =
@@ -137,13 +118,10 @@ export async function POST(req: Request) {
         "[PDF] Blocked resume export – premium template without access:",
         templateId
       );
-      return NextResponse.json(
-        {
-          error: "This template requires TradePro™ Premium.",
-          code: "PREMIUM_REQUIRED",
-        },
-        { status: 403 }
-      );
+      return res.status(403).json({
+        error: "This template requires TradePro™ Premium.",
+        code: "PREMIUM_REQUIRED",
+      });
     }
 
     const browser = await launchBrowser();
@@ -176,33 +154,24 @@ export async function POST(req: Request) {
     });
 
     await page.waitForFunction(() => {
-      return (window as any).__RESUME_DATA_READY__ === true;
+      return globalThis.__RESUME_DATA_READY__ === true;
     });
 
-    const pdfBuffer = Buffer.from(
-      await page.pdf({
-        printBackground: true,
-        preferCSSPageSize: true,
-        margin: { top: "0", right: "0", bottom: "0", left: "0" },
-      })
-    );
+    const pdfBuffer = await page.pdf({
+      printBackground: true,
+      preferCSSPageSize: true,
+      margin: { top: "0", right: "0", bottom: "0", left: "0" },
+    });
 
     await browser.close();
 
     console.log("[PDF] Resume export completed for template:", templateId);
 
-    return new NextResponse(pdfBuffer, {
-      status: 200,
-      headers: {
-        "Content-Type": "application/pdf",
-        "Content-Disposition": "attachment; filename=resume.pdf",
-      },
-    });
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", "attachment; filename=resume.pdf");
+    return res.status(200).send(pdfBuffer);
   } catch (err) {
     console.error("PDF export error:", err);
-    return NextResponse.json(
-      { error: "Failed to generate PDF" },
-      { status: 500 }
-    );
+    return res.status(500).json({ error: "Failed to generate PDF" });
   }
 }
