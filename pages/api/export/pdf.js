@@ -31,7 +31,26 @@ export default async function handler(req, res) {
       return res.status(405).json({ error: "Method not allowed" });
     }
 
-    const payload = JSON.parse(req.body);
+    // ⭐ SAFE JSON PARSING (fixes "[object Object]" error)
+    let payload;
+
+    try {
+      if (typeof req.body === "string") {
+        payload = JSON.parse(req.body);
+      } else if (typeof req.body === "object" && req.body !== null) {
+        payload = req.body;
+      } else {
+        const raw = await new Promise((resolve) => {
+          let data = "";
+          req.on("data", (chunk) => (data += chunk));
+          req.on("end", () => resolve(data));
+        });
+        payload = JSON.parse(raw);
+      }
+    } catch (e) {
+      console.error("Failed to parse JSON body:", e);
+      return res.status(400).json({ error: "Invalid JSON payload" });
+    }
 
     if (!payload || !payload.template) {
       return res.status(400).json({ error: "Missing template in request payload" });
