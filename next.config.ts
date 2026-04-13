@@ -1,12 +1,10 @@
-import type { NextConfig } from "next";
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  serverExternalPackages: ["@sparticuz/chromium"],
 
-const nextConfig: NextConfig = {
-  /* config options here */
-};
-
-module.exports = {
   experimental: {
-    serverComponentsExternalPackages: ["@sparticuz/chromium"],
+    // keep any experimental flags you need
   },
 };
 
+module.exports = nextConfig;
