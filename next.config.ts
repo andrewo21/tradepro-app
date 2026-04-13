@@ -1,13 +1,10 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
+export default {
   output: "standalone",
 
   serverExternalPackages: ["@sparticuz/chromium"],
 
+  // ⭐ Disable Turbopack for server builds
   experimental: {
-    // keep anything else you need
+    serverMinification: false,
   },
 };
-
-export default nextConfig;
