@@ -1,3 +1,12 @@
+// ⭐ FORCE VERCEL TO DEPLOY AS A REAL NODE SERVERLESS FUNCTION
+export const config = {
+  runtime: "nodejs",
+  api: {
+    bodyParser: false,
+    externalResolver: true,
+  },
+};
+
 import chromium from "@sparticuz/chromium";
 import puppeteer from "puppeteer-core";
 
@@ -31,7 +40,7 @@ export default async function handler(req, res) {
       return res.status(405).json({ error: "Method not allowed" });
     }
 
-    // ⭐ SAFE JSON PARSING (fixes "[object Object]" error)
+    // ⭐ SAFE JSON PARSING
     let payload;
 
     try {
