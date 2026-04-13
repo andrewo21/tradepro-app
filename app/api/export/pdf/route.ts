@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import puppeteer from "puppeteer";
+import chromium from "@sparticuz/chromium";
+import puppeteer from "puppeteer-core";
 
 // ✅ Server-safe list of allowed resume templates (FULL 9)
 const ALLOWED_RESUME_TEMPLATES = [
@@ -8,7 +9,7 @@ const ALLOWED_RESUME_TEMPLATES = [
   "modern-blue",
   "sidebar-green",
   "standard-contemporary",
-  "standard-classic", // ⭐ NEW
+  "standard-classic",
 
   // PREMIUM
   "executive-classic",
@@ -21,6 +22,17 @@ type ResumeTemplateKey = (typeof ALLOWED_RESUME_TEMPLATES)[number];
 type PdfTemplateKey = ResumeTemplateKey | "cover-letter";
 
 export const dynamic = "force-dynamic";
+
+async function launchBrowser() {
+  const executablePath = await chromium.executablePath();
+
+  return puppeteer.launch({
+    args: chromium.args,
+    
+    executablePath,
+    headless: true, // chromium.headless is deprecated
+  });
+}
 
 export async function POST(req: Request) {
   try {
@@ -46,11 +58,7 @@ export async function POST(req: Request) {
     if (isCoverLetter) {
       console.log("[PDF] Cover letter export started");
 
-      const browser = await puppeteer.launch({
-        headless: true,
-        args: ["--no-sandbox", "--disable-setuid-sandbox"],
-      });
-
+      const browser = await launchBrowser();
       const page = await browser.newPage();
 
       await page.setViewport({
@@ -59,7 +67,6 @@ export async function POST(req: Request) {
         deviceScaleFactor: 2,
       });
 
-      // Inject cover letter data BEFORE navigation
       await page.exposeFunction("__INJECT_COVER_LETTER__", () => payload.letter);
 
       const pdfUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/pdf/cover-letter`;
@@ -71,7 +78,6 @@ export async function POST(req: Request) {
 
       await page.goto(pdfUrl, { waitUntil: "networkidle0" });
 
-      // Hide UI chrome
       await page.addStyleTag({
         content: `
           header, nav {
@@ -81,7 +87,6 @@ export async function POST(req: Request) {
         `,
       });
 
-      // Wait for client to signal ready
       await page.waitForFunction(() => {
         return (window as any).__COVER_LETTER_READY__ === true;
       });
@@ -112,7 +117,6 @@ export async function POST(req: Request) {
     // -----------------------------
     console.log("[PDF] Resume export started for template:", templateId);
 
-    // ✅ Server-safe validation against explicit allowlist
     const isAllowedResumeTemplate =
       ALLOWED_RESUME_TEMPLATES.includes(templateId as ResumeTemplateKey);
 
@@ -125,7 +129,7 @@ export async function POST(req: Request) {
     }
 
     // -----------------------------
-    // PREMIUM GATING (FULL 4 PREMIUM)
+    // PREMIUM GATING
     // -----------------------------
     const isPremiumTemplate =
       templateId === "executive-classic" ||
@@ -148,13 +152,9 @@ export async function POST(req: Request) {
     }
 
     // -----------------------------
-    // 4. Puppeteer PDF Generation
+    // 4. Puppeteer PDF Generation (Vercel-compatible)
     // -----------------------------
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
-    });
-
+    const browser = await launchBrowser();
     const page = await browser.newPage();
 
     await page.setViewport({
@@ -163,7 +163,6 @@ export async function POST(req: Request) {
       deviceScaleFactor: 2,
     });
 
-    // Inject resume data BEFORE navigation
     await page.exposeFunction("__INJECT_RESUME_DATA__", () => payload);
 
     const pdfUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/pdf/${templateId}`;
@@ -173,11 +172,8 @@ export async function POST(req: Request) {
       console.log("[PDF console][resume]:", msg.text());
     });
 
-    await page.goto(pdfUrl, {
-      waitUntil: "networkidle0",
-    });
+    await page.goto(pdfUrl, { waitUntil: "networkidle0" });
 
-    // Hide UI chrome
     await page.addStyleTag({
       content: `
         header, nav {
@@ -187,7 +183,6 @@ export async function POST(req: Request) {
       `,
     });
 
-    // Wait for client to signal ready AFTER data injection + render
     await page.waitForFunction(() => {
       return (window as any).__RESUME_DATA_READY__ === true;
     });
