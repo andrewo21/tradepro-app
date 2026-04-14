@@ -83,7 +83,7 @@ export default function CoverLetterPage() {
     };
 
     const res = await fetch(
-      "https://YOUR_RENDER_URL_HERE/cover-letter/generate",
+      "https://tradepro-app.onrender.com/cover-letter/generate",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -101,7 +101,7 @@ export default function CoverLetterPage() {
   // EXPORT PDF (Render backend)
   const handleExportPDF = async () => {
     const res = await fetch(
-      "https://YOUR_RENDER_URL_HERE/export/pdf",
+      "https://tradepro-app.onrender.com/export/pdf",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },

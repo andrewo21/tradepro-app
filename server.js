@@ -1,8 +1,8 @@
 import express from "express";
 import cors from "cors";
-import coverLetterGenerate from "./routes/coverLetterGenerate.js";
 
-app.use("/cover-letter/generate", coverLetterGenerate);
+import coverLetterGenerate from "./routes/coverLetterGenerate.js";
+import exportPdf from "./routes/exportPdf.js";
 
 const app = express();
 app.use(cors());
@@ -12,6 +12,8 @@ app.get("/", (req, res) => {
   res.send("Backend is running");
 });
 
+app.use("/cover-letter/generate", coverLetterGenerate);
+app.use("/export/pdf", exportPdf);
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
