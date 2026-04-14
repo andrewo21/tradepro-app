@@ -1,5 +1,8 @@
 import express from "express";
 import cors from "cors";
+import coverLetterGenerate from "./routes/coverLetterGenerate.js";
+
+app.use("/cover-letter/generate", coverLetterGenerate);
 
 const app = express();
 app.use(cors());

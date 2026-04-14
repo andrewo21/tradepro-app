@@ -29,6 +29,7 @@ export default function CoverLetterPage() {
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState("");
 
+  // AUTO‑SET DATE
   useEffect(() => {
     if (!date) {
       const today = new Date().toISOString().split("T")[0];
@@ -56,24 +57,13 @@ export default function CoverLetterPage() {
     );
   }
 
+  // TEMPORARILY DISABLED — until backend resume parser is added
   const handleGenerateSummary = async () => {
-    if (!resumeFile) return;
-
-    const formData = new FormData();
-    formData.append("file", resumeFile);
-
-    const res = await fetch("/api/cover-letter/upload-resume", {
-      method: "POST",
-      body: formData,
-    });
-
-    const data = await res.json();
-
-    if (data.summary) {
-      setField("experience", data.summary);
-    }
+    alert("Resume summary feature is being upgraded and will return soon.");
+    return;
   };
 
+  // GENERATE COVER LETTER (Render backend)
   const handleGenerateLetter = async () => {
     const payload = {
       applicantName,
@@ -92,10 +82,14 @@ export default function CoverLetterPage() {
       salutationStyle,
     };
 
-    const res = await fetch("/api/cover-letter", {
-      method: "POST",
-      body: JSON.stringify(payload),
-    });
+    const res = await fetch(
+      "https://YOUR_RENDER_URL_HERE/cover-letter/generate",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      }
+    );
 
     const data = await res.json();
 
@@ -104,11 +98,16 @@ export default function CoverLetterPage() {
     }
   };
 
+  // EXPORT PDF (Render backend)
   const handleExportPDF = async () => {
-    const res = await fetch("/api/export/cover-letter", {
-      method: "POST",
-      body: JSON.stringify({ letter: generatedLetter }),
-    });
+    const res = await fetch(
+      "https://YOUR_RENDER_URL_HERE/export/pdf",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ letter: generatedLetter }),
+      }
+    );
 
     const blob = await res.blob();
     const url = window.URL.createObjectURL(blob);
