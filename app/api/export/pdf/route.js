@@ -1,14 +1,9 @@
-export const config = {
-  api: {
-    bodyParser: false,
-    externalResolver: true,
-  },
-};
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 import chromium from "@sparticuz/chromium";
 import puppeteer from "puppeteer-core";
 
-// Allowed templates
 const ALLOWED_RESUME_TEMPLATES = [
   "basic-two-column",
   "modern-blue",
@@ -21,7 +16,6 @@ const ALLOWED_RESUME_TEMPLATES = [
   "modern-professional",
 ];
 
-// Launch Chromium (Vercel-compatible)
 async function launchBrowser() {
   const executablePath = await chromium.executablePath();
 
@@ -32,47 +26,23 @@ async function launchBrowser() {
   });
 }
 
-export default async function handler(req, res) {
+export async function POST(req) {
   try {
-    if (req.method !== "POST") {
-      return res.status(405).json({ error: "Method not allowed" });
-    }
-
-    // ⭐ SAFE JSON PARSING
-    let payload;
-
-    try {
-      if (typeof req.body === "string") {
-        payload = JSON.parse(req.body);
-      } else if (typeof req.body === "object" && req.body !== null) {
-        payload = req.body;
-      } else {
-        const raw = await new Promise((resolve) => {
-          let data = "";
-          req.on("data", (chunk) => (data += chunk));
-          req.on("end", () => resolve(data));
-        });
-        payload = JSON.parse(raw);
-      }
-    } catch (e) {
-      console.error("Failed to parse JSON body:", e);
-      return res.status(400).json({ error: "Invalid JSON payload" });
-    }
+    const payload = await req.json();
 
     if (!payload || !payload.template) {
-      return res.status(400).json({ error: "Missing template in request payload" });
+      return Response.json(
+        { error: "Missing template in request payload" },
+        { status: 400 }
+      );
     }
 
     const templateId = payload.template;
     const isCoverLetter = templateId === "cover-letter";
     const premiumUnlocked = payload.premiumUnlocked ?? false;
 
-    // -----------------------------
-    // COVER LETTER PDF
-    // -----------------------------
+    // COVER LETTER
     if (isCoverLetter) {
-      console.log("[PDF] Cover letter export started");
-
       const browser = await launchBrowser();
       const page = await browser.newPage();
 
@@ -85,11 +55,6 @@ export default async function handler(req, res) {
       await page.exposeFunction("__INJECT_COVER_LETTER__", () => payload.letter);
 
       const pdfUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/pdf/cover-letter`;
-      console.log("[PDF] Cover letter URL:", pdfUrl);
-
-      page.on("console", (msg) =>
-        console.log("[PDF console][cover-letter]:", msg.text())
-      );
 
       await page.goto(pdfUrl, { waitUntil: "networkidle0" });
 
@@ -114,23 +79,18 @@ export default async function handler(req, res) {
 
       await browser.close();
 
-      console.log("[PDF] Cover letter export completed");
-
-      res.setHeader("Content-Type", "application/pdf");
-      res.setHeader("Content-Disposition", "attachment; filename=cover-letter.pdf");
-      return res.status(200).send(pdfBuffer);
+      return new Response(pdfBuffer, {
+        status: 200,
+        headers: {
+          "Content-Type": "application/pdf",
+          "Content-Disposition": "attachment; filename=cover-letter.pdf",
+        },
+      });
     }
 
-    // -----------------------------
-    // RESUME PDF
-    // -----------------------------
-    console.log("[PDF] Resume export started for template:", templateId);
-
-    const isAllowedResumeTemplate = ALLOWED_RESUME_TEMPLATES.includes(templateId);
-
-    if (!isAllowedResumeTemplate) {
-      console.error("[PDF] Invalid resume template:", templateId);
-      return res.status(400).json({ error: "Invalid template" });
+    // RESUME
+    if (!ALLOWED_RESUME_TEMPLATES.includes(templateId)) {
+      return Response.json({ error: "Invalid template" }, { status: 400 });
     }
 
     const isPremiumTemplate =
@@ -140,14 +100,13 @@ export default async function handler(req, res) {
       templateId === "modern-professional";
 
     if (isPremiumTemplate && !premiumUnlocked) {
-      console.warn(
-        "[PDF] Blocked resume export – premium template without access:",
-        templateId
+      return Response.json(
+        {
+          error: "This template requires TradePro™ Premium.",
+          code: "PREMIUM_REQUIRED",
+        },
+        { status: 403 }
       );
-      return res.status(403).json({
-        error: "This template requires TradePro™ Premium.",
-        code: "PREMIUM_REQUIRED",
-      });
     }
 
     const browser = await launchBrowser();
@@ -162,11 +121,6 @@ export default async function handler(req, res) {
     await page.exposeFunction("__INJECT_RESUME_DATA__", () => payload);
 
     const pdfUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/pdf/${templateId}`;
-    console.log("[PDF] Resume URL:", pdfUrl);
-
-    page.on("console", (msg) =>
-      console.log("[PDF console][resume]:", msg.text())
-    );
 
     await page.goto(pdfUrl, { waitUntil: "networkidle0" });
 
@@ -191,13 +145,18 @@ export default async function handler(req, res) {
 
     await browser.close();
 
-    console.log("[PDF] Resume export completed for template:", templateId);
-
-    res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", "attachment; filename=resume.pdf");
-    return res.status(200).send(pdfBuffer);
+    return new Response(pdfBuffer, {
+      status: 200,
+      headers: {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": "attachment; filename=resume.pdf",
+      },
+    });
   } catch (err) {
     console.error("PDF export error:", err);
-    return res.status(500).json({ error: "Failed to generate PDF" });
+    return Response.json(
+      { error: "Failed to generate PDF", details: err.message },
+      { status: 500 }
+    );
   }
 }
