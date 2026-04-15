@@ -125,15 +125,26 @@ export default function CoverLetterPage() {
     setLoadingLetter(false);
   };
 
+  // ⭐ UPDATED EXPORT FUNCTION (blue header support)
   const handleExportPDF = async () => {
     setLoadingPDF(true);
+
+    const payload = {
+      applicantName,
+      applicantCityStateZip,
+      applicantEmail,
+      applicantPhone,
+      applicantLinkedIn,
+      date,
+      letter: generatedLetter,
+    };
 
     const res = await fetch(
       "https://tradepro-app.onrender.com/export/pdf",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ letter: generatedLetter }),
+        body: JSON.stringify(payload),
       }
     );
 
