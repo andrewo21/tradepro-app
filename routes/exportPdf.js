@@ -1,5 +1,5 @@
 import express from "express";
-import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import PDFDocument from "pdfkit";
 
 const router = express.Router();
 
@@ -11,47 +11,30 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ error: "Invalid letter content" });
     }
 
-    // Create PDF
-    const pdfDoc = await PDFDocument.create();
-    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-    const fontSize = 12;
-    const lineHeight = 16;
-    const margin = 50;
-    const maxWidth = 500;
+    // Create PDF document
+    const doc = new PDFDocument({
+      size: "LETTER",
+      margin: 50,
+    });
 
-    let page = pdfDoc.addPage([612, 792]);
-    let y = page.getHeight() - margin;
-
-    const paragraphs = letter.split("\n");
-
-    for (const paragraph of paragraphs) {
-      const lines = font.splitTextIntoLines(paragraph, maxWidth);
-
-      for (const line of lines) {
-        if (y < margin) {
-          page = pdfDoc.addPage([612, 792]);
-          y = page.getHeight() - margin;
-        }
-
-        page.drawText(line, {
-          x: margin,
-          y,
-          size: fontSize,
-          font,
-          color: rgb(0, 0, 0),
-        });
-
-        y -= lineHeight;
-      }
-
-      y -= lineHeight; // extra spacing between paragraphs
-    }
-
-    const pdfBytes = await pdfDoc.save();
-
+    // Set headers BEFORE piping
     res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", "attachment; filename=cover-letter.pdf");
-    res.send(Buffer.from(pdfBytes));
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=cover-letter.pdf"
+    );
+
+    // Pipe PDF to response
+    doc.pipe(res);
+
+    // Write text with automatic wrapping
+    doc.font("Times-Roman").fontSize(12).text(letter, {
+      width: 500,
+      align: "left",
+    });
+
+    // Finalize PDF
+    doc.end();
   } catch (err) {
     console.error("PDF ERROR:", err);
     res.status(500).json({ error: "Failed to generate PDF" });

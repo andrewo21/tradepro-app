@@ -2,7 +2,6 @@
   "name": "resume-builder",
   "version": "0.1.0",
   "private": true,
-  
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -20,6 +19,7 @@
     "openai": "^6.25.0",
     "pdf-lib": "^1.17.1",
     "pdf-parse-fixed": "^1.1.1",
+    "pdfkit": "^0.18.0",
     "puppeteer-core": "^24.40.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
