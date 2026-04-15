@@ -17,5 +17,5 @@ app.use("/cover-letter/generate", coverLetterGenerate);
 app.use("/export/pdf", exportPdf);
 app.use("/cover-letter/summary", coverLetterSummary);
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
