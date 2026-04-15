@@ -12,20 +12,28 @@ router.post("/", async (req, res) => {
 Write a professional cover letter using the following information.
 
 IMPORTANT RULES:
-- Place the date at the very top of the letter, before the applicant's contact information.
-- Use the applicant’s name EXACTLY as provided. Do NOT invent, modify, or replace the name.
+- Create a modern header at the very top of the letter containing:
+  • Applicant’s full name (exactly as provided)
+  • Applicant’s city/state/zip
+  • Applicant’s phone number
+  • Applicant’s email
+  • Applicant’s LinkedIn URL (if provided)
+- Format the header as a clean block of text separated by a line above and below.
+- Do NOT invent, modify, or replace the applicant’s name.
 - Do NOT censor or mask names. Never use asterisks (*****).
 - Do NOT insert any assistant, system, or placeholder name (including Andrew O’Neill).
+- Place the date BELOW the header, with one blank line above and below it.
 - Use the hiring manager name exactly as provided.
 - Maintain a professional tone.
 - Do not add extra commentary.
 
-Applicant:
+Applicant Information:
 Name: ${data.applicantName}
 Address: ${data.applicantAddress}
 City/State/Zip: ${data.applicantCityStateZip}
 Email: ${data.applicantEmail}
 Phone: ${data.applicantPhone}
+LinkedIn: ${data.applicantLinkedIn || ""}
 
 Date: ${data.date}
 
@@ -40,7 +48,7 @@ Experience Summary: ${data.experience}
 
 Salutation Style: ${data.salutationStyle}
 
-Write the full cover letter now.
+Write the full cover letter now using the structure described above.
 `;
 
     const completion = await client.chat.completions.create({

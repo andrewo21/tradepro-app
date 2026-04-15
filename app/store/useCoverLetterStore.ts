@@ -8,6 +8,7 @@ interface CoverLetterState {
   applicantCityStateZip: string;
   applicantEmail: string;
   applicantPhone: string;
+  applicantLinkedIn: string;
   date: string;
 
   hiringManager: string;
@@ -34,6 +35,7 @@ export const useCoverLetterStore = create<CoverLetterState>((set) => ({
   applicantCityStateZip: "",
   applicantEmail: "",
   applicantPhone: "",
+  applicantLinkedIn: "",
   date: "",
 
   hiringManager: "",

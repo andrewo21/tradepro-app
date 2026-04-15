@@ -12,6 +12,7 @@ export default function CoverLetterPage() {
     applicantCityStateZip,
     applicantEmail,
     applicantPhone,
+    applicantLinkedIn,
     date,
     hiringManager,
     companyName,
@@ -29,12 +30,10 @@ export default function CoverLetterPage() {
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState("");
 
-  // Loading states
   const [loadingSummary, setLoadingSummary] = useState(false);
   const [loadingLetter, setLoadingLetter] = useState(false);
   const [loadingPDF, setLoadingPDF] = useState(false);
 
-  // AUTO‑SET DATE
   useEffect(() => {
     if (!date) {
       const today = new Date().toISOString().split("T")[0];
@@ -62,7 +61,6 @@ export default function CoverLetterPage() {
     );
   }
 
-  // RESUME SUMMARY
   const handleGenerateSummary = async () => {
     if (!resumeFile) return;
 
@@ -88,7 +86,6 @@ export default function CoverLetterPage() {
     setLoadingSummary(false);
   };
 
-  // GENERATE COVER LETTER
   const handleGenerateLetter = async () => {
     setLoadingLetter(true);
 
@@ -98,6 +95,7 @@ export default function CoverLetterPage() {
       applicantCityStateZip,
       applicantEmail,
       applicantPhone,
+      applicantLinkedIn,
       date,
       hiringManager,
       companyName,
@@ -127,7 +125,6 @@ export default function CoverLetterPage() {
     setLoadingLetter(false);
   };
 
-  // EXPORT PDF
   const handleExportPDF = async () => {
     setLoadingPDF(true);
 
@@ -194,6 +191,13 @@ export default function CoverLetterPage() {
           placeholder="Phone"
           value={applicantPhone}
           onChange={(e) => setField("applicantPhone", e.target.value)}
+        />
+
+        <input
+          className="w-full border p-2 rounded"
+          placeholder="LinkedIn URL"
+          value={applicantLinkedIn}
+          onChange={(e) => setField("applicantLinkedIn", e.target.value)}
         />
 
         <input
@@ -313,7 +317,7 @@ export default function CoverLetterPage() {
         {loadingLetter ? "Generating..." : "Generate Cover Letter"}
       </button>
 
-      {/* Editable Live Preview */}
+      {/* Editable Preview */}
       {generatedLetter && (
         <section className="mt-10 p-6 border rounded bg-white shadow">
           <h2 className="text-xl font-semibold mb-4">Preview (Editable)</h2>
