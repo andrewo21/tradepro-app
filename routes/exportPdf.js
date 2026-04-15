@@ -7,24 +7,43 @@ router.post("/", async (req, res) => {
   try {
     const { letter } = req.body;
 
+    if (!letter) {
+      return res.status(400).json({ error: "No letter provided" });
+    }
+
     const pdfDoc = await PDFDocument.create();
     const page = pdfDoc.addPage([612, 792]); // Letter size
     const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
     const fontSize = 12;
     const maxWidth = 500;
-    const lines = letter.split("\n");
+
+    // Split into paragraphs
+    const paragraphs = letter.split("\n");
 
     let y = 750;
 
-    lines.forEach((line) => {
-      const wrapped = font.splitTextIntoLines(line, maxWidth);
-      wrapped.forEach((w) => {
-        page.drawText(w, { x: 50, y, size: fontSize, font });
+    for (const paragraph of paragraphs) {
+      const wrappedLines = font.splitTextIntoLines(paragraph, maxWidth);
+
+      for (const line of wrappedLines) {
+        if (y < 50) {
+          page = pdfDoc.addPage([612, 792]);
+          y = 750;
+        }
+
+        page.drawText(line, {
+          x: 50,
+          y,
+          size: fontSize,
+          font,
+        });
+
         y -= 18;
-      });
+      }
+
       y -= 10;
-    });
+    }
 
     const pdfBytes = await pdfDoc.save();
 

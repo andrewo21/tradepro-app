@@ -57,10 +57,26 @@ export default function CoverLetterPage() {
     );
   }
 
-  // TEMPORARILY DISABLED — until backend resume parser is added
+  // RESUME SUMMARY (Render backend)
   const handleGenerateSummary = async () => {
-    alert("Resume summary feature is being upgraded and will return soon.");
-    return;
+    if (!resumeFile) return;
+
+    const formData = new FormData();
+    formData.append("file", resumeFile);
+
+    const res = await fetch(
+      "https://tradepro-app.onrender.com/cover-letter/summary",
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
+
+    const data = await res.json();
+
+    if (data.summary) {
+      setField("experience", data.summary);
+    }
   };
 
   // GENERATE COVER LETTER (Render backend)
