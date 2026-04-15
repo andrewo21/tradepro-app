@@ -8,56 +8,39 @@ router.post("/", async (req, res) => {
   try {
     const data = req.body;
 
-    const {
-      applicantName,
-      applicantAddress,
-      applicantCityStateZip,
-      applicantEmail,
-      applicantPhone,
-      date,
-      hiringManager,
-      companyName,
-      companyAddress,
-      companyCityStateZip,
-      jobTitle,
-      tone,
-      experience,
-      salutationStyle,
-    } = data;
-
-    let salutation = "Dear Hiring Manager,";
-    if (salutationStyle === "B") {
-      salutation = hiringManager ? `Dear ${hiringManager},` : "Dear Hiring Manager,";
-    }
-    if (salutationStyle === "C") {
-      salutation = "To Whom It May Concern,";
-    }
-
     const prompt = `
-Write a polished, executive-level cover letter using strict business-letter etiquette.
+Write a professional cover letter using the following information.
 
-APPLICANT BLOCK:
-${applicantName}
-${applicantAddress}
-${applicantCityStateZip}
-${applicantEmail}
-${applicantPhone}
-${date}
+IMPORTANT RULES:
+- Place the date at the very top of the letter, before the applicant's contact information.
+- Use the applicant’s name EXACTLY as provided. Do NOT invent, modify, or replace the name.
+- Do NOT censor or mask names. Never use asterisks (*****).
+- Do NOT insert any assistant, system, or placeholder name (including Andrew O’Neill).
+- Use the hiring manager name exactly as provided.
+- Maintain a professional tone.
+- Do not add extra commentary.
 
-EMPLOYER BLOCK:
-${hiringManager || "Hiring Manager"}
-${companyName}
-${companyAddress}
-${companyCityStateZip}
+Applicant:
+Name: ${data.applicantName}
+Address: ${data.applicantAddress}
+City/State/Zip: ${data.applicantCityStateZip}
+Email: ${data.applicantEmail}
+Phone: ${data.applicantPhone}
 
-SALUTATION:
-${salutation}
+Date: ${data.date}
 
-JOB TITLE:
-${jobTitle}
+Hiring Manager: ${data.hiringManager}
+Company: ${data.companyName}
+Company Address: ${data.companyAddress}
+Company City/State/Zip: ${data.companyCityStateZip}
 
-EXPERIENCE SUMMARY:
-${experience}
+Job Title: ${data.jobTitle}
+Tone: ${data.tone}
+Experience Summary: ${data.experience}
+
+Salutation Style: ${data.salutationStyle}
+
+Write the full cover letter now.
 `;
 
     const completion = await client.chat.completions.create({
@@ -68,15 +51,11 @@ ${experience}
 
     const letter =
       completion.choices?.[0]?.message?.content?.trim() ||
-      "Unable to generate cover letter.";
+      "Unable to generate letter.";
 
-    const cleanedLetter = letter
-      .replace(/[\u2018\u2019]/g, "'")
-      .replace(/[^\x00-\x7F]/g, "");
-
-    res.json({ letter: cleanedLetter });
+    res.json({ letter });
   } catch (err) {
-    console.error("COVER LETTER ERROR:", err);
+    console.error("LETTER ERROR:", err);
     res.status(500).json({ error: "Failed to generate letter" });
   }
 });

@@ -29,6 +29,11 @@ export default function CoverLetterPage() {
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState("");
 
+  // Loading states
+  const [loadingSummary, setLoadingSummary] = useState(false);
+  const [loadingLetter, setLoadingLetter] = useState(false);
+  const [loadingPDF, setLoadingPDF] = useState(false);
+
   // AUTO‑SET DATE
   useEffect(() => {
     if (!date) {
@@ -57,9 +62,11 @@ export default function CoverLetterPage() {
     );
   }
 
-  // RESUME SUMMARY (Render backend)
+  // RESUME SUMMARY
   const handleGenerateSummary = async () => {
     if (!resumeFile) return;
+
+    setLoadingSummary(true);
 
     const formData = new FormData();
     formData.append("file", resumeFile);
@@ -77,10 +84,14 @@ export default function CoverLetterPage() {
     if (data.summary) {
       setField("experience", data.summary);
     }
+
+    setLoadingSummary(false);
   };
 
-  // GENERATE COVER LETTER (Render backend)
+  // GENERATE COVER LETTER
   const handleGenerateLetter = async () => {
+    setLoadingLetter(true);
+
     const payload = {
       applicantName,
       applicantAddress,
@@ -112,10 +123,14 @@ export default function CoverLetterPage() {
     if (data.letter) {
       setGeneratedLetter(data.letter);
     }
+
+    setLoadingLetter(false);
   };
 
-  // EXPORT PDF (Render backend)
+  // EXPORT PDF
   const handleExportPDF = async () => {
+    setLoadingPDF(true);
+
     const res = await fetch(
       "https://tradepro-app.onrender.com/export/pdf",
       {
@@ -134,6 +149,8 @@ export default function CoverLetterPage() {
     a.click();
 
     window.URL.revokeObjectURL(url);
+
+    setLoadingPDF(false);
   };
 
   return (
@@ -273,9 +290,10 @@ export default function CoverLetterPage() {
 
         <button
           onClick={handleGenerateSummary}
+          disabled={loadingSummary}
           className="px-4 py-2 bg-gray-800 text-white rounded"
         >
-          Generate Summary from Resume
+          {loadingSummary ? "Summarizing..." : "Generate Summary from Resume"}
         </button>
 
         <textarea
@@ -289,9 +307,10 @@ export default function CoverLetterPage() {
       {/* Generate Cover Letter */}
       <button
         onClick={handleGenerateLetter}
+        disabled={loadingLetter}
         className="px-4 py-2 bg-blue-600 text-white rounded"
       >
-        Generate Cover Letter
+        {loadingLetter ? "Generating..." : "Generate Cover Letter"}
       </button>
 
       {/* Editable Live Preview */}
@@ -307,9 +326,10 @@ export default function CoverLetterPage() {
 
           <button
             onClick={handleExportPDF}
+            disabled={loadingPDF}
             className="inline-block mt-4 px-4 py-2 bg-green-600 text-white rounded"
           >
-            Export PDF
+            {loadingPDF ? "Exporting..." : "Export PDF"}
           </button>
         </section>
       )}

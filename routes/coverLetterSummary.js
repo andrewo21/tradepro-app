@@ -17,8 +17,21 @@ router.post("/", upload.single("file"), async (req, res) => {
     const text = pdfData.text;
 
     const prompt = `
-Summarize the following resume text into a concise, professional experience summary suitable for a cover letter:
+Rewrite the following resume text into a concise, professional summary.
 
+STRICT RULES:
+- Write in THIRD PERSON ONLY.
+- Do NOT use “I”, “me”, “my”, “mine”, or any first-person phrasing.
+- Do NOT use the applicant’s name or any name at all.
+- Do NOT invent names.
+- Use neutral, resume-style statements beginning with phrases like:
+  - "Experienced in..."
+  - "Proven ability to..."
+  - "Skilled at..."
+  - "Strong background in..."
+- Keep it professional and concise.
+
+Resume text:
 ${text}
 `;
 
