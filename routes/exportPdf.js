@@ -104,6 +104,34 @@ doc.text(formattedDate);
         width: 500,
         align: "left",
       });
+   // SIGNATURE BLOCK
+doc.moveDown(2);
+doc.font("Times-Roman")
+   .fontSize(12)
+   .text("Sincerely,", { align: "left" });
+
+doc.moveDown(2);
+
+doc.font("Times-Bold")
+   .fontSize(12)
+   .text(applicantName, { align: "left" });
+   
+// FOOTER LINE + PAGE NUMBER
+const footerY = doc.page.height - 40;
+
+// Line
+doc.moveTo(50, footerY)
+   .lineTo(doc.page.width - 50, footerY)
+   .strokeColor("#CCCCCC")
+   .stroke();
+
+// Page number centered
+doc.font("Times-Roman")
+   .fontSize(10)
+   .fillColor("gray")
+   .text(`Page ${doc.page.number}`, 0, footerY + 10, {
+     align: "center"
+   });
 
     doc.end();
   } catch (err) {
