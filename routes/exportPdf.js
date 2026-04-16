@@ -35,9 +35,9 @@ router.post("/", async (req, res) => {
     doc.pipe(res);
 
     // -----------------------------
-    // FIXED MEDIUM BLUE HEADER
+    // FIXED MEDIUM HEADER (5 lines)
     // -----------------------------
-    const headerHeight = 130; // increased height
+    const headerHeight = 165; // increased for 5 lines
     const pageWidth = doc.page.width;
     const margin = doc.page.margins.left;
 
@@ -48,27 +48,26 @@ router.post("/", async (req, res) => {
     doc.fillColor("white");
 
     // Starting Y position inside header
-    let y = 30;
+    let y = 28;
 
     // Name (left aligned)
     doc.font("Times-Bold")
       .fontSize(22)
       .text(applicantName, margin, y, { align: "left" });
 
-    y += 22 + 6; // font size + spacing
+    y += 26;
 
     // Right‑aligned contact info
     const contactX = pageWidth - margin;
 
-    doc.font("Times-Roman")
-      .fontSize(11)
-      .text(applicantCityStateZip, contactX, 30, { align: "right" });
+    doc.font("Times-Roman").fontSize(11);
 
-    doc.text(applicantPhone, contactX, 46, { align: "right" });
-    doc.text(applicantEmail, contactX, 62, { align: "right" });
+    doc.text(applicantCityStateZip, contactX, 28, { align: "right" });
+    doc.text(applicantPhone, contactX, 44, { align: "right" });
+    doc.text(applicantEmail, contactX, 60, { align: "right" });
 
     if (applicantLinkedIn && applicantLinkedIn.trim() !== "") {
-      doc.text(applicantLinkedIn, contactX, 78, { align: "right" });
+      doc.text(applicantLinkedIn, contactX, 76, { align: "right" });
     }
 
     // Reset fill color for body text
@@ -79,8 +78,8 @@ router.post("/", async (req, res) => {
     // -----------------------------
     doc.font("Times-Roman").fontSize(12);
 
-    // Move cursor to BELOW the header
-    doc.y = headerHeight + 20;
+    // Move cursor BELOW the header
+    doc.y = headerHeight + 25;
 
     doc.text(date);
     doc.moveDown(1);
