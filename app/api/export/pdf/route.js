@@ -66,7 +66,7 @@ export async function POST(req) {
     }
 
     // ---------------------------------------------------------
-    // ⭐ RESUME SECTION — REPLACED WITH SATORI/RESVG ENGINE ⭐
+    // ⭐ RESUME SECTION — SATORI/RESVG ENGINE ⭐
     // ---------------------------------------------------------
 
     if (!ALLOWED_RESUME_TEMPLATES.includes(templateId)) {
@@ -90,15 +90,14 @@ export async function POST(req) {
     }
 
     // ⭐ NEW RESUME ENGINE (NO PLAYWRIGHT)
-console.log("🔥 NEW RESUME ENGINE RUNNING");
+    console.log("🔥 NEW RESUME ENGINE RUNNING");
 
-const pdfBuffer = await generatePdfFromResume({
-  templateKey: templateId,
-  rawResumeData: payload,
-  premiumUnlocked,
-  showWatermark: true,
-});
-
+    const pdfBuffer = await generatePdfFromResume({
+      templateKey: templateId,
+      rawResumeData: payload,
+      premiumUnlocked,
+      showWatermark: true,
+    });
 
     return new NextResponse(pdfBuffer, {
       status: 200,
