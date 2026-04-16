@@ -1,9 +1,13 @@
 import express from "express";
 import PDFDocument from "pdfkit";
 
+console.log("🚀 EXPORT PDF ROUTE FILE LOADED (server startup)");
+
 const router = express.Router();
 
 router.post("/", async (req, res) => {
+  console.log("📄 EXPORT PDF ROUTE HIT (incoming request)");
+
   try {
     const {
       applicantName,
@@ -16,6 +20,7 @@ router.post("/", async (req, res) => {
     } = req.body;
 
     if (!letter || typeof letter !== "string") {
+      console.log("❌ Missing or invalid letter content");
       return res.status(400).json({ error: "Invalid letter content" });
     }
 
@@ -35,9 +40,9 @@ router.post("/", async (req, res) => {
     doc.pipe(res);
 
     // -----------------------------
-    // FIXED MEDIUM HEADER (5 lines)
+    // TEMPORARY DEBUG HEADER
     // -----------------------------
-    const headerHeight = 165; // increased for 5 lines
+    const headerHeight = 200; // intentionally huge so we SEE a difference
     const pageWidth = doc.page.width;
     const margin = doc.page.margins.left;
 
@@ -47,41 +52,39 @@ router.post("/", async (req, res) => {
     // White text
     doc.fillColor("white");
 
-    // Starting Y position inside header
-    let y = 28;
+    let y = 40;
 
-    // Name (left aligned)
     doc.font("Times-Bold")
-      .fontSize(22)
-      .text(applicantName, margin, y, { align: "left" });
+      .fontSize(24)
+      .text(applicantName || "NO NAME PROVIDED", margin, y);
 
-    y += 26;
+    y += 30;
 
-    // Right‑aligned contact info
-    const contactX = pageWidth - margin;
+    doc.font("Times-Roman").fontSize(12);
 
-    doc.font("Times-Roman").fontSize(11);
+    doc.text(applicantCityStateZip || "NO CITY", margin, y);
+    y += 16;
 
-    doc.text(applicantCityStateZip, contactX, 28, { align: "right" });
-    doc.text(applicantPhone, contactX, 44, { align: "right" });
-    doc.text(applicantEmail, contactX, 60, { align: "right" });
+    doc.text(applicantPhone || "NO PHONE", margin, y);
+    y += 16;
 
-    if (applicantLinkedIn && applicantLinkedIn.trim() !== "") {
-      doc.text(applicantLinkedIn, contactX, 76, { align: "right" });
+    doc.text(applicantEmail || "NO EMAIL", margin, y);
+    y += 16;
+
+    if (applicantLinkedIn) {
+      doc.text(applicantLinkedIn, margin, y);
+      y += 16;
     }
 
-    // Reset fill color for body text
+    // Reset fill color
     doc.fillColor("black");
 
     // -----------------------------
     // DATE BELOW HEADER
     // -----------------------------
-    doc.font("Times-Roman").fontSize(12);
+    doc.y = headerHeight + 30;
+    doc.font("Times-Roman").fontSize(12).text(date || "NO DATE");
 
-    // Move cursor BELOW the header
-    doc.y = headerHeight + 25;
-
-    doc.text(date);
     doc.moveDown(1);
 
     // -----------------------------
