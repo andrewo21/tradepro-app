@@ -13,6 +13,7 @@ Write a professional cover letter using the following information.
 
 IMPORTANT:
 - DO NOT include the date at the top. The PDF generator will add it.
+- DO NOT include a closing or signature. The PDF generator will add it. 
 - DO NOT include the applicant's contact information block. The PDF generator will add it.
 - Start directly with the hiring manager/company block.
 - Then the salutation.
