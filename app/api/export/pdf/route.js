@@ -2,6 +2,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 import { webkit } from "playwright";
+import { NextResponse } from "next/server";
+import { generatePdfFromResume } from "@/lib/pdf/generatePdf";
 
 const ALLOWED_RESUME_TEMPLATES = [
   "basic-two-column",
@@ -30,7 +32,9 @@ export async function POST(req) {
     const isCoverLetter = templateId === "cover-letter";
     const premiumUnlocked = payload.premiumUnlocked ?? false;
 
-    // COVER LETTER (unchanged)
+    // ---------------------------------------------------------
+    // ⭐ COVER LETTER SECTION — DO NOT TOUCH, DO NOT MODIFY ⭐
+    // ---------------------------------------------------------
     if (isCoverLetter) {
       const browser = await webkit.launch();
       const page = await browser.newPage();
@@ -61,7 +65,10 @@ export async function POST(req) {
       });
     }
 
-    // RESUME
+    // ---------------------------------------------------------
+    // ⭐ RESUME SECTION — REPLACED WITH SATORI/RESVG ENGINE ⭐
+    // ---------------------------------------------------------
+
     if (!ALLOWED_RESUME_TEMPLATES.includes(templateId)) {
       return Response.json({ error: "Invalid template" }, { status: 400 });
     }
@@ -82,35 +89,22 @@ export async function POST(req) {
       );
     }
 
-    const browser = await webkit.launch();
-    const page = await browser.newPage();
-
-    await page.exposeFunction("__INJECT_RESUME_DATA__", () => ({
-      resumeData: payload,
-    }));
-
-    const pdfUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/pdf/${templateId}`;
-
-    await page.goto(pdfUrl, { waitUntil: "networkidle" });
-
-    await page.waitForFunction(() => {
-      return globalThis.__RESUME_DATA_READY__ === true;
+    // ⭐ NEW RESUME ENGINE (NO PLAYWRIGHT)
+    const pdfBuffer = await generatePdfFromResume({
+      templateKey: templateId,
+      rawResumeData: payload,
+      premiumUnlocked,
+      showWatermark: true,
     });
 
-    const pdfBuffer = await page.pdf({
-      printBackground: true,
-      format: "Letter",
-    });
-
-    await browser.close();
-
-    return new Response(pdfBuffer, {
+    return new NextResponse(pdfBuffer, {
       status: 200,
       headers: {
         "Content-Type": "application/pdf",
         "Content-Disposition": "attachment; filename=resume.pdf",
       },
     });
+
   } catch (err) {
     console.error("PDF export error:", err);
     return Response.json(
