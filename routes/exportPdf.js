@@ -35,36 +35,40 @@ router.post("/", async (req, res) => {
     doc.pipe(res);
 
     // -----------------------------
-    // BLUE HEADER BAR
+    // FIXED MEDIUM BLUE HEADER
     // -----------------------------
-    const headerHeight = 90;
+    const headerHeight = 130; // increased height
     const pageWidth = doc.page.width;
     const margin = doc.page.margins.left;
 
     // Blue bar
-    doc.rect(0, 0, pageWidth, headerHeight)
-      .fill("#1F4E79");
+    doc.rect(0, 0, pageWidth, headerHeight).fill("#1F4E79");
 
     // White text
     doc.fillColor("white");
 
+    // Starting Y position inside header
+    let y = 30;
+
     // Name (left aligned)
     doc.font("Times-Bold")
-      .fontSize(20)
-      .text(applicantName, margin, 20, { align: "left" });
+      .fontSize(22)
+      .text(applicantName, margin, y, { align: "left" });
+
+    y += 22 + 6; // font size + spacing
 
     // Right‑aligned contact info
     const contactX = pageWidth - margin;
 
     doc.font("Times-Roman")
-      .fontSize(10)
-      .text(applicantCityStateZip, contactX, 20, { align: "right" });
+      .fontSize(11)
+      .text(applicantCityStateZip, contactX, 30, { align: "right" });
 
-    doc.text(applicantPhone, contactX, 35, { align: "right" });
-    doc.text(applicantEmail, contactX, 50, { align: "right" });
+    doc.text(applicantPhone, contactX, 46, { align: "right" });
+    doc.text(applicantEmail, contactX, 62, { align: "right" });
 
     if (applicantLinkedIn && applicantLinkedIn.trim() !== "") {
-      doc.text(applicantLinkedIn, contactX, 65, { align: "right" });
+      doc.text(applicantLinkedIn, contactX, 78, { align: "right" });
     }
 
     // Reset fill color for body text
@@ -73,9 +77,12 @@ router.post("/", async (req, res) => {
     // -----------------------------
     // DATE BELOW HEADER
     // -----------------------------
-    doc.moveDown(4);
-    doc.font("Times-Roman").fontSize(12).text(date);
+    doc.font("Times-Roman").fontSize(12);
 
+    // Move cursor to BELOW the header
+    doc.y = headerHeight + 20;
+
+    doc.text(date);
     doc.moveDown(1);
 
     // -----------------------------
