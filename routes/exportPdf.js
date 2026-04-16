@@ -1,13 +1,9 @@
 import express from "express";
 import PDFDocument from "pdfkit";
 
-console.log("🚀 EXPORT PDF ROUTE FILE LOADED (server startup)");
-
 const router = express.Router();
 
 router.post("/", async (req, res) => {
-  console.log("📄 EXPORT PDF ROUTE HIT (incoming request)");
-
   try {
     const {
       applicantName,
@@ -20,17 +16,14 @@ router.post("/", async (req, res) => {
     } = req.body;
 
     if (!letter || typeof letter !== "string") {
-      console.log("❌ Missing or invalid letter content");
       return res.status(400).json({ error: "Invalid letter content" });
     }
 
-    // Create PDF
     const doc = new PDFDocument({
       size: "LETTER",
       margin: 50,
     });
 
-    // Headers
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
       "Content-Disposition",
@@ -40,50 +33,68 @@ router.post("/", async (req, res) => {
     doc.pipe(res);
 
     // -----------------------------
-    // TEMPORARY DEBUG HEADER
+    // DIAGONAL WATERMARK
     // -----------------------------
-    const headerHeight = 200; // intentionally huge so we SEE a difference
+    const watermarkText = "TRADEPRO";
+    const fontSize = 80;
+    const opacity = 0.08;
+
+    doc.save();
+    doc.fillColor("#000000")
+       .opacity(opacity)
+       .font("Times-Bold")
+       .fontSize(fontSize)
+       .rotate(-45, { origin: [doc.page.width / 2, doc.page.height / 2] })
+       .text(
+         watermarkText,
+         doc.page.width / 2 - 200,
+         doc.page.height / 2 - 40,
+         { align: "center", width: 400 }
+       );
+    doc.restore();
+
+    // -----------------------------
+    // BLUE HEADER
+    // -----------------------------
+    const headerHeight = 165;
     const pageWidth = doc.page.width;
     const margin = doc.page.margins.left;
 
-    // Blue bar
     doc.rect(0, 0, pageWidth, headerHeight).fill("#1F4E79");
 
-    // White text
     doc.fillColor("white");
 
-    let y = 40;
+    let y = 28;
 
     doc.font("Times-Bold")
-      .fontSize(24)
-      .text(applicantName || "NO NAME PROVIDED", margin, y);
+      .fontSize(22)
+      .text(applicantName, margin, y);
 
-    y += 30;
+    y += 26;
 
-    doc.font("Times-Roman").fontSize(12);
+    doc.font("Times-Roman").fontSize(11);
 
-    doc.text(applicantCityStateZip || "NO CITY", margin, y);
-    y += 16;
+    doc.text(applicantCityStateZip, pageWidth - margin, 28, { align: "right" });
+    doc.text(applicantPhone, pageWidth - margin, 44, { align: "right" });
+    doc.text(applicantEmail, pageWidth - margin, 60, { align: "right" });
 
-    doc.text(applicantPhone || "NO PHONE", margin, y);
-    y += 16;
-
-    doc.text(applicantEmail || "NO EMAIL", margin, y);
-    y += 16;
-
-    if (applicantLinkedIn) {
-      doc.text(applicantLinkedIn, margin, y);
-      y += 16;
+    if (applicantLinkedIn && applicantLinkedIn.trim() !== "") {
+      doc.text(applicantLinkedIn, pageWidth - margin, 76, { align: "right" });
     }
 
-    // Reset fill color
     doc.fillColor("black");
 
     // -----------------------------
-    // DATE BELOW HEADER
+    // FORMATTED DATE
     // -----------------------------
-    doc.y = headerHeight + 30;
-    doc.font("Times-Roman").fontSize(12).text(date || "NO DATE");
+    const formattedDate = new Date(date).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+
+    doc.y = headerHeight + 25;
+    doc.font("Times-Roman").fontSize(12).text(formattedDate);
 
     doc.moveDown(1);
 
@@ -96,6 +107,14 @@ router.post("/", async (req, res) => {
         width: 500,
         align: "left",
       });
+
+    // -----------------------------
+    // FOOTER LINE
+    // -----------------------------
+    doc.moveTo(50, doc.page.height - 50)
+       .lineTo(doc.page.width - 50, doc.page.height - 50)
+       .strokeColor("#CCCCCC")
+       .stroke();
 
     doc.end();
   } catch (err) {

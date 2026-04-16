@@ -11,13 +11,14 @@ router.post("/", async (req, res) => {
     const prompt = `
 Write a professional cover letter using the following information.
 
-IMPORTANT:
+IMPORTANT RULES:
 - DO NOT include the date at the top. The PDF generator will add it.
 - DO NOT include the applicant's contact information block. The PDF generator will add it.
+- DO NOT repeat the applicant's name at the top.
 - Start directly with the hiring manager/company block.
 - Then the salutation.
 - Then the body of the letter.
-- End with a professional closing and the applicant's name.
+- End with a professional closing and the applicant's name as a signature block.
 
 Applicant Information:
 Name: ${data.applicantName}
@@ -25,8 +26,6 @@ Email: ${data.applicantEmail}
 Phone: ${data.applicantPhone}
 City/State/Zip: ${data.applicantCityStateZip}
 LinkedIn: ${data.applicantLinkedIn || ""}
-
-Date: ${data.date}
 
 Hiring Manager: ${data.hiringManager}
 Company: ${data.companyName}
@@ -41,7 +40,6 @@ Salutation Style: ${data.salutationStyle}
 
 Write the full cover letter now using the structure and rules above.
 `;
-
 
     const completion = await client.chat.completions.create({
       model: "gpt-4o-mini",
