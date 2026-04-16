@@ -101,7 +101,7 @@ export default function PreviewPage() {
     const payload = {
       template,
       premiumUnlocked,
-      resumeData: cleanData,
+      ...cleanData,
     };
 
     const res = await fetch("/api/export/pdf", {

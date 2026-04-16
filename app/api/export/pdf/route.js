@@ -90,12 +90,15 @@ export async function POST(req) {
     }
 
     // ⭐ NEW RESUME ENGINE (NO PLAYWRIGHT)
-    const pdfBuffer = await generatePdfFromResume({
-      templateKey: templateId,
-      rawResumeData: payload,
-      premiumUnlocked,
-      showWatermark: true,
-    });
+console.log("🔥 NEW RESUME ENGINE RUNNING");
+
+const pdfBuffer = await generatePdfFromResume({
+  templateKey: templateId,
+  rawResumeData: payload,
+  premiumUnlocked,
+  showWatermark: true,
+});
+
 
     return new NextResponse(pdfBuffer, {
       status: 200,
