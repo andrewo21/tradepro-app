@@ -32,30 +32,26 @@ router.post("/", async (req, res) => {
 
     doc.pipe(res);
 
-    // -----------------------------
-    // DIAGONAL WATERMARK
-    // -----------------------------
-    const watermarkText = "TRADEPRO";
-    const fontSize = 80;
-    const opacity = 0.08;
-
+    // ---------------------------------------------------
+    // DIAGONAL WATERMARK (minimal, no layout changes)
+    // ---------------------------------------------------
     doc.save();
     doc.fillColor("#000000")
-       .opacity(opacity)
+       .opacity(0.08)
        .font("Times-Bold")
-       .fontSize(fontSize)
+       .fontSize(80)
        .rotate(-45, { origin: [doc.page.width / 2, doc.page.height / 2] })
        .text(
-         watermarkText,
+         "TRADEPRO",
          doc.page.width / 2 - 200,
          doc.page.height / 2 - 40,
-         { align: "center", width: 400 }
+         { width: 400, align: "center" }
        );
     doc.restore();
 
-    // -----------------------------
-    // BLUE HEADER
-    // -----------------------------
+    // ---------------------------------------------------
+    // BLUE HEADER (unchanged from your working version)
+    // ---------------------------------------------------
     const headerHeight = 165;
     const pageWidth = doc.page.width;
     const margin = doc.page.margins.left;
@@ -84,9 +80,9 @@ router.post("/", async (req, res) => {
 
     doc.fillColor("black");
 
-    // -----------------------------
-    // FORMATTED DATE
-    // -----------------------------
+    // ---------------------------------------------------
+    // FORMATTED DATE (ONLY CHANGE YOU REQUESTED)
+    // ---------------------------------------------------
     const formattedDate = new Date(date).toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
@@ -98,9 +94,9 @@ router.post("/", async (req, res) => {
 
     doc.moveDown(1);
 
-    // -----------------------------
-    // LETTER BODY
-    // -----------------------------
+    // ---------------------------------------------------
+    // LETTER BODY (unchanged)
+    // ---------------------------------------------------
     doc.font("Times-Roman")
       .fontSize(12)
       .text(letter, {
@@ -108,9 +104,9 @@ router.post("/", async (req, res) => {
         align: "left",
       });
 
-    // -----------------------------
-    // FOOTER LINE
-    // -----------------------------
+    // ---------------------------------------------------
+    // FOOTER LINE (unchanged)
+    // ---------------------------------------------------
     doc.moveTo(50, doc.page.height - 50)
        .lineTo(doc.page.width - 50, doc.page.height - 50)
        .strokeColor("#CCCCCC")
