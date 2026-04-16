@@ -83,7 +83,15 @@ router.post("/", async (req, res) => {
     // DATE BELOW HEADER
     // -----------------------------
     doc.y = headerHeight + 30;
-    doc.font("Times-Roman").fontSize(12).text(date || "NO DATE");
+    doc.font("Times-Roman").fontSize(12)
+    const formattedDate = new Date(date).toLocaleDateString("en-US", {
+  year: "numeric",
+  month: "long",
+  day: "numeric",
+});
+
+doc.text(formattedDate);
+
 
     doc.moveDown(1);
 
