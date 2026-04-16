@@ -18,7 +18,7 @@ IMPORTANT:
 - Start directly with the hiring manager/company block.
 - Then the salutation.
 - Then the body of the letter.
-- End with a professional closing and the applicant's name.
+- End with a professional closing.
 
 Applicant Information:
 Name: ${data.applicantName}
