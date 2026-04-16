@@ -1,16 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // ⭐ Required so Vercel bundles node_modules (including Chromium)
+  // Keep standalone output if you want — it’s fine
   output: "standalone",
 
-  // ⭐ Required so Next.js does NOT tree-shake Chromium
-  serverExternalPackages: ["@sparticuz/chromium"],
+  // ❌ REMOVE Chromium bundling — no longer needed
+  // serverExternalPackages: ["@sparticuz/chromium"],
 
   experimental: {
-    // ⭐ Forces Webpack for server builds (disables Turbopack server compiler)
+    // These are fine to keep or remove — they do NOT affect Playwright
     webpackBuildWorker: false,
-
-    // ⭐ Prevents certain Turbopack optimizations that strip binaries
     serverMinification: false,
   },
 };
