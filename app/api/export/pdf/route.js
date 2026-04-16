@@ -1,8 +1,7 @@
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-import chromium from "@sparticuz/chromium";
-import puppeteer from "puppeteer-core";
+import { webkit } from "playwright";
 
 const ALLOWED_RESUME_TEMPLATES = [
   "basic-two-column",
@@ -15,16 +14,6 @@ const ALLOWED_RESUME_TEMPLATES = [
   "modern-elite",
   "modern-professional",
 ];
-
-async function launchBrowser() {
-  const executablePath = await chromium.executablePath();
-
-  return puppeteer.launch({
-    args: chromium.args,
-    executablePath,
-    headless: true,
-  });
-}
 
 export async function POST(req) {
   try {
@@ -41,31 +30,16 @@ export async function POST(req) {
     const isCoverLetter = templateId === "cover-letter";
     const premiumUnlocked = payload.premiumUnlocked ?? false;
 
-    // COVER LETTER
+    // COVER LETTER (unchanged)
     if (isCoverLetter) {
-      const browser = await launchBrowser();
+      const browser = await webkit.launch();
       const page = await browser.newPage();
-
-      await page.setViewport({
-        width: 1400,
-        height: 2000,
-        deviceScaleFactor: 2,
-      });
 
       await page.exposeFunction("__INJECT_COVER_LETTER__", () => payload.letter);
 
       const pdfUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/pdf/cover-letter`;
 
-      await page.goto(pdfUrl, { waitUntil: "networkidle0" });
-
-      await page.addStyleTag({
-        content: `
-          header, nav {
-            display: none !important;
-            visibility: hidden !important;
-          }
-        `,
-      });
+      await page.goto(pdfUrl, { waitUntil: "networkidle" });
 
       await page.waitForFunction(() => {
         return globalThis.__COVER_LETTER_READY__ === true;
@@ -73,8 +47,7 @@ export async function POST(req) {
 
       const pdfBuffer = await page.pdf({
         printBackground: true,
-        preferCSSPageSize: true,
-        margin: { top: "0", right: "0", bottom: "0", left: "0" },
+        format: "Letter",
       });
 
       await browser.close();
@@ -109,29 +82,16 @@ export async function POST(req) {
       );
     }
 
-    const browser = await launchBrowser();
+    const browser = await webkit.launch();
     const page = await browser.newPage();
 
-    await page.setViewport({
-      width: 1400,
-      height: 2000,
-      deviceScaleFactor: 2,
-    });
-
-    await page.exposeFunction("__INJECT_RESUME_DATA__", () => payload);
+    await page.exposeFunction("__INJECT_RESUME_DATA__", () => ({
+      resumeData: payload,
+    }));
 
     const pdfUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/pdf/${templateId}`;
 
-    await page.goto(pdfUrl, { waitUntil: "networkidle0" });
-
-    await page.addStyleTag({
-      content: `
-        header, nav {
-          display: none !important;
-          visibility: hidden !important;
-        }
-      `,
-    });
+    await page.goto(pdfUrl, { waitUntil: "networkidle" });
 
     await page.waitForFunction(() => {
       return globalThis.__RESUME_DATA_READY__ === true;
@@ -139,8 +99,7 @@ export async function POST(req) {
 
     const pdfBuffer = await page.pdf({
       printBackground: true,
-      preferCSSPageSize: true,
-      margin: { top: "0", right: "0", bottom: "0", left: "0" },
+      format: "Letter",
     });
 
     await browser.close();
