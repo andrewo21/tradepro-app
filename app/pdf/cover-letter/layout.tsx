@@ -1,7 +1,11 @@
 export const dynamic = "force-static";
 export const runtime = "nodejs";
 
-export default function PDFLayout({ children }: { children: React.ReactNode }) {
+export default function PDFLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <div
       style={{

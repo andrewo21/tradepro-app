@@ -11,6 +11,7 @@
   "dependencies": {
     "@resvg/resvg-wasm": "^2.6.2",
     "@sendgrid/mail": "^8.1.6",
+    "@tailwindcss/line-clamp": "^0.4.4",
     "@vercel/postgres": "^0.10.0",
     "cors": "^2.8.6",
     "express": "^5.2.1",
