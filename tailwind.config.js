@@ -9,6 +9,12 @@ module.exports = {
     "./components/templates/premium/**/*.{js,ts,jsx,tsx}",
   ],
 
+  // ⭐ FIX: Disable Tailwind preflight so it stops trying to load
+  //    /css/preflight.css inside your server bundle.
+  corePlugins: {
+    preflight: false,
+  },
+
   safelist: [
     // BLUE
     { pattern: /bg-blue-(50|100|200|300|400|500|600|700|800|900)/ },
@@ -45,12 +51,12 @@ module.exports = {
     { pattern: /text-rose-(50|100|200|300|400|500|600|700|800|900)/ },
     { pattern: /border-rose-(50|100|200|300|400|500|600|700|800|900)/ },
 
-    // AMBER (GOLD-LIKE)
+    // AMBER
     { pattern: /bg-amber-(50|100|200|300|400|500|600|700|800|900)/ },
     { pattern: /text-amber-(50|100|200|300|400|500|600|700|800|900)/ },
     { pattern: /border-amber-(50|100|200|300|400|500|600|700|800|900)/ },
 
-    // YELLOW (ALSO GOLD-LIKE)
+    // YELLOW
     { pattern: /bg-yellow-(50|100|200|300|400|500|600|700|800|900)/ },
     { pattern: /text-yellow-(50|100|200|300|400|500|600|700|800|900)/ },
     { pattern: /border-yellow-(50|100|200|300|400|500|600|700|800|900)/ },
@@ -59,5 +65,6 @@ module.exports = {
   theme: {
     extend: {},
   },
-  plugins: [require('@tailwindcss/line-clamp')],
+
+  plugins: [require("@tailwindcss/line-clamp")],
 };
