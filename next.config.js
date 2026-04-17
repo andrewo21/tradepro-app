@@ -3,10 +3,9 @@ const nextConfig = {
   output: "standalone",
 
   experimental: {
-    turbo: false,
     webpackBuildWorker: false,
-    serverMinification: false,
-  },
+    serverMinification: false
+  }
 };
 
 module.exports = nextConfig;
