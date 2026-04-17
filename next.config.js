@@ -1,9 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    serverComponentsExternalPackages: ["@resvg/resvg-wasm"],
-  },
-  webpack: (config, { isServer }) => {
+  serverExternalPackages: ["@resvg/resvg-wasm"],
+
+  webpack: (config) => {
     config.experiments = {
       ...config.experiments,
       asyncWebAssembly: true,
@@ -13,15 +12,6 @@ const nextConfig = {
       test: /\.wasm$/,
       type: "webassembly/async",
     });
-
-    // Required for WASM on Vercel
-    if (!isServer) {
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        fs: false,
-        path: false,
-      };
-    }
 
     return config;
   },
