@@ -29,6 +29,6 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "**/*.mts"
-, "app/components/templates/ModernBlue.tsx", "app/api/generate/route.ts"  ],
+, "app/components/templates/ModernBlue.tsx", "app/api/generate/route.ts", "next.config.js"  ],
   "exclude": ["node_modules"]
 }
