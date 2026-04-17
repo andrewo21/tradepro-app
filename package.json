@@ -18,7 +18,7 @@
     "framer-motion": "^12.38.0",
     "lucide-react": "^1.7.0",
     "multer": "^2.1.1",
-    "next": "15.1.6",
+    "next": "15.1.11",
     "openai": "^6.25.0",
     "pdf-lib": "^1.17.1",
     "pdf-parse-fixed": "^1.1.1",
