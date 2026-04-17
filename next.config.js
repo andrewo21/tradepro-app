@@ -1,15 +1,17 @@
-// next.config.js
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: "standalone",
+  webpack: (config) => {
+    config.experiments = {
+      ...config.experiments,
+      asyncWebAssembly: true,
+    };
 
-  experimental: {
-    webpackBuildWorker: false,
-    serverMinification: false,
-  },
+    config.module.rules.push({
+      test: /\.wasm$/,
+      type: "webassembly/async",
+    });
 
-  eslint: {
-    ignoreDuringBuilds: true,
+    return config;
   },
 };
 
