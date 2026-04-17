@@ -1,14 +1,31 @@
 // Unified Resume Data Transformer
 // Converts BOTH the Zustand store shape AND the PDF payload shape
-// into the NEW unified template-friendly shape.
+// into the template-friendly shape expected by PDF templates.
 
 export function transformResumeData(input: any) {
-  if (!input) return {};
+  if (!input) {
+    return {
+      personal: {
+        firstName: "",
+        lastName: "",
+        tradeTitle: "",
+        phone: "",
+        email: "",
+        location: "",
+        linkedin: "",
+      },
+      summary: "",
+      skills: [],
+      experience: [],
+      education: [],
+      certifications: [],
+    };
+  }
 
   // -----------------------------
   // 1. PERSONAL INFO NORMALIZATION
   // -----------------------------
-  const personal =
+  const personalSource =
     input.personalInfo || input.personal || {
       firstName: "",
       lastName: "",
@@ -20,17 +37,17 @@ export function transformResumeData(input: any) {
       linkedin: "",
     };
 
-  const name = `${personal.firstName || ""} ${personal.lastName || ""}`.trim();
-  const title = personal.tradeTitle || "";
-
-  const contact = {
-    phone: personal.phone || "",
-    email: personal.email || "",
+  const personal = {
+    firstName: personalSource.firstName || "",
+    lastName: personalSource.lastName || "",
+    tradeTitle: personalSource.tradeTitle || "",
+    phone: personalSource.phone || "",
+    email: personalSource.email || "",
     location:
-      personal.city && personal.state
-        ? `${personal.city}, ${personal.state}`
-        : personal.city || personal.state || "",
-    linkedin: personal.linkedin || "",
+      personalSource.city && personalSource.state
+        ? `${personalSource.city}, ${personalSource.state}`
+        : personalSource.city || personalSource.state || "",
+    linkedin: personalSource.linkedin || "",
   };
 
   // -----------------------------
@@ -79,12 +96,10 @@ export function transformResumeData(input: any) {
   );
 
   // -----------------------------
-  // FINAL UNIFIED SHAPE
+  // FINAL TEMPLATE-FRIENDLY SHAPE
   // -----------------------------
   return {
-    name,
-    title,
-    contact,
+    personal,
     summary,
     skills,
     experience,
