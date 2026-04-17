@@ -9,7 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@resvg/resvg-js": "^2.6.2",
+    "@resvg/resvg-wasm": "^2.6.2",
     "@sendgrid/mail": "^8.1.6",
     "@vercel/postgres": "^0.10.0",
     "cors": "^2.8.6",
