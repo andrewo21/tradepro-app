@@ -3,18 +3,27 @@
 import { NextResponse } from "next/server";
 import { generatePdfFromResume } from "../../../../lib/pdf/generatePdf";
 
-// Prevent Next.js from running this during build
+// Prevent Next.js from pre-rendering this route during build
 export const dynamic = "force-dynamic";
 
 export async function POST(req) {
   try {
     const body = await req.json();
 
+    // Validate required fields
+    if (!body.template) {
+      return NextResponse.json(
+        { error: "Missing 'template' in request body" },
+        { status: 400 }
+      );
+    }
+
+    // Build the payload for the PDF generator
     const pdf = await generatePdfFromResume({
-      templateKey: body.templateKey,
-      rawResumeData: body.resumeData,
-      premiumUnlocked: body.premiumUnlocked,
-      showWatermark: body.showWatermark,
+      templateKey: body.template,          // <-- matches your frontend
+      rawResumeData: body,                 // <-- your cleanData is already flattened
+      premiumUnlocked: body.premiumUnlocked ?? false,
+      showWatermark: !body.premiumUnlocked,
     });
 
     return new NextResponse(pdf, {
