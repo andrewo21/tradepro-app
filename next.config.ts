@@ -3,11 +3,11 @@ const nextConfig = {
   // Keep standalone output if you want — it’s fine
   output: "standalone",
 
-  // ❌ REMOVE Chromium bundling — no longer needed
-  // serverExternalPackages: ["@sparticuz/chromium"],
-
   experimental: {
-    // These are fine to keep or remove — they do NOT affect Playwright
+    // Disable Turbopack so Vercel uses Webpack instead
+    turbo: false,
+
+    // These are fine to keep — they do NOT affect PDF generation
     webpackBuildWorker: false,
     serverMinification: false,
   },
