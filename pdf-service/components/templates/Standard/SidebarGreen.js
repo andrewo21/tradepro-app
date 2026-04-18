@@ -1,221 +1,295 @@
 const React = require("react");
 
-// PDF service cannot import from "@/components/..."
-// so we use a simple stub to avoid errors
-const Watermark = ({ show }) => null;
+// Stub for Watermark (PDF service cannot import Next.js components)
+const Watermark = ({ show }) =>
+  show
+    ? React.createElement(
+        "div",
+        {
+          style: {
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%) rotate(-30deg)",
+            opacity: 0.08,
+            fontSize: "80px",
+            fontWeight: "bold",
+            color: "#000",
+            pointerEvents: "none",
+            whiteSpace: "nowrap",
+          },
+        },
+        "PREVIEW"
+      )
+    : null;
 
-module.exports = function SidebarGreen({
-  data,
-  mode,
-  premiumUnlocked,
-  showWatermark
-}) {
+// ------------------------------
+// Sidebar Header Component
+// ------------------------------
+const SidebarHeader = ({ title }) =>
+  React.createElement(
+    "h2",
+    {
+      className:
+        "text-[11px] font-semibold uppercase tracking-wide text-gray-800 border-b border-gray-400 pb-1",
+    },
+    title
+  );
+
+// ------------------------------
+// Main Header Component
+// ------------------------------
+const MainHeader = ({ title }) =>
+  React.createElement(
+    "h2",
+    {
+      className:
+        "text-[12px] font-semibold uppercase tracking-wide text-gray-800 border-b border-gray-300 pb-1",
+    },
+    title
+  );
+
+// ------------------------------
+// Experience Block Component
+// ------------------------------
+const ExperienceBlock = ({ job }) => {
+  const location =
+    job.city && job.state
+      ? `${job.city}, ${job.state}`
+      : job.city || job.state || "";
+
+  const dates =
+    job.startDate && job.endDate
+      ? `${job.startDate} – ${job.endDate}`
+      : job.startDate || job.endDate || "";
+
+  const bullets = [
+    ...(job.responsibilities || []),
+    ...(job.achievements || []),
+  ].filter(Boolean);
+
   return React.createElement(
     "div",
-    {
-      style: {
-        display: "flex",
-        width: "100%",
-        fontFamily: "Arial, sans-serif",
-        boxSizing: "border-box"
-      }
-    },
+    null,
 
-    // LEFT SIDEBAR
+    // Header row
     React.createElement(
       "div",
-      {
-        style: {
-          width: "28%",
-          backgroundColor: "#e8f5e9",
-          padding: "24px",
-          boxSizing: "border-box",
-          borderRight: "4px solid #2e7d32"
-        }
-      },
-
-      // Name
-      React.createElement(
-        "h1",
-        {
-          style: {
-            margin: 0,
-            marginBottom: "8px",
-            fontSize: "26px",
-            fontWeight: "bold",
-            color: "#1b5e20"
-          }
-        },
-        data?.name || "Untitled"
-      ),
-
-      // Title
-      React.createElement(
-        "p",
-        {
-          style: {
-            margin: 0,
-            marginBottom: "24px",
-            fontSize: "14px",
-            color: "#2e7d32"
-          }
-        },
-        data?.title || ""
-      ),
-
-      // Contact section
-      React.createElement(
-        "div",
-        { style: { marginBottom: "24px" } },
-        React.createElement(
-          "h2",
-          {
-            style: {
-              fontSize: "16px",
-              marginBottom: "6px",
-              color: "#1b5e20"
-            }
-          },
-          "Contact"
-        ),
-        React.createElement(
-          "p",
-          { style: { margin: 0, fontSize: "13px", color: "#333" } },
-          data?.email || ""
-        ),
-        React.createElement(
-          "p",
-          { style: { margin: 0, fontSize: "13px", color: "#333" } },
-          data?.phone || ""
-        ),
-        React.createElement(
-          "p",
-          { style: { margin: 0, fontSize: "13px", color: "#333" } },
-          data?.location || ""
-        )
-      ),
-
-      // Skills
+      { className: "flex justify-between items-baseline" },
       React.createElement(
         "div",
         null,
         React.createElement(
-          "h2",
-          {
-            style: {
-              fontSize: "16px",
-              marginBottom: "6px",
-              color: "#1b5e20"
-            }
-          },
-          "Skills"
+          "div",
+          { className: "font-semibold text-[11px]" },
+          job.jobTitle
         ),
         React.createElement(
-          "ul",
-          { style: { paddingLeft: "18px", margin: 0 } },
-          (data?.skills || []).map((skill, i) =>
-            React.createElement(
-              "li",
-              {
-                key: i,
-                style: { fontSize: "13px", marginBottom: "4px", color: "#333" }
-              },
-              skill
-            )
+          "div",
+          { className: "text-[10px] text-gray-700" },
+          job.company,
+          location ? ` | ${location}` : ""
+        )
+      ),
+      dates &&
+        React.createElement(
+          "div",
+          { className: "text-[10px] text-gray-700 whitespace-nowrap" },
+          dates
+        )
+    ),
+
+    // Bullets
+    bullets.length > 0 &&
+      React.createElement(
+        "ul",
+        { className: "mt-1.5 space-y-0.5" },
+        bullets.map((line, idx) =>
+          React.createElement(
+            "li",
+            { key: idx, className: "flex items-start gap-1" },
+            React.createElement("span", {
+              className: "mt-[5px] h-[3px] w-[3px] rounded-full bg-gray-800",
+            }),
+            React.createElement("span", null, line)
           )
         )
       )
+  );
+};
+
+// ------------------------------
+// Education Block Component
+// ------------------------------
+const EducationBlock = ({ edu }) => {
+  const location =
+    edu.city && edu.state
+      ? `${edu.city}, ${edu.state}`
+      : edu.city || edu.state || "";
+
+  const lineParts = [edu.degree, edu.school, location, edu.year].filter(
+    Boolean
+  );
+
+  return React.createElement(
+    "div",
+    { className: "text-[11px]" },
+    lineParts.join(" | ")
+  );
+};
+
+// ------------------------------
+// MAIN TEMPLATE
+// ------------------------------
+module.exports = function SidebarGreen({
+  data,
+  premiumUnlocked,
+  showWatermark,
+}) {
+  const {
+    name = "First Last",
+    title = "Professional Title",
+    contact = {},
+    summary = "",
+    skills = [],
+    experience = [],
+    education = [],
+    certifications = [],
+  } = data ?? {};
+
+  const location = contact.location || "";
+  const email = contact.email || "";
+  const phone = contact.phone || "";
+  const linkedin = contact.linkedin || "";
+
+  return React.createElement(
+    "div",
+    {
+      className:
+        "relative w-full bg-white text-gray-900 text-[11px] leading-snug flex",
+    },
+
+    // Watermark
+    React.createElement(Watermark, { show: showWatermark }),
+
+    // SIDEBAR
+    React.createElement(
+      "aside",
+      {
+        className: "w-[32%] min-h-full p-5 text-gray-900",
+        style: { backgroundColor: "#E6F4EA" },
+      },
+
+      React.createElement(
+        "h1",
+        { className: "text-[18px] font-semibold leading-tight" },
+        name
+      ),
+      React.createElement(
+        "p",
+        { className: "text-[11px] text-gray-700 mt-1" },
+        title
+      ),
+
+      // Contact
+      React.createElement(
+        "div",
+        { className: "mt-4 space-y-1 text-[10px] text-gray-700" },
+        location && React.createElement("div", null, location),
+        email && React.createElement("div", null, email),
+        phone && React.createElement("div", null, phone),
+        linkedin &&
+          React.createElement("div", { className: "break-all" }, linkedin)
+      ),
+
+      // Skills
+      skills.length > 0 &&
+        React.createElement(
+          "div",
+          { className: "mt-6" },
+          React.createElement(SidebarHeader, { title: "Skills" }),
+          React.createElement(
+            "ul",
+            { className: "mt-2 space-y-1" },
+            skills.map((skill, idx) =>
+              React.createElement(
+                "li",
+                { key: idx, className: "flex items-start gap-1" },
+                React.createElement("span", {
+                  className: "mt-[5px] h-[3px] w-[3px] rounded-full bg-gray-800",
+                }),
+                React.createElement("span", null, skill)
+              )
+            )
+          )
+        ),
+
+      // Certifications
+      certifications.length > 0 &&
+        React.createElement(
+          "div",
+          { className: "mt-6" },
+          React.createElement(SidebarHeader, { title: "Certifications" }),
+          React.createElement(
+            "ul",
+            { className: "mt-2 space-y-1" },
+            certifications.map((cert, idx) =>
+              React.createElement(
+                "li",
+                { key: idx, className: "flex items-start gap-1" },
+                React.createElement("span", {
+                  className: "mt-[5px] h-[3px] w-[3px] rounded-full bg-gray-800",
+                }),
+                React.createElement("span", null, cert)
+              )
+            )
+          )
+        )
     ),
 
     // MAIN CONTENT
     React.createElement(
-      "div",
-      {
-        style: {
-          flex: 1,
-          padding: "32px",
-          boxSizing: "border-box"
-        }
-      },
+      "main",
+      { className: "w-[68%] p-6 space-y-6" },
 
       // Summary
-      React.createElement(
-        "div",
-        { style: { marginBottom: "24px" } },
+      summary &&
         React.createElement(
-          "h2",
-          {
-            style: {
-              fontSize: "20px",
-              marginBottom: "8px",
-              color: "#1b5e20"
-            }
-          },
-          "Professional Summary"
+          "section",
+          null,
+          React.createElement(MainHeader, { title: "Professional Summary" }),
+          React.createElement("p", { className: "mt-1 text-[11px]" }, summary)
         ),
-        React.createElement(
-          "p",
-          {
-            style: {
-              fontSize: "14px",
-              lineHeight: "1.6",
-              color: "#333"
-            }
-          },
-          data?.summary || ""
-        )
-      ),
 
       // Experience
-      React.createElement(
-        "div",
-        null,
+      experience.length > 0 &&
         React.createElement(
-          "h2",
-          {
-            style: {
-              fontSize: "20px",
-              marginBottom: "8px",
-              color: "#1b5e20"
-            }
-          },
-          "Experience"
-        ),
-        (data?.experience || []).map((exp, i) =>
+          "section",
+          null,
+          React.createElement(MainHeader, { title: "Experience" }),
           React.createElement(
             "div",
-            { key: i, style: { marginBottom: "16px" } },
-            React.createElement(
-              "p",
-              {
-                style: {
-                  margin: 0,
-                  fontSize: "15px",
-                  fontWeight: "bold",
-                  color: "#2e7d32"
-                }
-              },
-              exp.title || ""
-            ),
-            React.createElement(
-              "p",
-              {
-                style: {
-                  margin: 0,
-                  fontSize: "14px",
-                  color: "#333"
-                }
-              },
-              exp.details || ""
+            { className: "mt-2 space-y-4" },
+            experience.map((job, idx) =>
+              React.createElement(ExperienceBlock, { key: idx, job })
+            )
+          )
+        ),
+
+      // Education
+      education.length > 0 &&
+        React.createElement(
+          "section",
+          null,
+          React.createElement(MainHeader, { title: "Education" }),
+          React.createElement(
+            "div",
+            { className: "mt-2 space-y-1.5" },
+            education.map((edu, idx) =>
+              React.createElement(EducationBlock, { key: idx, edu })
             )
           )
         )
-      )
-    ),
-
-    // Watermark (PDF only)
-    mode === "pdf" && !premiumUnlocked
-      ? React.createElement(Watermark, { show: showWatermark })
-      : null
+    )
   );
 };
