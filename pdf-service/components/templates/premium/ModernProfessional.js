@@ -4,176 +4,250 @@ const React = require("react");
 // so we use a simple stub to avoid errors
 const Watermark = ({ show }) => null;
 
-function ModernProfessional({ data, premiumUnlocked, showWatermark }) {
-  const {
-    name,
-    title,
-    contact,
-    summary,
-    skills,
-    experience,
-    education,
-    certifications,
-  } = data;
+module.exports = function ModernProfessional({
+  data,
+  mode,
+  premiumUnlocked,
+  showWatermark
+}) {
+  return React.createElement(
+    "div",
+    {
+      style: {
+        fontFamily: "Arial, sans-serif",
+        padding: "40px",
+        width: "100%",
+        boxSizing: "border-box",
+        backgroundColor: "#ffffff",
+        color: "#111"
+      }
+    },
 
-  const fullName = name || "First Last";
-  const jobTitle = title || "Professional Title";
+    // HEADER
+    React.createElement(
+      "div",
+      {
+        style: {
+          marginBottom: "28px",
+          borderBottom: "2px solid #0f172a",
+          paddingBottom: "12px"
+        }
+      },
+      React.createElement(
+        "h1",
+        {
+          style: {
+            margin: 0,
+            fontSize: "32px",
+            fontWeight: "bold",
+            color: "#0f172a"
+          }
+        },
+        data?.name || "Untitled"
+      ),
+      React.createElement(
+        "p",
+        {
+          style: {
+            margin: "6px 0 0 0",
+            fontSize: "16px",
+            color: "#334155"
+          }
+        },
+        data?.title || ""
+      )
+    ),
 
-  const location = contact?.location || "";
-  const email = contact?.email || "";
-  const phone = contact?.phone || "";
-  const linkedin = contact?.linkedin || "";
+    // CONTACT INFO
+    React.createElement(
+      "div",
+      {
+        style: {
+          marginBottom: "28px",
+          fontSize: "14px",
+          color: "#333",
+          lineHeight: "1.5"
+        }
+      },
+      React.createElement("p", { style: { margin: "2px 0" } }, data?.email || ""),
+      React.createElement("p", { style: { margin: "2px 0" } }, data?.phone || ""),
+      React.createElement("p", { style: { margin: "2px 0" } }, data?.location || "")
+    ),
 
-  return (
-    <div className="relative w-full bg-white text-gray-900 text-[11px] leading-snug">
-      <Watermark show={showWatermark} />
+    // SUMMARY
+    React.createElement(
+      "div",
+      { style: { marginBottom: "28px" } },
+      React.createElement(
+        "h2",
+        {
+          style: {
+            fontSize: "18px",
+            marginBottom: "10px",
+            color: "#0f172a",
+            borderLeft: "4px solid #0f172a",
+            paddingLeft: "8px"
+          }
+        },
+        "Professional Summary"
+      ),
+      React.createElement(
+        "p",
+        {
+          style: {
+            fontSize: "14px",
+            lineHeight: "1.6",
+            color: "#444"
+          }
+        },
+        data?.summary || ""
+      )
+    ),
 
-      {/* HEADER */}
-      <div className="text-center py-6 border-b border-gray-300">
-        <h1 className="text-[22px] font-semibold tracking-wide">{fullName}</h1>
-        <p className="text-[12px] text-gray-700 mt-1">{jobTitle}</p>
+    // SKILLS
+    React.createElement(
+      "div",
+      { style: { marginBottom: "28px" } },
+      React.createElement(
+        "h2",
+        {
+          style: {
+            fontSize: "18px",
+            marginBottom: "10px",
+            color: "#0f172a",
+            borderLeft: "4px solid #0f172a",
+            paddingLeft: "8px"
+          }
+        },
+        "Skills"
+      ),
+      React.createElement(
+        "ul",
+        { style: { paddingLeft: "20px", margin: 0 } },
+        (data?.skills || []).map((skill, i) =>
+          React.createElement(
+            "li",
+            {
+              key: i,
+              style: {
+                fontSize: "14px",
+                marginBottom: "4px",
+                color: "#333"
+              }
+            },
+            skill
+          )
+        )
+      )
+    ),
 
-        <div className="flex justify-center gap-4 text-[10px] text-gray-600 mt-2">
-          {location && <span>{location}</span>}
-          {email && <span>{email}</span>}
-          {phone && <span>{phone}</span>}
-          {linkedin && <span className="break-all">{linkedin}</span>}
-        </div>
-      </div>
+    // EXPERIENCE
+    React.createElement(
+      "div",
+      { style: { marginBottom: "28px" } },
+      React.createElement(
+        "h2",
+        {
+          style: {
+            fontSize: "18px",
+            marginBottom: "10px",
+            color: "#0f172a",
+            borderLeft: "4px solid #0f172a",
+            paddingLeft: "8px"
+          }
+        },
+        "Experience"
+      ),
 
-      {/* BODY */}
-      <div className="max-w-3xl mx-auto px-6 py-6 space-y-6">
-        {/* SUMMARY */}
-        {summary && summary.trim() && (
-          <section>
-            <SectionHeader title="Professional Summary" />
-            <p className="mt-1 text-[11px]">{summary}</p>
-          </section>
-        )}
+      (data?.experience || []).map((exp, i) =>
+        React.createElement(
+          "div",
+          { key: i, style: { marginBottom: "20px" } },
 
-        {/* SKILLS */}
-        {skills && skills.length > 0 && (
-          <section>
-            <SectionHeader title="Core Skills" />
-            <div className="grid grid-cols-2 gap-y-1 gap-x-6 mt-1">
-              {skills.map((skill, idx) => (
-                <div key={idx} className="flex items-start gap-1">
-                  <span className="mt-[5px] h-[3px] w-[3px] rounded-full bg-gray-800" />
-                  <span>{skill}</span>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
+          React.createElement(
+            "p",
+            {
+              style: {
+                margin: 0,
+                fontSize: "15px",
+                fontWeight: "bold",
+                color: "#111"
+              }
+            },
+            exp.title || ""
+          ),
 
-        {/* EXPERIENCE */}
-        {experience && experience.length > 0 && (
-          <section>
-            <SectionHeader title="Experience" />
-            <div className="mt-2 space-y-4">
-              {experience.map((job, idx) => (
-                <ExperienceBlock key={idx} job={job} />
-              ))}
-            </div>
-          </section>
-        )}
+          React.createElement(
+            "p",
+            {
+              style: {
+                margin: "4px 0 0 0",
+                fontSize: "14px",
+                color: "#444",
+                lineHeight: "1.6"
+              }
+            },
+            exp.details || ""
+          )
+        )
+      )
+    ),
 
-        {/* EDUCATION */}
-        {education && education.length > 0 && (
-          <section>
-            <SectionHeader title="Education" />
-            <div className="mt-2 space-y-1.5">
-              {education.map((edu, idx) => (
-                <EducationBlock key={idx} edu={edu} />
-              ))}
-            </div>
-          </section>
-        )}
+    // EDUCATION
+    React.createElement(
+      "div",
+      null,
+      React.createElement(
+        "h2",
+        {
+          style: {
+            fontSize: "18px",
+            marginBottom: "10px",
+            color: "#0f172a",
+            borderLeft: "4px solid #0f172a",
+            paddingLeft: "8px"
+          }
+        },
+        "Education"
+      ),
 
-        {/* CERTIFICATIONS */}
-        {certifications && certifications.length > 0 && (
-          <section>
-            <SectionHeader title="Certifications" />
-            <ul className="mt-1 space-y-0.5">
-              {certifications.map((cert, idx) => (
-                <li key={idx} className="flex items-start gap-1">
-                  <span className="mt-[5px] h-[3px] w-[3px] rounded-full bg-gray-800" />
-                  <span>{cert}</span>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
-      </div>
-    </div>
-  );
-}
+      (data?.education || []).map((edu, i) =>
+        React.createElement(
+          "div",
+          { key: i, style: { marginBottom: "20px" } },
 
-const SectionHeader = ({ title }) => (
-  <div className="flex items-center gap-2">
-    <h2 className="text-[11px] font-semibold tracking-wide uppercase text-gray-800">
-      {title}
-    </h2>
-    <div className="flex-1 h-px bg-gray-300" />
-  </div>
-);
+          React.createElement(
+            "p",
+            {
+              style: {
+                margin: 0,
+                fontSize: "15px",
+                fontWeight: "bold",
+                color: "#111"
+              }
+            },
+            edu.institution || ""
+          ),
 
-const ExperienceBlock = ({ job }) => {
-  const location =
-    job.city && job.state
-      ? `${job.city}, ${job.state}`
-      : job.city || job.state || "";
+          React.createElement(
+            "p",
+            {
+              style: {
+                margin: "4px 0 0 0",
+                fontSize: "14px",
+                color: "#444",
+                lineHeight: "1.6"
+              }
+            },
+            edu.details || ""
+          )
+        )
+      )
+    ),
 
-  const dates =
-    job.startDate && job.endDate
-      ? `${job.startDate} – ${job.endDate}`
-      : job.startDate || job.endDate || "";
-
-  const bullets = [
-    ...(job.responsibilities || []),
-    ...(job.achievements || []),
-  ].filter(Boolean);
-
-  return (
-    <div>
-      <div className="flex justify-between items-baseline">
-        <div>
-          <div className="font-semibold text-[11px]">{job.jobTitle}</div>
-          <div className="text-[10px] text-gray-700">
-            {job.company}
-            {location && ` | ${location}`}
-          </div>
-        </div>
-        {dates && (
-          <div className="text-[10px] text-gray-700 whitespace-nowrap">
-            {dates}
-          </div>
-        )}
-      </div>
-
-      {bullets.length > 0 && (
-        <ul className="mt-1.5 space-y-0.5">
-          {bullets.map((line, idx) => (
-            <li key={idx} className="flex items-start gap-1">
-              <span className="mt-[5px] h-[3px] w-[3px] rounded-full bg-gray-800" />
-              <span>{line}</span>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
+    // WATERMARK (PDF ONLY)
+    mode === "pdf" && !premiumUnlocked
+      ? React.createElement(Watermark, { show: showWatermark })
+      : null
   );
 };
-
-const EducationBlock = ({ edu }) => {
-  const location =
-    edu.city && edu.state
-      ? `${edu.city}, ${edu.state}`
-      : edu.city || edu.state || "";
-
-  const lineParts = [edu.degree, edu.school, location, edu.year].filter(Boolean);
-
-  return <div className="text-[11px]">{lineParts.join(" | ")}</div>;
-};
-
-module.exports = ModernProfessional;

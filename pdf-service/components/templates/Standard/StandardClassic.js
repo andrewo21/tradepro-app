@@ -4,162 +4,199 @@ const React = require("react");
 // so we use a simple stub to avoid errors
 const Watermark = ({ show }) => null;
 
-function StandardClassic({ data, premiumUnlocked, showWatermark }) {
-  const {
-    name,
-    title,
-    contact,
-    summary,
-    skills,
-    experience,
-    education,
-    certifications,
-  } = data;
+module.exports = function StandardClassic({
+  data,
+  mode,
+  premiumUnlocked,
+  showWatermark
+}) {
+  return React.createElement(
+    "div",
+    {
+      style: {
+        fontFamily: "Times New Roman, serif",
+        padding: "32px",
+        width: "100%",
+        boxSizing: "border-box",
+        color: "#000"
+      }
+    },
 
-  const fullName = name || "First Last";
-  const jobTitle = title || "Professional Title";
+    // HEADER
+    React.createElement(
+      "div",
+      { style: { marginBottom: "24px", textAlign: "center" } },
+      React.createElement(
+        "h1",
+        {
+          style: {
+            margin: 0,
+            fontSize: "32px",
+            fontWeight: "bold",
+            letterSpacing: "0.5px"
+          }
+        },
+        data?.name || "Untitled"
+      ),
+      React.createElement(
+        "p",
+        {
+          style: {
+            margin: "4px 0 0 0",
+            fontSize: "16px",
+            color: "#444"
+          }
+        },
+        data?.title || ""
+      )
+    ),
 
-  const location = contact?.location || "";
-  const email = contact?.email || "";
-  const phone = contact?.phone || "";
+    // CONTACT INFO
+    React.createElement(
+      "div",
+      {
+        style: {
+          marginBottom: "24px",
+          textAlign: "center",
+          fontSize: "14px",
+          color: "#333"
+        }
+      },
+      React.createElement("p", { style: { margin: "2px 0" } }, data?.email || ""),
+      React.createElement("p", { style: { margin: "2px 0" } }, data?.phone || ""),
+      React.createElement("p", { style: { margin: "2px 0" } }, data?.location || "")
+    ),
 
-  return (
-    <div className="relative w-full bg-white text-gray-900 text-[11px] leading-snug">
-      <Watermark show={showWatermark} />
+    // SUMMARY
+    React.createElement(
+      "div",
+      { style: { marginBottom: "24px" } },
+      React.createElement(
+        "h2",
+        {
+          style: {
+            fontSize: "20px",
+            marginBottom: "8px",
+            borderBottom: "1px solid #000",
+            paddingBottom: "4px"
+          }
+        },
+        "Professional Summary"
+      ),
+      React.createElement(
+        "p",
+        {
+          style: {
+            fontSize: "14px",
+            lineHeight: "1.6",
+            color: "#333"
+          }
+        },
+        data?.summary || ""
+      )
+    ),
 
-      <div className="w-full bg-gray-900 text-white">
-        <div className="max-w-3xl mx-auto px-6 py-3 flex items-center justify-between gap-4">
-          <div className="font-semibold text-[20px] tracking-wide">
-            {fullName}
-          </div>
+    // EXPERIENCE
+    React.createElement(
+      "div",
+      { style: { marginBottom: "24px" } },
+      React.createElement(
+        "h2",
+        {
+          style: {
+            fontSize: "20px",
+            marginBottom: "8px",
+            borderBottom: "1px solid #000",
+            paddingBottom: "4px"
+          }
+        },
+        "Experience"
+      ),
 
-          <div className="text-[10px] text-right space-y-0.5">
-            {location && <div>{location}</div>}
-            {email && <div>{email}</div>}
-            {phone && <div>{phone}</div>}
-          </div>
-        </div>
-      </div>
+      (data?.experience || []).map((exp, i) =>
+        React.createElement(
+          "div",
+          { key: i, style: { marginBottom: "16px" } },
 
-      <div className="max-w-3xl mx-auto px-6 py-6 space-y-6">
-        {summary && summary.trim() && (
-          <section>
-            <SectionHeader title="Professional Summary" />
-            <p className="mt-1 text-[11px] leading-relaxed">{summary}</p>
-          </section>
-        )}
+          React.createElement(
+            "p",
+            {
+              style: {
+                margin: 0,
+                fontSize: "15px",
+                fontWeight: "bold"
+              }
+            },
+            exp.title || ""
+          ),
 
-        {skills && skills.length > 0 && (
-          <section>
-            <SectionHeader title="Core Skills" />
-            <div className="grid grid-cols-2 gap-y-1 gap-x-6 mt-1">
-              {skills.map((skill, idx) => (
-                <div key={idx} className="flex items-start gap-1">
-                  <span className="mt-[5px] h-[3px] w-[3px] rounded-full bg-gray-800" />
-                  <span>{skill}</span>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
+          React.createElement(
+            "p",
+            {
+              style: {
+                margin: "2px 0 0 0",
+                fontSize: "14px",
+                color: "#333"
+              }
+            },
+            exp.details || ""
+          )
+        )
+      )
+    ),
 
-        {experience && experience.length > 0 && (
-          <section>
-            <SectionHeader title="Experience" />
-            <div className="mt-2 space-y-4">
-              {experience.map((job, idx) => (
-                <ExperienceBlock key={idx} job={job} />
-              ))}
-            </div>
-          </section>
-        )}
+    // EDUCATION
+    React.createElement(
+      "div",
+      null,
+      React.createElement(
+        "h2",
+        {
+          style: {
+            fontSize: "20px",
+            marginBottom: "8px",
+            borderBottom: "1px solid #000",
+            paddingBottom: "4px"
+          }
+        },
+        "Education"
+      ),
 
-        {education && education.length > 0 && (
-          <section>
-            <SectionHeader title="Education" />
-            <div className="mt-2 space-y-1.5">
-              {education.map((edu, idx) => (
-                <EducationBlock key={idx} edu={edu} />
-              ))}
-            </div>
-          </section>
-        )}
+      (data?.education || []).map((edu, i) =>
+        React.createElement(
+          "div",
+          { key: i, style: { marginBottom: "16px" } },
 
-        {certifications && certifications.length > 0 && (
-          <section>
-            <SectionHeader title="Certifications" />
-            <ul className="mt-1 space-y-0.5">
-              {certifications.map((cert, idx) => (
-                <li key={idx} className="flex items-start gap-1">
-                  <span className="mt-[5px] h-[3px] w-[3px] rounded-full bg-gray-800" />
-                  <span>{cert}</span>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
-      </div>
-    </div>
-  );
-}
+          React.createElement(
+            "p",
+            {
+              style: {
+                margin: 0,
+                fontSize: "15px",
+                fontWeight: "bold"
+              }
+            },
+            edu.institution || ""
+          ),
 
-const SectionHeader = ({ title }) => (
-  <div className="flex items-center gap-2">
-    <h2 className="text-[11px] font-semibold tracking-wide uppercase text-gray-800">
-      {title}
-    </h2>
-    <div className="flex-1 h-px bg-gray-300" />
-  </div>
-);
+          React.createElement(
+            "p",
+            {
+              style: {
+                margin: "2px 0 0 0",
+                fontSize: "14px",
+                color: "#333"
+              }
+            },
+            edu.details || ""
+          )
+        )
+      )
+    ),
 
-const ExperienceBlock = ({ job }) => {
-  const dates =
-    job.startDate && job.endDate
-      ? `${job.startDate} – ${job.endDate}`
-      : job.startDate || job.endDate || "";
-
-  const bullets = [
-    ...(job.responsibilities || []),
-    ...(job.achievements || []),
-  ].filter(Boolean);
-
-  return (
-    <div>
-      <div className="flex justify-between items-baseline">
-        <div>
-          <div className="font-semibold text-[11px]">{job.jobTitle}</div>
-          <div className="text-[10px] text-gray-700">{job.company}</div>
-        </div>
-        {dates && (
-          <div className="text-[10px] text-gray-700 whitespace-nowrap">
-            {dates}
-          </div>
-        )}
-      </div>
-
-      {bullets.length > 0 && (
-        <ul className="mt-1.5 space-y-0.5">
-          {bullets.map((line, idx) => (
-            <li key={idx} className="flex items-start gap-1">
-              <span className="mt-[5px] h-[3px] w-[3px] rounded-full bg-gray-800" />
-              <span>{line}</span>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
+    // WATERMARK (PDF ONLY)
+    mode === "pdf" && !premiumUnlocked
+      ? React.createElement(Watermark, { show: showWatermark })
+      : null
   );
 };
-
-const EducationBlock = ({ edu }) => {
-  const location =
-    edu.city && edu.state
-      ? `${edu.city}, ${edu.state}`
-      : edu.city || edu.state || "";
-
-  const lineParts = [edu.degree, edu.school, location, edu.year].filter(Boolean);
-
-  return <div className="text-[11px]">{lineParts.join(" | ")}</div>;
-};
-
-module.exports = StandardClassic;
