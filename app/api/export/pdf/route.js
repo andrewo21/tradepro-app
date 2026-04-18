@@ -24,13 +24,13 @@ export async function POST(req) {
       );
     }
 
-    // ⭐ Inject the correct field name for the PDF service
+    // ⭐ Normalize payload for the PDF service
     const payload = {
       ...body,
-      template: templateKey,
+      template: templateKey, // the PDF service expects this
     };
 
-    // ⭐ Call your pdf-service over HTTP
+    // ⭐ Correct endpoint — your PDF service exposes /pdf, NOT /generate
     const response = await fetch(process.env.PDF_SERVICE_URL + "/pdf", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
