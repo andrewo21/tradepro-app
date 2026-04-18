@@ -11,7 +11,8 @@ const { buildTemplateTree } = require("./renderTemplate");
 // ✅ transformResumeData is still in the root /lib folder
 // __dirname = /pdf-service/lib/pdf
 // ../../../lib/transformResumeData → /lib/transformResumeData.js at repo root
-const { transformResumeData } = require("../../../lib/transformResumeData");
+const transformResumeData = require('../transformResumeData');
+
 
 // PDF dimensions (96 DPI)
 const PAGE_WIDTH = 8.5 * 96;
