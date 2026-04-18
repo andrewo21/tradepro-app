@@ -8,18 +8,33 @@ export async function POST(req) {
   try {
     const body = await req.json();
 
-    if (!body.template) {
+    // ⭐ Accept ALL possible template field names
+    const templateKey =
+      body.template ||
+      body.templateId ||
+      body.templateKey ||
+      body.selectedTemplate ||
+      body.selectedTemplateId ||
+      null;
+
+    if (!templateKey) {
       return NextResponse.json(
-        { error: "Missing 'template' in request body" },
+        { error: "Missing template key" },
         { status: 400 }
       );
     }
 
-    // Call your pdf-service over HTTP
-    const response = await fetch(process.env.PDF_SERVICE_URL + "/generate", {
+    // ⭐ Inject the correct field name for the PDF service
+    const payload = {
+      ...body,
+      template: templateKey,
+    };
+
+    // ⭐ Call your pdf-service over HTTP
+    const response = await fetch(process.env.PDF_SERVICE_URL + "/pdf", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
