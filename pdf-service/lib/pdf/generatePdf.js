@@ -5,7 +5,12 @@ const path = require("path");
 const satori = require("satori");
 const { Resvg } = require("@resvg/resvg-wasm");
 
-const { buildTemplateTree } = require("../../../lib/pdf/renderTemplate");
+// ✅ renderTemplate is in the SAME folder as this file
+const { buildTemplateTree } = require("./renderTemplate");
+
+// ✅ transformResumeData is still in the root /lib folder
+// __dirname = /pdf-service/lib/pdf
+// ../../../lib/transformResumeData → /lib/transformResumeData.js at repo root
 const { transformResumeData } = require("../../../lib/transformResumeData");
 
 // PDF dimensions (96 DPI)
@@ -15,8 +20,8 @@ const PAGE_HEIGHT = 11 * 96;
 // -------------------------------------------------------------
 // FONT PATH (Render + Local + Node-safe)
 // -------------------------------------------------------------
-// __dirname = /lib/pdf
-// ../../public/fonts/Inter-Regular.ttf = correct absolute path
+// __dirname = /pdf-service/lib/pdf
+// ../../public/fonts/Inter-Regular.ttf = /pdf-service/public/fonts/Inter-Regular.ttf
 const fontPath = path.join(
   __dirname,
   "..",
@@ -31,7 +36,7 @@ const fontData = fs.readFileSync(fontPath);
 // -------------------------------------------------------------
 // STATIC CSS PATH (Render + Local)
 // -------------------------------------------------------------
-// tailwind.built.css lives in the same folder as this file
+// tailwind.built.css lives in the SAME folder as this file
 const cssPath = path.join(__dirname, "tailwind.built.css");
 const staticCss = fs.readFileSync(cssPath, "utf8");
 
