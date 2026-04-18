@@ -8,33 +8,33 @@ import { useResumeStore } from "@/app/store/useResumeStore";   // ⭐ NEW
 const templates = {
   // STANDARD
   "basic-two-column": dynamic(() =>
-    import("@/components/templates/Standard/BasicTwoColumn")
+    import("@/pdf-service/components/templates/Standard/BasicTwoColumn")
   ),
   "modern-blue": dynamic(() =>
-    import("@/components/templates/Standard/ModernBlue")
+    import("@/pdf-service/components/templates/Standard/ModernBlue")
   ),
   "sidebar-green": dynamic(() =>
-    import("@/components/templates/Standard/SidebarGreen")
+    import("@/pdf-service/components/templates/Standard/SidebarGreen")
   ),
   "standard-contemporary": dynamic(() =>
-    import("@/components/templates/Standard/StandardContemporary")
+    import("@/pdf-service/components/templates/Standard/StandardContemporary")
   ),
   "standard-classic": dynamic(() =>
-    import("@/components/templates/Standard/StandardClassic")
+    import("@/pdf-service/components/templates/Standard/StandardClassic")
   ), // ⭐ NEW
 
   // PREMIUM
   "executive-classic": dynamic(() =>
-    import("@/components/templates/premium/ExecutiveClassic")
+    import("@/pdf-service/components/templates/premium/ExecutiveClassic")
   ),
   "executive-luxe": dynamic(() =>
-    import("@/components/templates/premium/ExecutiveLuxe")
+    import("@/pdf-service/components/templates/premium/ExecutiveLuxe")
   ),
   "modern-elite": dynamic(() =>
-    import("@/components/templates/premium/ModernElite")
+    import("@/pdf-service/components/templates/premium/ModernElite")
   ),
   "modern-professional": dynamic(() =>
-    import("@/components/templates/premium/ModernProfessional")
+    import("@/pdf-service/components/templates/premium/ModernProfessional")
   ),
 } as const;
 
