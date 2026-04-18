@@ -22,7 +22,9 @@ function transformResumeData(input) {
     };
   }
 
+  // -----------------------------
   // 1. PERSONAL INFO NORMALIZATION
+  // -----------------------------
   const personalSource =
     input.personalInfo ||
     input.personal || {
@@ -49,15 +51,21 @@ function transformResumeData(input) {
     linkedin: personalSource.linkedin || "",
   };
 
+  // -----------------------------
   // 2. SUMMARY
+  // -----------------------------
   const summary = input.summary || "";
 
-  // 3. SKILLS
+  // -----------------------------
+  // 3. SKILLS (string[])
+  // -----------------------------
   const skills = (input.skills || []).map((s) =>
     typeof s === "string" ? s : s.text || ""
   );
 
+  // -----------------------------
   // 4. EXPERIENCE
+  // -----------------------------
   const experience = (input.experience || []).map((job) => ({
     jobTitle: job.jobTitle || "",
     company: job.company || "",
@@ -71,7 +79,9 @@ function transformResumeData(input) {
     ),
   }));
 
+  // -----------------------------
   // 5. EDUCATION
+  // -----------------------------
   const education = (input.education || []).map((edu) => ({
     school: edu.school || "",
     degree: edu.degree || "",
@@ -79,11 +89,16 @@ function transformResumeData(input) {
     gpa: edu.gpa || "",
   }));
 
+  // -----------------------------
   // 6. CERTIFICATIONS
+  // -----------------------------
   const certifications = (input.certifications || []).map((c) =>
     typeof c === "string" ? c : c.text || ""
   );
 
+  // -----------------------------
+  // FINAL TEMPLATE-FRIENDLY SHAPE
+  // -----------------------------
   return {
     personal,
     summary,
