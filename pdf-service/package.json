@@ -1,0 +1,17 @@
+{
+  "name": "pdf-service",
+  "version": "1.0.0",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@resvg/resvg-wasm": "2.4.1",
+    "express": "^4.18.2",
+    "satori": "^0.10.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  }
+}
+
