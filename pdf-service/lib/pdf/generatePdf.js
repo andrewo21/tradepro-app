@@ -5,8 +5,8 @@ const path = require("path");
 const satori = require("satori");
 const { Resvg } = require("@resvg/resvg-wasm");
 
-const { buildTemplateTree } = require("./renderTemplate");
-const { transformResumeData } = require("../transformResumeData");
+const { buildTemplateTree } = require("../../../lib/pdf/renderTemplate");
+const { transformResumeData } = require("../../../lib/transformResumeData");
 
 // PDF dimensions (96 DPI)
 const PAGE_WIDTH = 8.5 * 96;

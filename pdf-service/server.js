@@ -1,7 +1,8 @@
 const express = require("express");
 const cors = require("cors");
 
-const { generatePdfFromResume } = require("../lib/pdf/generatePdf");
+const { generatePdfFromResume } = require("./lib/pdf/generatePdf");
+
 
 const app = express();
 app.use(cors());
