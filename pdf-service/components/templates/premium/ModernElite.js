@@ -1,21 +1,10 @@
-"use client";
+const React = require("react");
 
-import React from "react";
-import Watermark from "@/components/Watermark";
+// PDF service cannot import from "@/components/..."
+// so we use a simple stub to avoid errors
+const Watermark = ({ show }) => null;
 
-interface TemplateProps {
-  data: any;
-  mode?: "preview" | "pdf";
-  premiumUnlocked: boolean;
-  showWatermark: boolean;
-}
-
-export default function ModernElite({
-  data,
-  premiumUnlocked,
-  showWatermark,
-}: TemplateProps) {
-  // ⭐ MIRROR EXECUTIVE CLASSIC — SAME DATA SHAPE
+function ModernElite({ data, premiumUnlocked, showWatermark }) {
   const {
     name,
     title,
@@ -27,7 +16,6 @@ export default function ModernElite({
     certifications,
   } = data;
 
-  // ⭐ SIMPLE FALLBACKS
   const fullName = name || "First Last";
   const jobTitle = title || "Professional Title";
 
@@ -40,7 +28,7 @@ export default function ModernElite({
     <div className="relative w-full bg-white text-gray-900 text-[11px] leading-snug">
       <Watermark show={showWatermark} />
 
-      {/* ⭐ MODERN ELITE HEADER — LIGHT GRAY BAR */}
+      {/* HEADER */}
       <div
         className="w-full text-white"
         style={{ backgroundColor: "#4B5563" }}
@@ -62,12 +50,11 @@ export default function ModernElite({
         </div>
       </div>
 
-      {/* ⭐ MODERN ELITE BODY — DISTINCT LAYOUT */}
+      {/* BODY */}
       <div className="max-w-3xl mx-auto px-8 py-6">
         <div className="grid grid-cols-3 gap-8">
           {/* LEFT COLUMN */}
           <div className="col-span-1 space-y-6">
-            {/* SUMMARY */}
             {summary && summary.trim() && (
               <section>
                 <SectionHeader title="Summary" />
@@ -75,12 +62,11 @@ export default function ModernElite({
               </section>
             )}
 
-            {/* SKILLS */}
             {skills && skills.length > 0 && (
               <section>
                 <SectionHeader title="Skills" />
                 <ul className="mt-1 space-y-1">
-                  {skills.map((skill: string, idx: number) => (
+                  {skills.map((skill, idx) => (
                     <li key={idx} className="flex items-start gap-1">
                       <span className="mt-[5px] h-[3px] w-[3px] rounded-full bg-gray-700" />
                       <span>{skill}</span>
@@ -90,12 +76,11 @@ export default function ModernElite({
               </section>
             )}
 
-            {/* CERTIFICATIONS */}
             {certifications && certifications.length > 0 && (
               <section>
                 <SectionHeader title="Certifications" />
                 <ul className="mt-1 space-y-1">
-                  {certifications.map((cert: string, idx: number) => (
+                  {certifications.map((cert, idx) => (
                     <li key={idx} className="flex items-start gap-1">
                       <span className="mt-[5px] h-[3px] w-[3px] rounded-full bg-gray-700" />
                       <span>{cert}</span>
@@ -108,24 +93,22 @@ export default function ModernElite({
 
           {/* RIGHT COLUMN */}
           <div className="col-span-2 space-y-6">
-            {/* EXPERIENCE */}
             {experience && experience.length > 0 && (
               <section>
                 <SectionHeader title="Experience" />
                 <div className="mt-2 space-y-4">
-                  {experience.map((job: any, idx: number) => (
+                  {experience.map((job, idx) => (
                     <ExperienceBlock key={idx} job={job} />
                   ))}
                 </div>
               </section>
             )}
 
-            {/* EDUCATION */}
             {education && education.length > 0 && (
               <section>
                 <SectionHeader title="Education" />
                 <div className="mt-2 space-y-1.5">
-                  {education.map((edu: any, idx: number) => (
+                  {education.map((edu, idx) => (
                     <EducationBlock key={idx} edu={edu} />
                   ))}
                 </div>
@@ -139,10 +122,10 @@ export default function ModernElite({
 }
 
 //
-// ⭐ SUBCOMPONENTS
+// SUBCOMPONENTS
 //
 
-const SectionHeader = ({ title }: { title: string }) => (
+const SectionHeader = ({ title }) => (
   <div className="flex items-center gap-2">
     <h2 className="text-[11px] font-semibold tracking-wide uppercase text-gray-800">
       {title}
@@ -151,7 +134,7 @@ const SectionHeader = ({ title }: { title: string }) => (
   </div>
 );
 
-const ExperienceBlock = ({ job }: { job: any }) => {
+const ExperienceBlock = ({ job }) => {
   const dates =
     job.startDate && job.endDate
       ? `${job.startDate} – ${job.endDate}`
@@ -178,7 +161,7 @@ const ExperienceBlock = ({ job }: { job: any }) => {
 
       {bullets.length > 0 && (
         <ul className="mt-1.5 space-y-0.5">
-          {bullets.map((line: string, idx: number) => (
+          {bullets.map((line, idx) => (
             <li key={idx} className="flex items-start gap-1">
               <span className="mt-[5px] h-[3px] w-[3px] rounded-full bg-gray-700" />
               <span>{line}</span>
@@ -190,7 +173,7 @@ const ExperienceBlock = ({ job }: { job: any }) => {
   );
 };
 
-const EducationBlock = ({ edu }: { edu: any }) => {
+const EducationBlock = ({ edu }) => {
   const location =
     edu.city && edu.state
       ? `${edu.city}, ${edu.state}`
@@ -200,3 +183,5 @@ const EducationBlock = ({ edu }: { edu: any }) => {
 
   return <div className="text-[11px]">{lineParts.join(" | ")}</div>;
 };
+
+module.exports = ModernElite;

@@ -1,21 +1,10 @@
-"use client";
+const React = require("react");
 
-import React from "react";
-import Watermark from "@/components/Watermark";
+// PDF service cannot import from "@/components/..."
+// so we use a simple stub to avoid errors
+const Watermark = ({ show }) => null;
 
-interface TemplateProps {
-  data: any;
-  mode: "preview" | "pdf";
-  premiumUnlocked: boolean;
-  showWatermark: boolean;   // ⭐ NEW
-}
-
-export default function ModernBlue({
-  data,
-  mode,
-  premiumUnlocked,
-  showWatermark,            // ⭐ NEW
-}: TemplateProps) {
+function ModernBlue({ data, mode, premiumUnlocked, showWatermark }) {
   const {
     name,
     title,
@@ -39,7 +28,6 @@ export default function ModernBlue({
         mode === "pdf" ? "text-[12px]" : "text-[14px]"
       } text-neutral-900`}
     >
-      {/* ⭐ FIXED — Watermark now uses showWatermark */}
       <Watermark show={showWatermark} />
 
       {/* HEADER */}
@@ -56,7 +44,6 @@ export default function ModernBlue({
 
       {/* BODY */}
       <div className="p-6 bg-white border border-neutral-300 rounded-b-lg">
-
         {/* SUMMARY */}
         {summary && (
           <section className="mb-6">
@@ -70,7 +57,7 @@ export default function ModernBlue({
           <section className="mb-6">
             <h2 className="text-blue-700 font-semibold text-lg mb-2">Skills</h2>
             <ul className="list-disc ml-5 space-y-1">
-              {skills.map((skill: string, idx: number) => (
+              {skills.map((skill, idx) => (
                 <li key={idx}>{skill}</li>
               ))}
             </ul>
@@ -82,7 +69,7 @@ export default function ModernBlue({
           <section className="mb-6">
             <h2 className="text-blue-700 font-semibold text-lg mb-2">Experience</h2>
             <div className="space-y-4">
-              {experience.map((job: any, idx: number) => (
+              {experience.map((job, idx) => (
                 <div key={idx}>
                   <p className="font-semibold">
                     {job.jobTitle} — {job.company}
@@ -93,7 +80,7 @@ export default function ModernBlue({
 
                   {job.responsibilities?.length > 0 && (
                     <ul className="list-disc ml-5 space-y-1">
-                      {job.responsibilities.map((r: string, i: number) => (
+                      {job.responsibilities.map((r, i) => (
                         <li key={i}>{r}</li>
                       ))}
                     </ul>
@@ -101,7 +88,7 @@ export default function ModernBlue({
 
                   {job.achievements?.length > 0 && (
                     <ul className="list-disc ml-5 space-y-1 mt-2">
-                      {job.achievements.map((a: string, i: number) => (
+                      {job.achievements.map((a, i) => (
                         <li key={i}>{a}</li>
                       ))}
                     </ul>
@@ -117,7 +104,7 @@ export default function ModernBlue({
           <section className="mb-6">
             <h2 className="text-blue-700 font-semibold text-lg mb-2">Education</h2>
             <div className="space-y-3">
-              {education.map((edu: any, idx: number) => (
+              {education.map((edu, idx) => (
                 <div key={idx}>
                   <p className="font-semibold">{edu.school}</p>
                   <p className="text-sm text-neutral-700">{edu.degree}</p>
@@ -135,7 +122,7 @@ export default function ModernBlue({
               Certifications
             </h2>
             <ul className="list-disc ml-5 space-y-1">
-              {certifications.map((cert: string, idx: number) => (
+              {certifications.map((cert, idx) => (
                 <li key={idx}>{cert}</li>
               ))}
             </ul>
@@ -145,3 +132,5 @@ export default function ModernBlue({
     </div>
   );
 }
+
+module.exports = ModernBlue;

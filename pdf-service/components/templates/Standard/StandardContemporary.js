@@ -1,21 +1,10 @@
-"use client";
+const React = require("react");
 
-import React from "react";
-import Watermark from "@/components/Watermark";
+// PDF service cannot import from "@/components/..."
+// so we use a simple stub to avoid errors
+const Watermark = ({ show }) => null;
 
-interface TemplateProps {
-  data: any;
-  mode?: "preview" | "pdf";
-  premiumUnlocked: boolean;
-  showWatermark: boolean;
-}
-
-export default function StandardClassic({
-  data,
-  premiumUnlocked,
-  showWatermark,
-}: TemplateProps) {
-  // ⭐ MIRROR EXECUTIVE CLASSIC — SAME DATA SHAPE
+function StandardContemporary({ data, premiumUnlocked, showWatermark }) {
   const {
     name,
     title,
@@ -27,20 +16,20 @@ export default function StandardClassic({
     certifications,
   } = data;
 
-  // ⭐ SIMPLE FALLBACKS — EXACTLY LIKE EXECUTIVE CLASSIC
   const fullName = name || "First Last";
   const jobTitle = title || "Professional Title";
 
   const location = contact?.location || "";
   const email = contact?.email || "";
   const phone = contact?.phone || "";
+  const linkedin = contact?.linkedin || "";
 
   return (
     <div className="relative w-full bg-white text-gray-900 text-[11px] leading-snug">
       <Watermark show={showWatermark} />
 
-      {/* ⭐ FULL-BLEED TOP BAR — MIRRORED FROM EXECUTIVE CLASSIC */}
-      <div className="w-full bg-gray-900 text-white">
+      {/* HEADER */}
+      <div className="w-full bg-white text-gray-900 border-b border-gray-300">
         <div className="max-w-3xl mx-auto px-6 py-3 flex items-center justify-between gap-4">
           <div className="font-semibold text-[20px] tracking-wide">
             {fullName}
@@ -50,6 +39,7 @@ export default function StandardClassic({
             {location && <div>{location}</div>}
             {email && <div>{email}</div>}
             {phone && <div>{phone}</div>}
+            {linkedin && <div className="break-all">{linkedin}</div>}
           </div>
         </div>
       </div>
@@ -69,7 +59,7 @@ export default function StandardClassic({
           <section>
             <SectionHeader title="Core Skills" />
             <div className="grid grid-cols-2 gap-y-1 gap-x-6 mt-1">
-              {skills.map((skill: string, idx: number) => (
+              {skills.map((skill, idx) => (
                 <div key={idx} className="flex items-start gap-1">
                   <span className="mt-[5px] h-[3px] w-[3px] rounded-full bg-gray-800" />
                   <span>{skill}</span>
@@ -84,7 +74,7 @@ export default function StandardClassic({
           <section>
             <SectionHeader title="Experience" />
             <div className="mt-2 space-y-4">
-              {experience.map((job: any, idx: number) => (
+              {experience.map((job, idx) => (
                 <ExperienceBlock key={idx} job={job} />
               ))}
             </div>
@@ -96,7 +86,7 @@ export default function StandardClassic({
           <section>
             <SectionHeader title="Education" />
             <div className="mt-2 space-y-1.5">
-              {education.map((edu: any, idx: number) => (
+              {education.map((edu, idx) => (
                 <EducationBlock key={idx} edu={edu} />
               ))}
             </div>
@@ -108,7 +98,7 @@ export default function StandardClassic({
           <section>
             <SectionHeader title="Certifications" />
             <ul className="mt-1 space-y-0.5">
-              {certifications.map((cert: string, idx: number) => (
+              {certifications.map((cert, idx) => (
                 <li key={idx} className="flex items-start gap-1">
                   <span className="mt-[5px] h-[3px] w-[3px] rounded-full bg-gray-800" />
                   <span>{cert}</span>
@@ -122,11 +112,7 @@ export default function StandardClassic({
   );
 }
 
-//
-// ⭐ SUBCOMPONENTS — SAME AS EXECUTIVE STYLE
-//
-
-const SectionHeader = ({ title }: { title: string }) => (
+const SectionHeader = ({ title }) => (
   <div className="flex items-center gap-2">
     <h2 className="text-[11px] font-semibold tracking-wide uppercase text-gray-800">
       {title}
@@ -135,7 +121,7 @@ const SectionHeader = ({ title }: { title: string }) => (
   </div>
 );
 
-const ExperienceBlock = ({ job }: { job: any }) => {
+const ExperienceBlock = ({ job }) => {
   const dates =
     job.startDate && job.endDate
       ? `${job.startDate} – ${job.endDate}`
@@ -162,7 +148,7 @@ const ExperienceBlock = ({ job }: { job: any }) => {
 
       {bullets.length > 0 && (
         <ul className="mt-1.5 space-y-0.5">
-          {bullets.map((line: string, idx: number) => (
+          {bullets.map((line, idx) => (
             <li key={idx} className="flex items-start gap-1">
               <span className="mt-[5px] h-[3px] w-[3px] rounded-full bg-gray-800" />
               <span>{line}</span>
@@ -174,7 +160,7 @@ const ExperienceBlock = ({ job }: { job: any }) => {
   );
 };
 
-const EducationBlock = ({ edu }: { edu: any }) => {
+const EducationBlock = ({ edu }) => {
   const location =
     edu.city && edu.state
       ? `${edu.city}, ${edu.state}`
@@ -184,3 +170,5 @@ const EducationBlock = ({ edu }: { edu: any }) => {
 
   return <div className="text-[11px]">{lineParts.join(" | ")}</div>;
 };
+
+module.exports = StandardContemporary;

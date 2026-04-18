@@ -1,20 +1,10 @@
-"use client";
+const React = require("react");
 
-import React from "react";
-import Watermark from "@/components/Watermark";
+// PDF service cannot import from "@/components/..."
+// so we use a simple stub to avoid errors
+const Watermark = ({ show }) => null;
 
-interface TemplateProps {
-  data: any;
-  mode?: "preview" | "pdf";
-  premiumUnlocked: boolean;
-  showWatermark: boolean;   // ⭐ NEW
-}
-
-export default function ExecutiveLuxe({
-  data,
-  premiumUnlocked,
-  showWatermark,            // ⭐ NEW
-}: TemplateProps) {
+function ExecutiveLuxe({ data, premiumUnlocked, showWatermark }) {
   const {
     name,
     title,
@@ -36,7 +26,6 @@ export default function ExecutiveLuxe({
 
   return (
     <div className="relative w-full bg-white text-gray-900 text-[11px] leading-snug flex">
-      {/* ⭐ FIXED — Watermark now uses showWatermark */}
       <Watermark show={showWatermark} />
 
       {/* GOLD SIDEBAR */}
@@ -62,7 +51,7 @@ export default function ExecutiveLuxe({
           <div className="mt-6">
             <SidebarHeader title="Skills" />
             <ul className="mt-2 space-y-1">
-              {skills.map((skill: string, idx: number) => (
+              {skills.map((skill, idx) => (
                 <li key={idx} className="flex items-start gap-1">
                   <span className="mt-[5px] h-[3px] w-[3px] rounded-full bg-black" />
                   <span>{skill}</span>
@@ -76,7 +65,7 @@ export default function ExecutiveLuxe({
           <div className="mt-6">
             <SidebarHeader title="Certifications" />
             <ul className="mt-2 space-y-1">
-              {certifications.map((cert: string, idx: number) => (
+              {certifications.map((cert, idx) => (
                 <li key={idx} className="flex items-start gap-1">
                   <span className="mt-[5px] h-[3px] w-[3px] rounded-full bg-black" />
                   <span>{cert}</span>
@@ -100,7 +89,7 @@ export default function ExecutiveLuxe({
           <section>
             <MainHeader title="Experience" />
             <div className="mt-2 space-y-4">
-              {experience.map((job: any, idx: number) => (
+              {experience.map((job, idx) => (
                 <ExperienceBlock key={idx} job={job} />
               ))}
             </div>
@@ -111,7 +100,7 @@ export default function ExecutiveLuxe({
           <section>
             <MainHeader title="Education" />
             <div className="mt-2 space-y-1.5">
-              {education.map((edu: any, idx: number) => (
+              {education.map((edu, idx) => (
                 <EducationBlock key={idx} edu={edu} />
               ))}
             </div>
@@ -122,19 +111,19 @@ export default function ExecutiveLuxe({
   );
 }
 
-const SidebarHeader = ({ title }: { title: string }) => (
+const SidebarHeader = ({ title }) => (
   <h2 className="text-[11px] font-serif font-semibold uppercase tracking-wide text-gray-900 border-b border-gray-700 pb-1">
     {title}
   </h2>
 );
 
-const MainHeader = ({ title }: { title: string }) => (
+const MainHeader = ({ title }) => (
   <h2 className="text-[12px] font-serif font-semibold uppercase tracking-wide text-gray-900 border-b border-gray-400 pb-1">
     {title}
   </h2>
 );
 
-const ExperienceBlock = ({ job }: { job: any }) => {
+const ExperienceBlock = ({ job }) => {
   const location =
     job.city && job.state
       ? `${job.city}, ${job.state}`
@@ -171,7 +160,7 @@ const ExperienceBlock = ({ job }: { job: any }) => {
 
       {bullets.length > 0 && (
         <ul className="mt-1.5 space-y-0.5">
-          {bullets.map((line: string, idx: number) => (
+          {bullets.map((line, idx) => (
             <li key={idx} className="flex items-start gap-1">
               <span className="mt-[5px] h-[3px] w-[3px] rounded-full bg-black" />
               <span>{line}</span>
@@ -183,7 +172,7 @@ const ExperienceBlock = ({ job }: { job: any }) => {
   );
 };
 
-const EducationBlock = ({ edu }: { edu: any }) => {
+const EducationBlock = ({ edu }) => {
   const location =
     edu.city && edu.state
       ? `${edu.city}, ${edu.state}`
@@ -193,3 +182,5 @@ const EducationBlock = ({ edu }: { edu: any }) => {
 
   return <div className="text-[11px]">{lineParts.join(" | ")}</div>;
 };
+
+module.exports = ExecutiveLuxe;

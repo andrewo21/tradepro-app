@@ -1,20 +1,10 @@
-"use client";
+const React = require("react");
 
-import React from "react";
-import Watermark from "@/components/Watermark";
+// PDF service cannot import from "@/components/..."
+// so we use a simple stub to avoid errors
+const Watermark = ({ show }) => null;
 
-interface TemplateProps {
-  data: any;
-  mode?: "preview" | "pdf";
-  premiumUnlocked: boolean;
-  showWatermark: boolean;   // ⭐ NEW
-}
-
-export default function ExecutiveClassic({
-  data,
-  premiumUnlocked,
-  showWatermark,            // ⭐ NEW
-}: TemplateProps) {
+function ModernProfessional({ data, premiumUnlocked, showWatermark }) {
   const {
     name,
     title,
@@ -27,61 +17,48 @@ export default function ExecutiveClassic({
   } = data;
 
   const fullName = name || "First Last";
-  const jobTitle = title || "Sr. Leader, Project Director";
+  const jobTitle = title || "Professional Title";
 
   const location = contact?.location || "";
   const email = contact?.email || "";
   const phone = contact?.phone || "";
   const linkedin = contact?.linkedin || "";
 
-  const hasContactRight = location || email || phone || linkedin;
-
   return (
-    <div className="relative w-full bg-white text-gray-800 text-[11px] leading-snug">
-      {/* ⭐ FIXED — Watermark now uses showWatermark */}
+    <div className="relative w-full bg-white text-gray-900 text-[11px] leading-snug">
       <Watermark show={showWatermark} />
 
-      {/* FULL-BLEED TOP BAR */}
-      <div className="w-full bg-[#003A70] text-white">
-        <div className="max-w-3xl mx-auto px-6 py-3 flex items-center justify-between gap-4">
-          <div className="font-semibold text-[20px] tracking-wide">
-            {fullName}
-          </div>
+      {/* HEADER */}
+      <div className="text-center py-6 border-b border-gray-300">
+        <h1 className="text-[22px] font-semibold tracking-wide">{fullName}</h1>
+        <p className="text-[12px] text-gray-700 mt-1">{jobTitle}</p>
 
-          {hasContactRight && (
-            <div className="text-[10px] text-right space-y-0.5">
-              {location && <div>{location}</div>}
-              {email && <div>{email}</div>}
-              {phone && <div>{phone}</div>}
-              {linkedin && <div className="break-all">{linkedin}</div>}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* TITLE ROW */}
-      <div className="max-w-3xl mx-auto px-6 pt-3 pb-4 border-b border-[#F28C28] text-center">
-        <div className="text-[12px] font-semibold text-[#0A1F44] tracking-[0.08em] uppercase">
-          {jobTitle}
+        <div className="flex justify-center gap-4 text-[10px] text-gray-600 mt-2">
+          {location && <span>{location}</span>}
+          {email && <span>{email}</span>}
+          {phone && <span>{phone}</span>}
+          {linkedin && <span className="break-all">{linkedin}</span>}
         </div>
       </div>
 
       {/* BODY */}
-      <div className="max-w-3xl mx-auto px-6 py-4 space-y-6">
+      <div className="max-w-3xl mx-auto px-6 py-6 space-y-6">
+        {/* SUMMARY */}
         {summary && summary.trim() && (
           <section>
             <SectionHeader title="Professional Summary" />
-            <p className="text-[11px] mt-1">{summary}</p>
+            <p className="mt-1 text-[11px]">{summary}</p>
           </section>
         )}
 
+        {/* SKILLS */}
         {skills && skills.length > 0 && (
           <section>
-            <SectionHeader title="Core Competencies" />
-            <div className="grid grid-cols-2 gap-x-6 gap-y-1 mt-1">
-              {skills.map((skill: string, idx: number) => (
+            <SectionHeader title="Core Skills" />
+            <div className="grid grid-cols-2 gap-y-1 gap-x-6 mt-1">
+              {skills.map((skill, idx) => (
                 <div key={idx} className="flex items-start gap-1">
-                  <span className="mt-[5px] h-[3px] w-[3px] rounded-full bg-[#F28C28]" />
+                  <span className="mt-[5px] h-[3px] w-[3px] rounded-full bg-gray-800" />
                   <span>{skill}</span>
                 </div>
               ))}
@@ -89,35 +66,38 @@ export default function ExecutiveClassic({
           </section>
         )}
 
+        {/* EXPERIENCE */}
         {experience && experience.length > 0 && (
           <section>
-            <SectionHeader title="Professional Experience" />
-            <div className="mt-2 space-y-3">
-              {experience.map((job: any, idx: number) => (
+            <SectionHeader title="Experience" />
+            <div className="mt-2 space-y-4">
+              {experience.map((job, idx) => (
                 <ExperienceBlock key={idx} job={job} />
               ))}
             </div>
           </section>
         )}
 
+        {/* EDUCATION */}
         {education && education.length > 0 && (
           <section>
             <SectionHeader title="Education" />
             <div className="mt-2 space-y-1.5">
-              {education.map((edu: any, idx: number) => (
+              {education.map((edu, idx) => (
                 <EducationBlock key={idx} edu={edu} />
               ))}
             </div>
           </section>
         )}
 
+        {/* CERTIFICATIONS */}
         {certifications && certifications.length > 0 && (
           <section>
             <SectionHeader title="Certifications" />
             <ul className="mt-1 space-y-0.5">
-              {certifications.map((cert: string, idx: number) => (
+              {certifications.map((cert, idx) => (
                 <li key={idx} className="flex items-start gap-1">
-                  <span className="mt-[5px] h-[3px] w-[3px] rounded-full bg-[#F28C28]" />
+                  <span className="mt-[5px] h-[3px] w-[3px] rounded-full bg-gray-800" />
                   <span>{cert}</span>
                 </li>
               ))}
@@ -129,16 +109,16 @@ export default function ExecutiveClassic({
   );
 }
 
-const SectionHeader = ({ title }: { title: string }) => (
+const SectionHeader = ({ title }) => (
   <div className="flex items-center gap-2">
-    <h2 className="text-[11px] font-semibold tracking-[0.16em] uppercase text-[#003A70]">
+    <h2 className="text-[11px] font-semibold tracking-wide uppercase text-gray-800">
       {title}
     </h2>
     <div className="flex-1 h-px bg-gray-300" />
   </div>
 );
 
-const ExperienceBlock = ({ job }: { job: any }) => {
+const ExperienceBlock = ({ job }) => {
   const location =
     job.city && job.state
       ? `${job.city}, ${job.state}`
@@ -156,11 +136,9 @@ const ExperienceBlock = ({ job }: { job: any }) => {
 
   return (
     <div>
-      <div className="flex justify-between items-baseline gap-2">
+      <div className="flex justify-between items-baseline">
         <div>
-          <div className="font-semibold text-[11px]">
-            {job.jobTitle || "Project Manager"}
-          </div>
+          <div className="font-semibold text-[11px]">{job.jobTitle}</div>
           <div className="text-[10px] text-gray-700">
             {job.company}
             {location && ` | ${location}`}
@@ -175,9 +153,9 @@ const ExperienceBlock = ({ job }: { job: any }) => {
 
       {bullets.length > 0 && (
         <ul className="mt-1.5 space-y-0.5">
-          {bullets.map((line: string, idx: number) => (
+          {bullets.map((line, idx) => (
             <li key={idx} className="flex items-start gap-1">
-              <span className="mt-[5px] h-[3px] w-[3px] rounded-full bg-[#F28C28]" />
+              <span className="mt-[5px] h-[3px] w-[3px] rounded-full bg-gray-800" />
               <span>{line}</span>
             </li>
           ))}
@@ -187,7 +165,7 @@ const ExperienceBlock = ({ job }: { job: any }) => {
   );
 };
 
-const EducationBlock = ({ edu }: { edu: any }) => {
+const EducationBlock = ({ edu }) => {
   const location =
     edu.city && edu.state
       ? `${edu.city}, ${edu.state}`
@@ -197,3 +175,5 @@ const EducationBlock = ({ edu }: { edu: any }) => {
 
   return <div className="text-[11px]">{lineParts.join(" | ")}</div>;
 };
+
+module.exports = ModernProfessional;

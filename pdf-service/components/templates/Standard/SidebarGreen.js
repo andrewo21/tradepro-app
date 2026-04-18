@@ -1,20 +1,10 @@
-"use client";
+const React = require("react");
 
-import React from "react";
-import Watermark from "@/components/Watermark";
+// PDF service cannot import from "@/components/..."
+// so we use a simple stub to avoid errors
+const Watermark = ({ show }) => null;
 
-interface TemplateProps {
-  data: any;
-  mode?: "preview" | "pdf";
-  premiumUnlocked: boolean;
-  showWatermark: boolean; // ⭐ NEW
-}
-
-export default function SidebarGreen({
-  data,
-  premiumUnlocked,
-  showWatermark, // ⭐ NEW
-}: TemplateProps) {
+function SidebarGreen({ data, premiumUnlocked, showWatermark }) {
   const {
     name,
     title,
@@ -36,7 +26,6 @@ export default function SidebarGreen({
 
   return (
     <div className="relative w-full bg-white text-gray-900 text-[11px] leading-snug flex">
-      {/* ⭐ Watermark now uses showWatermark instead of premiumUnlocked */}
       <Watermark show={showWatermark} />
 
       {/* SIDEBAR */}
@@ -58,7 +47,7 @@ export default function SidebarGreen({
           <div className="mt-6">
             <SidebarHeader title="Skills" />
             <ul className="mt-2 space-y-1">
-              {skills.map((skill: string, idx: number) => (
+              {skills.map((skill, idx) => (
                 <li key={idx} className="flex items-start gap-1">
                   <span className="mt-[5px] h-[3px] w-[3px] rounded-full bg-gray-800" />
                   <span>{skill}</span>
@@ -72,7 +61,7 @@ export default function SidebarGreen({
           <div className="mt-6">
             <SidebarHeader title="Certifications" />
             <ul className="mt-2 space-y-1">
-              {certifications.map((cert: string, idx: number) => (
+              {certifications.map((cert, idx) => (
                 <li key={idx} className="flex items-start gap-1">
                   <span className="mt-[5px] h-[3px] w-[3px] rounded-full bg-gray-800" />
                   <span>{cert}</span>
@@ -83,6 +72,7 @@ export default function SidebarGreen({
         )}
       </aside>
 
+      {/* MAIN CONTENT */}
       <main className="w-[68%] p-6 space-y-6">
         {summary && summary.trim() && (
           <section>
@@ -95,7 +85,7 @@ export default function SidebarGreen({
           <section>
             <MainHeader title="Experience" />
             <div className="mt-2 space-y-4">
-              {experience.map((job: any, idx: number) => (
+              {experience.map((job, idx) => (
                 <ExperienceBlock key={idx} job={job} />
               ))}
             </div>
@@ -106,7 +96,7 @@ export default function SidebarGreen({
           <section>
             <MainHeader title="Education" />
             <div className="mt-2 space-y-1.5">
-              {education.map((edu: any, idx: number) => (
+              {education.map((edu, idx) => (
                 <EducationBlock key={idx} edu={edu} />
               ))}
             </div>
@@ -117,19 +107,19 @@ export default function SidebarGreen({
   );
 }
 
-const SidebarHeader = ({ title }: { title: string }) => (
+const SidebarHeader = ({ title }) => (
   <h2 className="text-[11px] font-semibold uppercase tracking-wide text-gray-800 border-b border-gray-400 pb-1">
     {title}
   </h2>
 );
 
-const MainHeader = ({ title }: { title: string }) => (
+const MainHeader = ({ title }) => (
   <h2 className="text-[12px] font-semibold uppercase tracking-wide text-gray-800 border-b border-gray-300 pb-1">
     {title}
   </h2>
 );
 
-const ExperienceBlock = ({ job }: { job: any }) => {
+const ExperienceBlock = ({ job }) => {
   const location =
     job.city && job.state
       ? `${job.city}, ${job.state}`
@@ -164,7 +154,7 @@ const ExperienceBlock = ({ job }: { job: any }) => {
 
       {bullets.length > 0 && (
         <ul className="mt-1.5 space-y-0.5">
-          {bullets.map((line: string, idx: number) => (
+          {bullets.map((line, idx) => (
             <li key={idx} className="flex items-start gap-1">
               <span className="mt-[5px] h-[3px] w-[3px] rounded-full bg-gray-800" />
               <span>{line}</span>
@@ -176,7 +166,7 @@ const ExperienceBlock = ({ job }: { job: any }) => {
   );
 };
 
-const EducationBlock = ({ edu }: { edu: any }) => {
+const EducationBlock = ({ edu }) => {
   const location =
     edu.city && edu.state
       ? `${edu.city}, ${edu.state}`
@@ -186,3 +176,5 @@ const EducationBlock = ({ edu }: { edu: any }) => {
 
   return <div className="text-[11px]">{lineParts.join(" | ")}</div>;
 };
+
+module.exports = SidebarGreen;

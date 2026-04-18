@@ -1,22 +1,10 @@
-"use client";
+const React = require("react");
 
-import React from "react";
-import Watermark from "@/components/Watermark";
+// PDF service cannot import from "@/components/..."
+// so we use a simple stub to avoid errors
+const Watermark = ({ show }) => null;
 
-interface TemplateProps {
-  data: any;
-  mode: "preview" | "pdf";
-  premiumUnlocked: boolean;
-  showWatermark: boolean;   // ⭐ NEW
-}
-
-export default function BasicTwoColumn({
-  data,
-  mode,
-  premiumUnlocked,
-  showWatermark,            // ⭐ NEW
-}: TemplateProps) {
-  // Unified shape destructuring
+function BasicTwoColumn({ data, mode, premiumUnlocked, showWatermark }) {
   const {
     name = "",
     title = "",
@@ -35,7 +23,6 @@ export default function BasicTwoColumn({
         padding: mode === "pdf" ? "0" : undefined,
       }}
     >
-      {/* ⭐ FIXED — Watermark now uses showWatermark */}
       <Watermark show={showWatermark} />
 
       {/* LEFT SIDEBAR */}
@@ -45,7 +32,6 @@ export default function BasicTwoColumn({
           backgroundColor: "#f3f4f6",
         }}
       >
-        {/* Name */}
         <h1 className="text-2xl font-bold leading-tight">{name}</h1>
         <p className="text-sm text-gray-700 mt-1">{title}</p>
 
@@ -66,7 +52,7 @@ export default function BasicTwoColumn({
               Skills
             </h2>
             <ul className="text-sm space-y-1">
-              {skills.map((skill: string, i: number) => (
+              {skills.map((skill, i) => (
                 <li key={i}>• {skill}</li>
               ))}
             </ul>
@@ -80,7 +66,7 @@ export default function BasicTwoColumn({
               Certifications
             </h2>
             <ul className="text-sm space-y-1">
-              {certifications.map((cert: string, i: number) => (
+              {certifications.map((cert, i) => (
                 <li key={i}>• {cert}</li>
               ))}
             </ul>
@@ -107,7 +93,7 @@ export default function BasicTwoColumn({
               Experience
             </h2>
 
-            {experience.map((job: any, i: number) => (
+            {experience.map((job, i) => (
               <div key={i} className="mb-6">
                 <div className="flex justify-between text-sm font-semibold">
                   <span>
@@ -119,22 +105,22 @@ export default function BasicTwoColumn({
                 </div>
 
                 {/* Responsibilities */}
-                {job.responsibilities.length > 0 && (
+                {job.responsibilities && job.responsibilities.length > 0 && (
                   <ul className="list-disc ml-5 mt-2 text-sm text-gray-700 space-y-1">
-                    {job.responsibilities.map((b: string, j: number) => (
+                    {job.responsibilities.map((b, j) => (
                       <li key={j}>{b}</li>
                     ))}
                   </ul>
                 )}
 
                 {/* Achievements */}
-                {job.achievements.length > 0 && (
+                {job.achievements && job.achievements.length > 0 && (
                   <div className="mt-3">
                     <h3 className="text-gray-800 font-semibold text-xs tracking-wide uppercase mb-1">
                       Key Achievements
                     </h3>
                     <ul className="list-disc ml-5 mt-1 text-sm text-gray-700 space-y-1">
-                      {job.achievements.map((a: string, j: number) => (
+                      {job.achievements.map((a, j) => (
                         <li key={j}>{a}</li>
                       ))}
                     </ul>
@@ -152,7 +138,7 @@ export default function BasicTwoColumn({
               Education
             </h2>
 
-            {education.map((edu: any, i: number) => (
+            {education.map((edu, i) => (
               <p key={i} className="text-sm mb-1">
                 {edu.degree}, {edu.school} ({edu.year})
               </p>
@@ -163,3 +149,5 @@ export default function BasicTwoColumn({
     </div>
   );
 }
+
+module.exports = BasicTwoColumn;
