@@ -5,39 +5,35 @@ const path = require("path");
 const satori = require("satori");
 const { Resvg } = require("@resvg/resvg-wasm");
 
-// ✅ renderTemplate is in the SAME folder as this file
+// renderTemplate is in the same folder
 const { buildTemplateTree } = require("./renderTemplate");
 
-// ✅ transformResumeData is still in the root /lib folder
-// __dirname = /pdf-service/lib/pdf
-// ../../../lib/transformResumeData → /lib/transformResumeData.js at repo root
-const transformResumeData = require('../transformResumeData');
-
+// transformResumeData is one folder up from /pdf
+const transformResumeData = require("../transformResumeData");
 
 // PDF dimensions (96 DPI)
 const PAGE_WIDTH = 8.5 * 96;
 const PAGE_HEIGHT = 11 * 96;
 
 // -------------------------------------------------------------
-// FONT PATH (Render + Local + Node-safe)
+// FONT PATHS (Render + Local)
 // -------------------------------------------------------------
 // __dirname = /pdf-service/lib/pdf
-// ../../public/fonts/Inter-Regular.ttf = /pdf-service/public/fonts/Inter-Regular.ttf
-const fontPath = path.join(
-  __dirname,
-  "..",
-  "..",
-  "public",
-  "fonts",
-  "Inter-Regular.ttf"
-);
+// ../../public/fonts/... = /pdf-service/public/fonts/...
+const FONT_DIR = path.join(__dirname, "..", "..", "public", "fonts");
 
-const fontData = fs.readFileSync(fontPath);
+const fontRegularPath = path.join(FONT_DIR, "Inter-Regular.ttf");
+const fontBoldPath = path.join(FONT_DIR, "Inter-Bold.ttf");
+const fontMediumPath = path.join(FONT_DIR, "Inter-Medium.ttf");
+
+// Load fonts
+const fontRegular = fs.readFileSync(fontRegularPath);
+const fontBold = fs.readFileSync(fontBoldPath);
+const fontMedium = fs.readFileSync(fontMediumPath);
 
 // -------------------------------------------------------------
-// STATIC CSS PATH (Render + Local)
+// STATIC CSS PATH
 // -------------------------------------------------------------
-// tailwind.built.css lives in the SAME folder as this file
 const cssPath = path.join(__dirname, "tailwind.built.css");
 const staticCss = fs.readFileSync(cssPath, "utf8");
 
@@ -68,8 +64,20 @@ async function generatePdfFromResume({
     fonts: [
       {
         name: "Inter",
-        data: fontData,
+        data: fontRegular,
         weight: 400,
+        style: "normal",
+      },
+      {
+        name: "Inter",
+        data: fontMedium,
+        weight: 500,
+        style: "normal",
+      },
+      {
+        name: "Inter",
+        data: fontBold,
+        weight: 700,
         style: "normal",
       },
     ],
