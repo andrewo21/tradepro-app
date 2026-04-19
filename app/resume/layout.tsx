@@ -6,8 +6,14 @@ import BundleUpsell from "@/components/BundleUpsell";
 import { ProductId } from "@/lib/pricing";
 import { overrides } from "@/config/overrides";
 
-// ⭐ Client boundary wrapper
-function ClientGate({ allowed, userId, entitlements, children }: any) {
+// Server wrapper for async logic
+async function ResumeGate({ children }: { children: ReactNode }) {
+  const userId = "demo-user";
+  const entitlements = await getUserEntitlements(userId);
+
+  const devOverride = overrides.devMode || overrides.access;
+  const allowed = devOverride || hasResumeAccess(entitlements);
+
   if (!allowed) {
     return <UpsellModal userId={userId} productId={ProductId.RESUME} />;
   }
@@ -20,21 +26,6 @@ function ClientGate({ allowed, userId, entitlements, children }: any) {
   );
 }
 
-export default async function ResumeLayout({ children }: { children: ReactNode }) {
-  const userId = "demo-user";
-  const entitlements = await getUserEntitlements(userId);
-
-  const devOverride = overrides.devMode || overrides.access;
-  const allowed = devOverride || hasResumeAccess(entitlements);
-
-  // ⭐ Server layout returns ONLY server-safe JSX
-  return (
-    <ClientGate
-      allowed={allowed}
-      userId={userId}
-      entitlements={entitlements}
-    >
-      {children}
-    </ClientGate>
-  );
+export default function ResumeLayout({ children }: { children: ReactNode }) {
+  return <ResumeGate>{children}</ResumeGate>;
 }
