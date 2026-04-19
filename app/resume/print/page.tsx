@@ -1,4 +1,4 @@
-"use client";
+
 
 import ResumePreview from "@/components/ResumePreview";
 import type { TemplateKey } from "@/components/templates";
