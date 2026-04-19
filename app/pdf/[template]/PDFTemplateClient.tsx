@@ -2,39 +2,39 @@
 
 import React from "react";
 import dynamic from "next/dynamic";
-import { useResumeStore } from "@/app/store/useResumeStore";   // ⭐ NEW
+import { useResumeStore } from "@/app/store/useResumeStore";
 
 // Dynamically load templates on the client
 const templates = {
   // STANDARD
   "basic-two-column": dynamic(() =>
-    import("@/pdf-service/components/templates/Standard/BasicTwoColumn")
+    import("@/components/templates/Standard/BasicTwoColumn")
   ),
   "modern-blue": dynamic(() =>
-    import("@/pdf-service/components/templates/Standard/ModernBlue")
+    import("@/components/templates/Standard/ModernBlue")
   ),
   "sidebar-green": dynamic(() =>
-    import("@/pdf-service/components/templates/Standard/SidebarGreen")
+    import("@/components/templates/Standard/SidebarGreen")
   ),
   "standard-contemporary": dynamic(() =>
-    import("@/pdf-service/components/templates/Standard/StandardContemporary")
+    import("@/components/templates/Standard/StandardContemporary")
   ),
   "standard-classic": dynamic(() =>
-    import("@/pdf-service/components/templates/Standard/StandardClassic")
-  ), // ⭐ NEW
+    import("@/components/templates/Standard/StandardClassic")
+  ),
 
   // PREMIUM
   "executive-classic": dynamic(() =>
-    import("@/pdf-service/components/templates/premium/ExecutiveClassic")
+    import("@/components/templates/premium/ExecutiveClassic")
   ),
   "executive-luxe": dynamic(() =>
-    import("@/pdf-service/components/templates/premium/ExecutiveLuxe")
+    import("@/components/templates/premium/ExecutiveLuxe")
   ),
   "modern-elite": dynamic(() =>
-    import("@/pdf-service/components/templates/premium/ModernElite")
+    import("@/components/templates/premium/ModernElite")
   ),
   "modern-professional": dynamic(() =>
-    import("@/pdf-service/components/templates/premium/ModernProfessional")
+    import("@/components/templates/premium/ModernProfessional")
   ),
 } as const;
 
@@ -47,7 +47,7 @@ export default function PDFTemplateClient({ templateId }: PDFTemplateClientProps
 
   const [resumeData, setResumeData] = React.useState<any | null>(null);
 
-  // ⭐ NEW — pull watermark flag from store
+  // Pull watermark flag from store
   const showWatermark = useResumeStore((s) => s.showWatermark);
 
   React.useEffect(() => {
@@ -77,7 +77,7 @@ export default function PDFTemplateClient({ templateId }: PDFTemplateClientProps
       <Template
         data={resumeData}
         premiumUnlocked={true}
-        showWatermark={showWatermark}   // ⭐ FIXED
+        showWatermark={showWatermark}
         mode="pdf"
       />
     </div>
