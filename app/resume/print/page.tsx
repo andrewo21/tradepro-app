@@ -45,12 +45,12 @@ function decodePayload(searchParams: URLSearchParams): ResumePayload | null {
 }
 
 export default function PrintPage({
-  searchParams
+  searchParams,
 }: {
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams?: { [key: string]: string | string[] | undefined };
 }) {
   const sp = new URLSearchParams(
-    Object.entries(searchParams).flatMap(([k, v]) =>
+    Object.entries(searchParams ?? {}).flatMap(([k, v]) =>
       Array.isArray(v) ? v.map((vv) => [k, vv]) : [[k, v ?? ""]]
     )
   );
