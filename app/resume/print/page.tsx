@@ -1,3 +1,5 @@
+"use client";
+
 import ResumePreview from "@/components/ResumePreview";
 import type { TemplateKey } from "@/components/templates";
 
@@ -44,13 +46,13 @@ function decodePayload(searchParams: URLSearchParams): ResumePayload | null {
   }
 }
 
-export default function PrintPage({
-  searchParams,
-}: {
-  searchParams?: { [key: string]: string | string[] | undefined };
+export default function PrintPage(props: {
+  searchParams?: Record<string, string | string[] | undefined>;
 }) {
+  const searchParams = props.searchParams ?? {};
+
   const sp = new URLSearchParams(
-    Object.entries(searchParams ?? {}).flatMap(([k, v]) =>
+    Object.entries(searchParams).flatMap(([k, v]) =>
       Array.isArray(v) ? v.map((vv) => [k, vv]) : [[k, v ?? ""]]
     )
   );
