@@ -1,21 +1,51 @@
 import express from "express";
 import cors from "cors";
 
-import coverLetterGenerate from "./routes/coverLetterGenerate.js";
-import exportPdf from "./routes/exportPdf.js";
-import coverLetterSummary from "./routes/coverLetterSummary.js";
+import { generatePdfFromResume } from "./lib/pdf/generatePdf.js";
 
 const app = express();
 app.use(cors());
-app.use(express.json({ limit: "10mb" }));
+app.use(express.json({ limit: "2mb" }));
 
 app.get("/", (req, res) => {
-  res.send("Backend is running");
+  res.send("PDF service is running");
 });
 
-app.use("/cover-letter/generate", coverLetterGenerate);
-app.use("/export/pdf", exportPdf);
-app.use("/cover-letter/summary", coverLetterSummary);
+app.post("/pdf", async (req, res) => {
+  try {
+    const body = req.body || {};
 
-const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+    const templateKey =
+      body.template ||
+      body.templateId ||
+      body.templateKey ||
+      body.selectedTemplate ||
+      body.selectedTemplateId ||
+      null;
+
+    if (!templateKey) {
+      console.error("❌ Missing template key in request body:", body);
+      return res.status(400).json({ error: "Missing template key" });
+    }
+
+    console.log("📄 Using template:", templateKey);
+
+    const pdf = await generatePdfFromResume({
+      templateKey,
+      rawResumeData: body,
+      premiumUnlocked: body.premiumUnlocked ?? false,
+      showWatermark: !body.premiumUnlocked,
+    });
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.send(pdf);
+  } catch (err) {
+    console.error("❌ PDF generation error:", err);
+    res.status(500).json({ error: "PDF generation failed" });
+  }
+});
+
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
+  console.log("PDF service running on port", PORT);
+});

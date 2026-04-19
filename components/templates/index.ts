@@ -1,22 +1,22 @@
-// STANDARD TEMPLATES
-import BasicTwoColumn from "../../pdf-service/components/templates/Standard/BasicTwoColumn";
-import ModernBlue from "../../pdf-service/components/templates/Standard/ModernBlue";
-import SidebarGreen from "../../pdf-service/components/templates/Standard/SidebarGreen";
-import StandardContemporary from "../../pdf-service/components/templates/Standard/StandardContemporary";
-import StandardClassic from "../../pdf-service/components/templates/Standard/StandardClassic"; // ⭐ NEW
+// STANDARD TEMPLATES (React preview components)
+import BasicTwoColumn from "./Standard/BasicTwoColumn";
+import ModernBlue from "./Standard/ModernBlue";
+import SidebarGreen from "./Standard/SidebarGreen";
+import StandardContemporary from "./Standard/StandardContemporary";
+import StandardClassic from "./Standard/StandardClassic";
 
-// PREMIUM TEMPLATES
-import ExecutiveClassic from "../../pdf-service/components/templates/premium/ExecutiveClassic";
-import ExecutiveLuxe from "../../pdf-service/components/templates/premium/ExecutiveLuxe";
-import ModernElite from "../../pdf-service/components/templates/premium/ModernElite";
-import ModernProfessional from "../../pdf-service/components/templates/premium/ModernProfessional";
+// PREMIUM TEMPLATES (React preview components)
+import ExecutiveClassic from "./premium/ExecutiveClassic";
+import ExecutiveLuxe from "./premium/ExecutiveLuxe";
+import ModernElite from "./premium/ModernElite";
+import ModernProfessional from "./premium/ModernProfessional";
 
 /**
  * TEMPLATE REGISTRY
  * Single source of truth for:
  * - Template selection
  * - Preview rendering
- * - PDF rendering
+ * - PDF rendering (handled separately in pdf-service)
  * - Premium gating
  */
 
@@ -46,7 +46,7 @@ export const templates = {
     name: "Standard Classic",
     component: StandardClassic,
     premium: false,
-  }, // ⭐ NEW
+  },
 
   // PREMIUM
   "executive-classic": {
@@ -74,8 +74,7 @@ export const templates = {
 export type TemplateKey = keyof typeof templates;
 
 /**
- * OPTIONAL: Template metadata (layout, accent, etc.)
- * Useful for UI, filtering, future features.
+ * OPTIONAL: Template metadata
  */
 
 export const templateMeta: Record<
@@ -117,7 +116,7 @@ export const templateMeta: Record<
     layout: "single-column",
     accent: "neutral",
     premium: false,
-  }, // ⭐ NEW
+  },
 
   // PREMIUM
   "executive-classic": {
