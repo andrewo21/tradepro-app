@@ -1,5 +1,3 @@
-
-
 import ResumePreview from "@/components/ResumePreview";
 import type { TemplateKey } from "@/components/templates";
 
@@ -46,11 +44,11 @@ function decodePayload(searchParams: URLSearchParams): ResumePayload | null {
   }
 }
 
-export default function PrintPage(props: {
-  searchParams?: Record<string, string | string[] | undefined>;
+export default function PrintPage({
+  searchParams,
+}: {
+  searchParams: Record<string, string | string[] | undefined>;
 }) {
-  const searchParams = props.searchParams ?? {};
-
   const sp = new URLSearchParams(
     Object.entries(searchParams).flatMap(([k, v]) =>
       Array.isArray(v) ? v.map((vv) => [k, vv]) : [[k, v ?? ""]]
@@ -70,20 +68,13 @@ export default function PrintPage(props: {
   const { template, premiumUnlocked, ...cleanData } = payload;
 
   return (
-    <html>
-      <head>
-        <title>Resume Print</title>
-      </head>
-      <body className="bg-white text-neutral-900">
-        <div className="w-[800px] mx-auto my-8">
-          <ResumePreview
-            template={template}
-            data={cleanData}
-            mode="pdf"
-            premiumUnlocked={premiumUnlocked}
-          />
-        </div>
-      </body>
-    </html>
+    <div className="bg-white text-neutral-900 w-[800px] mx-auto my-8">
+      <ResumePreview
+        template={template}
+        data={cleanData}
+        mode="pdf"
+        premiumUnlocked={premiumUnlocked}
+      />
+    </div>
   );
 }
