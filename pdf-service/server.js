@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
-import { chromium } from "@playwright/test";
+import { chromium } from "playwright";
+
 
 const app = express();
 const PORT = process.env.PORT || 4000;
