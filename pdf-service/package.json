@@ -4,8 +4,8 @@
   "main": "server.js",
   "type": "module",
   "scripts": {
-    "start": "node server.js"
-    
+    "start": "node server.js",
+    "install-browsers": "node node_modules/playwright/cli.js install --with-deps chromium"
   },
   "dependencies": {
     "cors": "^2.8.5",
