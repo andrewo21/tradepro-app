@@ -95,7 +95,7 @@ export default function PreviewPage() {
   };
 
   // -----------------------------
-  // PDF GENERATION
+  // PDF GENERATION (FIXED)
   // -----------------------------
   const handleGeneratePDF = async () => {
     const payload = {
@@ -104,7 +104,9 @@ export default function PreviewPage() {
       ...cleanData,
     };
 
-    const res = await fetch("/api/export/pdf", {
+    const pdfUrl = `${process.env.NEXT_PUBLIC_PDF_SERVICE_URL}/api/export/pdf`;
+
+    const res = await fetch(pdfUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -140,12 +142,6 @@ export default function PreviewPage() {
 
       <h1 className="text-2xl font-semibold mb-6">Final Preview</h1>
 
-      {/* 
-        STABLE PREVIEW CONTAINER
-        - relative: anchors watermark
-        - overflow-visible: prevents clipping
-        - p-0: removes padding that offsets watermark
-      */}
       <div className="relative bg-white rounded-lg shadow p-0 overflow-visible">
         <ResumePreview
           template={template}
