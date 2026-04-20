@@ -104,14 +104,21 @@ export default function PreviewPage() {
       ...cleanData,
     };
 
-    const pdfUrl = `${process.env.NEXT_PUBLIC_PDF_SERVICE_URL}/api/export/pdf`;
+    // Encode payload for print URL
+    const base64 = Buffer.from(JSON.stringify(payload), "utf8").toString("base64");
+    const encoded = encodeURIComponent(base64);
+
+    const printUrl = `${process.env.NEXT_PUBLIC_SITE}/resume/print?payload=${encoded}`;
+
+    // Correct Render endpoint: /pdf
+    const pdfUrl = `${process.env.NEXT_PUBLIC_PDF_SERVICE_URL}/pdf`;
 
     const res = await fetch(pdfUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ url: printUrl }),
     });
 
     if (!res.ok) {
