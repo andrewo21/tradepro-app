@@ -14,12 +14,14 @@ export async function POST(req: NextRequest) {
 
     const payload = await req.json();
 
+    // Encode payload for print URL
     const base64 = Buffer.from(JSON.stringify(payload), "utf8").toString("base64");
     const encoded = encodeURIComponent(base64);
 
     const printUrl = `${SITE_URL}/resume/print?payload=${encoded}`;
 
-    const pdfRes = await fetch(`${PDF_SERVICE_URL}/api/export/pdf`, {
+    // Correct Render endpoint
+    const pdfRes = await fetch(`${PDF_SERVICE_URL}/pdf`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ url: printUrl })
