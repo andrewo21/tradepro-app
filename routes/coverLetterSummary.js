@@ -7,7 +7,7 @@ const router = express.Router();
 const upload = multer();
 
 router.post("/", upload.single("file"), async (req, res) => {
-  // Move initialization here
+  // MOVED INSIDE: This prevents the crash on startup
   const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
   try {
@@ -19,9 +19,7 @@ router.post("/", upload.single("file"), async (req, res) => {
     const text = pdfData.text;
 
     const prompt = `
-Rewrite the following resume text into a concise, professional summary.
-Return ONLY the summary text.
-Resume text:
+Rewrite this resume text into a professional summary:
 ${text}
 `;
 
@@ -31,11 +29,9 @@ ${text}
       temperature: 0.5,
     });
 
-    const summary =
-      completion.choices?.[0]?.message?.content?.trim() ||
-      "Unable to generate summary.";
-
+    const summary = completion.choices?.[0]?.message?.content?.trim() || "Unable to generate summary.";
     res.json({ summary });
+
   } catch (err) {
     console.error("SUMMARY ERROR:", err);
     res.status(500).json({ error: "Failed to summarize resume" });

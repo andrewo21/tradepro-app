@@ -4,45 +4,22 @@ import OpenAI from "openai";
 const router = express.Router();
 
 router.post("/", async (req, res) => {
-  // Move initialization here so it waits for the key to be loaded
+  // MOVED INSIDE: This prevents the crash on startup
   const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
   
   try {
     const data = req.body;
 
     const prompt = `
-Write a professional cover letter using the following information.
-
-IMPORTANT:
-- DO NOT include the date at the top. The PDF generator will add it.
-- DO NOT include a closing or signature. The PDF generator will add it. 
-- DO NOT include the applicant's contact information block. The PDF generator will add it.
-- Start directly with the hiring manager/company block.
-- Then the salutation.
-- Then the body of the letter.
-- End with a professional closing.
-
-Applicant Information:
+Write a professional cover letter for:
 Name: ${data.applicantName}
-Email: ${data.applicantEmail}
-Phone: ${data.applicantPhone}
-City/State/Zip: ${data.applicantCityStateZip}
-LinkedIn: ${data.applicantLinkedIn || ""}
-
-Date: ${data.date}
-
-Hiring Manager: ${data.hiringManager}
-Company: ${data.companyName}
-Company Address: ${data.companyAddress}
-Company City/State/Zip: ${data.companyCityStateZip}
-
 Job Title: ${data.jobTitle}
-Tone: ${data.tone}
-Experience Summary: ${data.experience}
+Experience: ${data.experience}
 
-Salutation Style: ${data.salutationStyle}
-
-Write the full cover letter now using the structure and rules above.
+Rules:
+- Professional tone.
+- 250-300 words.
+- Standard business format.
 `;
 
     const completion = await client.chat.completions.create({
@@ -54,11 +31,9 @@ Write the full cover letter now using the structure and rules above.
       temperature: 0.7,
     });
 
-    const letter =
-      completion.choices?.[0]?.message?.content?.trim() ||
-      "Unable to generate letter.";
-
+    const letter = completion.choices?.[0]?.message?.content?.trim() || "Unable to generate letter.";
     res.json({ letter });
+
   } catch (err) {
     console.error("LETTER ERROR:", err);
     res.status(500).json({ error: "Failed to generate letter" });
