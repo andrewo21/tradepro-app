@@ -40,7 +40,8 @@ export async function POST(req: NextRequest) {
     console.log("Base64 payload:", base64);
     console.log("Encoded payload:", encoded);
 
-    const printUrl = `${SITE_URL}/resume/print?payload=${encoded}`;
+    const printUrl = `${SITE_URL}/pdf/template?payload=${encoded}`;
+
     console.log("Final print URL:", printUrl);
 
     // Call PDFShift
