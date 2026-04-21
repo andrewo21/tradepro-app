@@ -1,56 +1,37 @@
 import express from "express";
 import cors from "cors";
-import fetch from "node-fetch"; // if you're on Node < 18; on Node 18+ you can use global fetch
+import dotenv from "dotenv";
+
+// 1. IMPORT ALL YOUR ROUTE FILES
+import coverLetterGenerate from "./routes/coverLetterGenerate.js";
+import coverLetterSummary from "./routes/coverLetterSummary.js";
+import exportPdf from "./routes/exportPdf.js";
+
+dotenv.config();
 
 const app = express();
-app.use(cors());
-app.use(express.json({ limit: "2mb" }));
+
+// 2. FIX CORS: This tells Render to trust your website domain
+app.use(cors({
+  origin: ["https://tradeprotech.ai", "https://tradeprotech.ai"],
+  methods: ["GET", "POST"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
+
+// Increase limits for resume uploads
+app.use(express.json({ limit: "10mb" }));
+
+// 3. FIX 404: Map your Route Files to the URLs the website is calling
+// These MUST match the fetch() calls in your Vercel frontend
+app.use("/api/cover-letter/generate", coverLetterGenerate);
+app.use("/api/cover-letter/summary", coverLetterSummary);
+app.use("/api/export/pdf", exportPdf);
 
 app.get("/", (req, res) => {
-  res.send("PDF service is running");
-});
-
-app.post("/pdf", async (req, res) => {
-  try {
-    const body = req.body || {};
-    const url = body.url;
-
-    if (!url) {
-      console.error("❌ Missing url in request body:", body);
-      return res.status(400).json({ error: "Missing url" });
-    }
-
-    console.log("📄 Generating PDF for URL:", url);
-
-    // ---- PDF provider call (example: PDFShift) ----
-    const pdfRes = await fetch("https://api.pdfshift.io/v3/convert/pdf", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization:
-          "Basic " +
-          Buffer.from(process.env.PDFSHIFT_API_KEY + ":").toString("base64"),
-      },
-      body: JSON.stringify({ source: url }),
-    });
-
-    if (!pdfRes.ok) {
-      const errText = await pdfRes.text();
-      console.error("❌ PDF provider error:", errText);
-      return res.status(500).json({ error: "PDF provider failed" });
-    }
-
-    const pdfBuffer = Buffer.from(await pdfRes.arrayBuffer());
-
-    res.setHeader("Content-Type", "application/pdf");
-    res.send(pdfBuffer);
-  } catch (err) {
-    console.error("❌ PDF generation error:", err);
-    res.status(500).json({ error: "PDF generation failed" });
-  }
+  res.send("TradePro API is Live and Connected");
 });
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-  console.log("PDF service running on port", PORT);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
