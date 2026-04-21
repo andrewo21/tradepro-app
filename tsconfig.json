@@ -37,7 +37,7 @@
     "**/*.mts",
     "app/components/templates/ModernBlue.tsx",
     "app/api/generate/route.ts",
-    "next.config.mjs"
+    "next.config.cjs"
   ],
   "exclude": [
     "node_modules"
