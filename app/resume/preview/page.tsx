@@ -95,54 +95,55 @@ export default function PreviewPage() {
   };
 
   // -----------------------------
-  // PDF GENERATION (FIXED)
+  // PDF GENERATION (PDFSHIFT)
   // -----------------------------
   const handleGeneratePDF = async () => {
-  // 1. Build the payload
-  const payload = {
-    template,
-    premiumUnlocked,
-    ...cleanData,
+    try {
+      // 1. Build payload
+      const payload = {
+        template,
+        premiumUnlocked,
+        ...cleanData,
+      };
+
+      // 2. Encode payload
+      const json = JSON.stringify(payload);
+      const base64 = btoa(unescape(encodeURIComponent(json)));
+      const encoded = encodeURIComponent(base64);
+
+      // 3. Next.js PDF page URL
+      const printUrl = `${process.env.NEXT_PUBLIC_SITE}/pdf/template?payload=${encoded}`;
+
+      // 4. PDFShift proxy service on Render
+      const pdfUrl = `${process.env.NEXT_PUBLIC_PDF_SERVICE_URL}/pdf`;
+
+      // 5. Call PDF service
+      const res = await fetch(pdfUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: printUrl }),
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        console.error("PDF generation failed:", text);
+        return;
+      }
+
+      // 6. Download PDF
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "resume.pdf";
+      a.click();
+
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("PDF generation error:", err);
+    }
   };
-
-  // 2. Browser-safe base64 encoding
-  const json = JSON.stringify(payload);
-  const base64 = btoa(unescape(encodeURIComponent(json)));
-  const encoded = encodeURIComponent(base64);
-
-  // 3. NEW print URL: use the Next.js PDF route
-  const printUrl = `${process.env.NEXT_PUBLIC_SITE}/pdf/template?payload=${encoded}`;
-
-  // 4. PDF microservice endpoint (your existing PDF service URL)
-  const pdfUrl = `${process.env.NEXT_PUBLIC_PDF_SERVICE_URL}/pdf`;
-
-  // 5. Call the PDF service with the print URL
-  const res = await fetch(pdfUrl, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ url: printUrl }),
-  });
-
-  if (!res.ok) {
-    const text = await res.text();
-    console.error("PDF generation failed:", text);
-    return;
-  }
-
-  // 6. Download the resulting PDF
-  const blob = await res.blob();
-  const url = URL.createObjectURL(blob);
-
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "resume.pdf";
-  a.click();
-
-  URL.revokeObjectURL(url);
-};
-
 
   // -----------------------------
   // RENDER
