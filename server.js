@@ -2,14 +2,15 @@ import 'dotenv/config';
 import express from "express";
 import cors from "cors";
 
-// Import your route files
+// 1. IMPORT YOUR ROUTE FILES
+// Ensure these names match your files in the /routes folder exactly
 import coverLetterGenerate from "./routes/coverLetterGenerate.js";
 import coverLetterSummary from "./routes/coverLetterSummary.js";
 import exportPdf from "./routes/exportPdf.js";
 
 const app = express();
 
-// 1. FIX CORS: This must include the "www" version of your site from the screenshot
+// 2. FIX CORS: This must match the 'www' origin in your screenshot error
 app.use(cors({
   origin: ["https://tradeprotech.ai", "https://tradeprotech.ai"],
   methods: ["GET", "POST"],
@@ -18,8 +19,8 @@ app.use(cors({
 
 app.use(express.json({ limit: "10mb" }));
 
-// 2. FIX 404: Matching the EXACT URL in your error message
-// Your screenshot shows the site calling "/api/cover-letter/upload-resume"
+// 3. FIX 404: Mapping the EXACT URL in your error message
+// This connects the "/api/cover-letter/upload-resume" call to your summary logic
 app.use("/api/cover-letter", coverLetterGenerate);
 app.use("/api/cover-letter/upload-resume", coverLetterSummary);
 app.use("/api/export/pdf", exportPdf);
