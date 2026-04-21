@@ -29,36 +29,29 @@ export async function POST(req) {
     let completion;
     try {
       completion = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: "gpt-4o", // Mudado para gpt-4o para melhor raciocínio e tradução
         messages: [
           {
             role: "system",
             content: `
-You are a professional resume rewriting engine for blue‑collar and skilled‑trade workers.
+You are a professional Resume Expert specializing in skilled trades and blue-collar industries. 
+Your goal is to transform raw, simple, or multilingual input into a compelling, high-impact professional summary in English.
 
-Your job is to:
-1. Detect the input language EVERY time.
-2. If the text is not English, ALWAYS translate it into English FIRST.
-3. Rewrite the text into a polished, professional, industry‑appropriate resume summary.
-4. NEVER add new responsibilities, achievements, metrics, or duties.
-5. NEVER exaggerate or invent anything.
-6. ALWAYS output clean, professional English only.
+STRICT RULES:
+1. LANGUAGE: Detect the input language. If it is NOT English (Portuguese, Spanish, etc.), translate it to professional English first.
+2. REWRITING: Do not just repeat the user's words. Use strong action verbs and industry-standard terminology (e.g., instead of "cleaner", use "Sanitation Specialist" or "Maintenance Professional").
+3. FORMAT: Output ONLY the final summary text. No conversational filler, no quotes, no "Here is your summary".
+4. TONE: Maintain a hardworking, reliable, and professional tone suitable for the Trade Pro Tech brand.
+5. CONSTRAINTS: While you should polish the language, do not invent certifications or years of experience not mentioned in the text.
 
-If the meaning is unclear, translate literally and rewrite into the closest accurate professional phrasing.
-
-Examples of multilingual input you MUST translate:
-- Portuguese → "Experiência em limpeza e organização" → "Experienced in residential cleaning and organization."
-- Spanish → "Experto en mantenimiento general" → "Skilled in general maintenance and repair tasks."
-- French → "Compétences en peinture et rénovation" → "Experienced in painting and basic renovation work."
-- Arabic → "خبرة في صيانة المباني" → "Experienced in building maintenance and upkeep."
-- Tagalog → "May karanasan sa paglilinis" → "Experienced in residential and commercial cleaning."
-
-Return ONLY the rewritten English text.
+Example:
+Input: "Trabalhei 5 anos limpando casas e sei organizar tudo."
+Output: "Dedicated Cleaning Professional with 5 years of experience in residential sanitation and organizational management, committed to maintaining high standards of cleanliness and efficiency."
             `,
           },
           { role: "user", content: text },
         ],
-        temperature: 0.3,
+        temperature: 0.7, // Aumentado para permitir que a IA realmente "reescreva" em vez de apenas copiar
       });
     } catch (err) {
       console.error("OpenAI error:", err);
@@ -68,7 +61,7 @@ Return ONLY the rewritten English text.
       );
     }
 
-    const rewritten = completion?.choices?.[0]?.message?.content || "";
+    const rewritten = completion?.choices?.[0]?.message?.content?.trim() || "";
 
     return NextResponse.json({ rewritten });
   } catch (e) {

@@ -46,14 +46,14 @@ export default function CoverLetterPage() {
 
   if (!canAccess) {
     return (
-      <div className="max-w-2xl mx-auto py-10">
-        <h1 className="text-2xl font-bold mb-4">Cover Letter Builder</h1>
+      <div className="max-w-2xl mx-auto py-10 text-center">
+        <h1 className="text-2xl font-bold mb-4 text-slate-800">Cover Letter Builder</h1>
         <p className="text-gray-600 mb-6">
           You don’t have access to the Cover Letter Builder yet.
         </p>
         <Link
           href="/pricing"
-          className="px-4 py-2 bg-blue-600 text-white rounded-md"
+          className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
         >
           Unlock Access
         </Link>
@@ -61,291 +61,168 @@ export default function CoverLetterPage() {
     );
   }
 
+  // 1. Fixed Summary Generation (Now using local API)
   const handleGenerateSummary = async () => {
     if (!resumeFile) return;
-
     setLoadingSummary(true);
 
-    const formData = new FormData();
-    formData.append("file", resumeFile);
+    try {
+      const formData = new FormData();
+      formData.append("file", resumeFile);
 
-    const res = await fetch(
-      "https://tradepro-app.onrender.com/cover-letter/summary",
-      {
+      // Changed from hardcoded Render URL to local API route
+      const res = await fetch("/api/cover-letter/upload-resume", {
         method: "POST",
         body: formData,
+      });
+
+      const data = await res.json();
+      if (data.summary) {
+        setField("experience", data.summary);
       }
-    );
-
-    const data = await res.json();
-
-    if (data.summary) {
-      setField("experience", data.summary);
+    } catch (err) {
+      console.error("Summary error:", err);
+      alert("Failed to read resume. Please check your connection.");
+    } finally {
+      setLoadingSummary(false);
     }
-
-    setLoadingSummary(false);
   };
 
+  // 2. Fixed Letter Generation (Now using local API)
   const handleGenerateLetter = async () => {
     setLoadingLetter(true);
 
-    const payload = {
-      applicantName,
-      applicantAddress,
-      applicantCityStateZip,
-      applicantEmail,
-      applicantPhone,
-      applicantLinkedIn,
-      date,
-      hiringManager,
-      companyName,
-      companyAddress,
-      companyCityStateZip,
-      jobTitle,
-      tone,
-      experience,
-      salutationStyle,
-    };
+    try {
+      const payload = {
+        applicantName, applicantAddress, applicantCityStateZip,
+        applicantEmail, applicantPhone, applicantLinkedIn,
+        date, hiringManager, companyName, companyAddress,
+        companyCityStateZip, jobTitle, tone, experience, salutationStyle,
+      };
 
-    const res = await fetch(
-      "https://tradepro-app.onrender.com/cover-letter/generate",
-      {
+      // Changed from hardcoded Render URL to local API route
+      const res = await fetch("/api/cover-letter", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      if (data.letter) {
+        setGeneratedLetter(data.letter);
       }
-    );
-
-    const data = await res.json();
-
-    if (data.letter) {
-      setGeneratedLetter(data.letter);
+    } catch (err) {
+      console.error("Letter generation error:", err);
+      alert("Failed to generate letter. Please try again.");
+    } finally {
+      setLoadingLetter(false);
     }
-
-    setLoadingLetter(false);
   };
 
-  // ⭐ UPDATED EXPORT FUNCTION (blue header support)
+  // 3. Fixed PDF Export (Now using local API)
   const handleExportPDF = async () => {
+    if (!generatedLetter) {
+      alert("Please generate a letter first.");
+      return;
+    }
     setLoadingPDF(true);
 
-    const payload = {
-      applicantName,
-      applicantCityStateZip,
-      applicantEmail,
-      applicantPhone,
-      applicantLinkedIn,
-      date,
-      letter: generatedLetter,
-    };
+    try {
+      const payload = {
+        applicantName, applicantCityStateZip, applicantEmail,
+        applicantPhone, applicantLinkedIn, date,
+        letter: generatedLetter,
+      };
 
-    const res = await fetch(
-      "https://tradepro-app.onrender.com/export/pdf",
-      {
+      // Changed from hardcoded Render URL to local API route
+      const res = await fetch("/api/export/pdf", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
-      }
-    );
+      });
 
-    const blob = await res.blob();
-    const url = window.URL.createObjectURL(blob);
+      if (!res.ok) throw new Error("PDF Generation Failed");
 
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "cover-letter.pdf";
-    a.click();
-
-    window.URL.revokeObjectURL(url);
-
-    setLoadingPDF(false);
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Cover-Letter-${applicantName.replace(/\s+/g, '-')}.pdf`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("PDF error:", err);
+      alert("Could not generate PDF. Please try again later.");
+    } finally {
+      setLoadingPDF(false);
+    }
   };
 
   return (
-    <div className="max-w-3xl mx-auto py-10 space-y-10">
-      <h1 className="text-3xl font-bold">Cover Letter Builder</h1>
+    <div className="max-w-3xl mx-auto py-10 px-4 space-y-10">
+      <h1 className="text-3xl font-bold text-slate-900 border-b pb-4">Cover Letter Builder</h1>
 
       {/* Applicant Info */}
-      <section className="space-y-4">
-        <h2 className="text-xl font-semibold">Applicant Information</h2>
-
-        <input
-          className="w-full border p-2 rounded"
-          placeholder="Full Name"
-          value={applicantName}
-          onChange={(e) => setField("applicantName", e.target.value)}
-        />
-
-        <input
-          className="w-full border p-2 rounded"
-          placeholder="Address"
-          value={applicantAddress}
-          onChange={(e) => setField("applicantAddress", e.target.value)}
-        />
-
-        <input
-          className="w-full border p-2 rounded"
-          placeholder="City, State ZIP"
-          value={applicantCityStateZip}
-          onChange={(e) => setField("applicantCityStateZip", e.target.value)}
-        />
-
-        <input
-          className="w-full border p-2 rounded"
-          placeholder="Email"
-          value={applicantEmail}
-          onChange={(e) => setField("applicantEmail", e.target.value)}
-        />
-
-        <input
-          className="w-full border p-2 rounded"
-          placeholder="Phone"
-          value={applicantPhone}
-          onChange={(e) => setField("applicantPhone", e.target.value)}
-        />
-
-        <input
-          className="w-full border p-2 rounded"
-          placeholder="LinkedIn URL"
-          value={applicantLinkedIn}
-          onChange={(e) => setField("applicantLinkedIn", e.target.value)}
-        />
-
-        <input
-          className="w-full border p-2 rounded"
-          placeholder="Date"
-          value={date}
-          onChange={(e) => setField("date", e.target.value)}
-        />
+      <section className="space-y-4 bg-white p-6 rounded-xl shadow-sm border">
+        <h2 className="text-xl font-semibold text-blue-600">Applicant Information</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <input className="border p-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Full Name" value={applicantName} onChange={(e) => setField("applicantName", e.target.value)} />
+          <input className="border p-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Email" value={applicantEmail} onChange={(e) => setField("applicantEmail", e.target.value)} />
+          <input className="border p-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Address" value={applicantAddress} onChange={(e) => setField("applicantAddress", e.target.value)} />
+          <input className="border p-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="City, State ZIP" value={applicantCityStateZip} onChange={(e) => setField("applicantCityStateZip", e.target.value)} />
+          <input className="border p-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Phone" value={applicantPhone} onChange={(e) => setField("applicantPhone", e.target.value)} />
+          <input className="border p-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="LinkedIn URL" value={applicantLinkedIn} onChange={(e) => setField("applicantLinkedIn", e.target.value)} />
+          <input className="border p-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" type="date" value={date} onChange={(e) => setField("date", e.target.value)} />
+        </div>
       </section>
 
       {/* Employer Info */}
-      <section className="space-y-4">
-        <h2 className="text-xl font-semibold">Employer Information</h2>
-
-        <input
-          className="w-full border p-2 rounded"
-          placeholder="Hiring Manager"
-          value={hiringManager}
-          onChange={(e) => setField("hiringManager", e.target.value)}
-        />
-
-        <input
-          className="w-full border p-2 rounded"
-          placeholder="Company Name"
-          value={companyName}
-          onChange={(e) => setField("companyName", e.target.value)}
-        />
-
-        <input
-          className="w-full border p-2 rounded"
-          placeholder="Company Address"
-          value={companyAddress}
-          onChange={(e) => setField("companyAddress", e.target.value)}
-        />
-
-        <input
-          className="w-full border p-2 rounded"
-          placeholder="City, State ZIP"
-          value={companyCityStateZip}
-          onChange={(e) => setField("companyCityStateZip", e.target.value)}
-        />
+      <section className="space-y-4 bg-white p-6 rounded-xl shadow-sm border">
+        <h2 className="text-xl font-semibold text-blue-600">Employer Information</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <input className="border p-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Hiring Manager" value={hiringManager} onChange={(e) => setField("hiringManager", e.target.value)} />
+          <input className="border p-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Company Name" value={companyName} onChange={(e) => setField("companyName", e.target.value)} />
+          <input className="border p-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Company Address" value={companyAddress} onChange={(e) => setField("companyAddress", e.target.value)} />
+          <input className="border p-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="City, State ZIP" value={companyCityStateZip} onChange={(e) => setField("companyCityStateZip", e.target.value)} />
+        </div>
       </section>
 
-      {/* Job Details */}
-      <section className="space-y-4">
-        <h2 className="text-xl font-semibold">Job Details</h2>
-
-        <input
-          className="w-full border p-2 rounded"
-          placeholder="Job Title"
-          value={jobTitle}
-          onChange={(e) => setField("jobTitle", e.target.value)}
-        />
-
-        <select
-          className="w-full border p-2 rounded"
-          value={tone}
-          onChange={(e) => setField("tone", e.target.value)}
-        >
-          <option>Professional</option>
-          <option>Friendly</option>
-          <option>Confident</option>
-          <option>Formal</option>
-        </select>
-
-        <select
-          className="w-full border p-2 rounded"
-          value={salutationStyle}
-          onChange={(e) => setField("salutationStyle", e.target.value)}
-        >
-          <option value="A">Dear Hiring Manager,</option>
-          <option value="B">Dear [Name],</option>
-          <option value="C">To Whom It May Concern,</option>
-        </select>
-      </section>
-
-      {/* Experience Summary */}
-      <section className="space-y-4">
-        <h2 className="text-xl font-semibold">Experience Summary</h2>
-
-        <input
-          type="file"
-          accept="application/pdf"
-          onChange={(e) => {
+      {/* Job & Experience */}
+      <section className="space-y-4 bg-white p-6 rounded-xl shadow-sm border">
+        <h2 className="text-xl font-semibold text-blue-600">Job Details & Experience</h2>
+        <input className="w-full border p-3 rounded-lg mb-4" placeholder="Job Title" value={jobTitle} onChange={(e) => setField("jobTitle", e.target.value)} />
+        
+        <div className="flex flex-col space-y-2">
+          <label className="text-sm font-medium text-gray-700">Upload Resume to Auto-Fill Summary</label>
+          <input type="file" accept="application/pdf" className="text-sm" onChange={(e) => {
             const file = e.target.files?.[0] || null;
             setResumeFile(file);
             setFileName(file ? file.name : "");
-          }}
-        />
+          }} />
+          <button onClick={handleGenerateSummary} disabled={loadingSummary || !resumeFile} className="bg-slate-800 text-white px-4 py-2 rounded-lg hover:bg-slate-900 disabled:opacity-50">
+            {loadingSummary ? "Reading Resume..." : "Extract Summary from Resume"}
+          </button>
+        </div>
 
-        {fileName && (
-          <p className="text-sm text-gray-700">{fileName}</p>
-        )}
-
-        <button
-          onClick={handleGenerateSummary}
-          disabled={loadingSummary}
-          className="px-4 py-2 bg-gray-800 text-white rounded"
-        >
-          {loadingSummary ? "Summarizing..." : "Generate Summary from Resume"}
-        </button>
-
-        <textarea
-          className="w-full border p-2 rounded h-40"
-          placeholder="Experience summary..."
-          value={experience}
-          onChange={(e) => setField("experience", e.target.value)}
-        />
+        <textarea className="w-full border p-3 rounded-lg h-32" placeholder="Tell us about your experience..." value={experience} onChange={(e) => setField("experience", e.target.value)} />
       </section>
 
-      {/* Generate Cover Letter */}
-      <button
-        onClick={handleGenerateLetter}
-        disabled={loadingLetter}
-        className="px-4 py-2 bg-blue-600 text-white rounded"
-      >
-        {loadingLetter ? "Generating..." : "Generate Cover Letter"}
-      </button>
-
-      {/* Editable Preview */}
-      {generatedLetter && (
-        <section className="mt-10 p-6 border rounded bg-white shadow">
-          <h2 className="text-xl font-semibold mb-4">Preview (Editable)</h2>
-
-          <textarea
-            className="w-full border p-3 rounded h-80 whitespace-pre-wrap"
-            value={generatedLetter}
-            onChange={(e) => setGeneratedLetter(e.target.value)}
-          />
-
-          <button
-            onClick={handleExportPDF}
-            disabled={loadingPDF}
-            className="inline-block mt-4 px-4 py-2 bg-green-600 text-white rounded"
-          >
-            {loadingPDF ? "Exporting..." : "Export PDF"}
+      {/* Actions */}
+      <div className="flex flex-col md:flex-row gap-4 pt-6">
+        <button onClick={handleGenerateLetter} disabled={loadingLetter} className="flex-1 bg-blue-600 text-white py-4 rounded-xl font-bold hover:bg-blue-700 disabled:opacity-50 shadow-lg transition-all">
+          {loadingLetter ? "Writing your letter..." : "Generate Cover Letter"}
+        </button>
+        
+        {generatedLetter && (
+          <button onClick={handleExportPDF} disabled={loadingPDF} className="flex-1 bg-green-600 text-white py-4 rounded-xl font-bold hover:bg-green-700 disabled:opacity-50 shadow-lg transition-all">
+            {loadingPDF ? "Creating PDF..." : "Download PDF"}
           </button>
+        )}
+      </div>
+
+      {generatedLetter && (
+        <section className="mt-10 p-8 bg-white border-2 border-dashed rounded-xl shadow-inner whitespace-pre-wrap font-serif text-gray-800 leading-relaxed">
+          {generatedLetter}
         </section>
       )}
     </div>

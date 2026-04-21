@@ -5,82 +5,74 @@ export async function POST(req: NextRequest) {
     const SITE_URL = process.env.NEXT_PUBLIC_SITE;
     const PDFSHIFT_API_KEY = process.env.PDFSHIFT_API_KEY;
 
-    console.log("=== PDF EXPORT START ===");
-    console.log("SITE_URL:", SITE_URL);
-    console.log("PDFSHIFT_API_KEY exists:", !!PDFSHIFT_API_KEY);
+    console.log("=== COVER LETTER PDF EXPORT START ===");
 
     if (!SITE_URL || !PDFSHIFT_API_KEY) {
-      console.error("Missing environment variables");
+      console.error("ERROR: NEXT_PUBLIC_SITE or PDFSHIFT_API_KEY environment variables missing.");
       return new Response(
-        JSON.stringify({ error: "Server not configured for PDF" }),
+        JSON.stringify({ error: "Server configuration incomplete" }),
         { status: 500 }
       );
     }
 
-    // Read incoming payload
     const payload = await req.json().catch((err) => {
-      console.error("Error parsing JSON body:", err);
+      console.error("Error reading payload:", err);
       return undefined;
     });
 
-    console.log("Incoming payload:", payload);
-
     if (!payload) {
-      console.error("Payload is missing or undefined");
       return new Response(
-        JSON.stringify({ error: "Missing payload" }),
+        JSON.stringify({ error: "No letter data received" }),
         { status: 400 }
       );
     }
 
-    // Encode payload
+    // Generate the link for PDFShift to visit
+    // This points to your specific cover-letter template page
     const base64 = Buffer.from(JSON.stringify(payload), "utf8").toString("base64");
     const encoded = encodeURIComponent(base64);
+    
+    const printUrl = `${SITE_URL}/pdf/cover-letter?payload=${encoded}`;
+    console.log("Print URL for PDFShift:", printUrl);
 
-    console.log("Base64 payload:", base64);
-    console.log("Encoded payload:", encoded);
-
-    const printUrl = `${SITE_URL}/pdf/template?payload=${encoded}`;
-
-    console.log("Final print URL:", printUrl);
-
-    // Call PDFShift
+    // Call PDFShift API
     const pdfRes = await fetch("https://api.pdfshift.io/v3/convert", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization:
-          "Basic " + Buffer.from(`${PDFSHIFT_API_KEY}:`).toString("base64")
+        "Authorization": "Basic " + Buffer.from(`${PDFSHIFT_API_KEY}:`).toString("base64")
       },
-      body: JSON.stringify({ source: printUrl })
+      body: JSON.stringify({ 
+        source: printUrl,
+        format: "A4",
+        margin: "0px",
+        sandbox: false
+      })
     });
 
-    console.log("PDFShift status:", pdfRes.status);
-
     if (!pdfRes.ok) {
-      const text = await pdfRes.text();
-      console.error("PDFShift error response:", text);
+      const errorDetail = await pdfRes.text();
+      console.error("PDFShift error:", errorDetail);
       return new Response(
-        JSON.stringify({ error: "PDF generation failed" }),
+        JSON.stringify({ error: "PDF generation service failed" }),
         { status: 500 }
       );
     }
 
     const pdfBuffer = Buffer.from(await pdfRes.arrayBuffer());
-    console.log("PDF generated successfully. Size:", pdfBuffer.length);
-
-    console.log("=== PDF EXPORT COMPLETE ===");
-
+    
     return new Response(pdfBuffer, {
       status: 200,
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": 'attachment; filename="resume.pdf"'
+        "Content-Disposition": 'attachment; filename="Cover-Letter-TradePro.pdf"',
+        "Cache-Control": "no-cache"
       }
     });
+
   } catch (err) {
-    console.error("API /api/export/pdf error:", err);
-    return new Response(JSON.stringify({ error: "PDF generation failed" }), {
+    console.error("Critical failure in Cover Letter PDF route:", err);
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
       status: 500
     });
   }

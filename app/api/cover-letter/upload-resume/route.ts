@@ -36,30 +36,30 @@ export async function POST(req: Request) {
     const cleaned = cleanText(rawText);
 
     const prompt = `
-You are given resume text.
+Extract the key professional highlights from this resume text and write a strong, 5-7 sentence executive summary.
 
-Your job:
-1. Read the resume.
-2. Internally extract skills, experience, achievements, and years worked.
-3. Then return ONLY a 5–7 sentence executive-level professional summary.
+RESUME CONTENT:
+${cleaned}
 
 STRICT RULES:
-- No pronouns (no "I", "me", "my", "he", "she", "they").
-- No names.
-- No headings.
-- No lists.
-- No markdown.
-- Executive tone.
-- Output ONLY the summary.
-
-Resume text:
-${cleaned}
+1. Write in a professional, active tone.
+2. Focus on skills, years of experience, and core trades.
+3. Translate everything into professional English if the source is in another language.
+4. Do NOT use markdown (no bold, no bullet points).
+5. Do NOT use brackets or placeholders.
+6. Provide ONLY the summary text. No intro or outro.
 `;
 
     const completion = await client.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.4,
+      model: "gpt-4o", // Upgraded for better logic and better text extraction
+      messages: [
+        { 
+          role: "system", 
+          content: "You are an expert recruiter. You specialize in identifying core competencies in skilled trades and summarizing them into powerful professional profiles. You use formal, impactful English." 
+        },
+        { role: "user", content: prompt }
+      ],
+      temperature: 0.5,
     });
 
     const summary =
