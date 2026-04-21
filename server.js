@@ -1,6 +1,5 @@
 import 'dotenv/config'; 
 import express from "express";
-import cors from "cors";
 
 // Import your route files
 import coverLetterGenerate from "./routes/coverLetterGenerate.js";
@@ -9,18 +8,28 @@ import exportPdf from "./routes/exportPdf.js";
 
 const app = express();
 
-// FIXED: Using a simpler CORS setup to ensure the 'www' and non-www versions are both allowed
-app.use(cors()); 
+// 1. MANUAL IRONCLAD CORS (Bypasses the library)
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  
+  // Handle the "pre-flight" request browsers send
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
+  next();
+});
 
 app.use(express.json({ limit: "10mb" }));
 
-// Routes
+// 2. CONNECT ROUTES
 app.use("/api/cover-letter", coverLetterGenerate);
 app.use("/api/cover-letter/upload-resume", coverLetterSummary);
 app.use("/api/export/pdf", exportPdf);
 
 app.get("/", (req, res) => {
-  res.send("TradePro API is Live");
+  res.send("TradePro API is Live and Forced Open");
 });
 
 const PORT = process.env.PORT || 3001;
