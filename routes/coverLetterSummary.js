@@ -5,9 +5,11 @@ import OpenAI from "openai";
 
 const router = express.Router();
 const upload = multer();
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 router.post("/", upload.single("file"), async (req, res) => {
+  // Move initialization here
+  const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
   try {
     if (!req.file) {
       return res.status(400).json({ error: "No file uploaded" });
@@ -18,27 +20,15 @@ router.post("/", upload.single("file"), async (req, res) => {
 
     const prompt = `
 Rewrite the following resume text into a concise, professional summary.
-
-STRICT RULES:
-- Write in THIRD PERSON ONLY.
-- Do NOT use “I”, “me”, “my”, “mine”, or any first-person phrasing.
-- Do NOT use the applicant’s name or any name at all.
-- Do NOT invent names.
-- Use neutral, resume-style statements beginning with phrases like:
-  - "Experienced in..."
-  - "Proven ability to..."
-  - "Skilled at..."
-  - "Strong background in..."
-- Keep it professional and concise.
-
+Return ONLY the summary text.
 Resume text:
 ${text}
 `;
 
     const completion = await client.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-4o",
       messages: [{ role: "user", content: prompt }],
-      temperature: 0.3,
+      temperature: 0.5,
     });
 
     const summary =

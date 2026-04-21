@@ -2,9 +2,11 @@ import express from "express";
 import OpenAI from "openai";
 
 const router = express.Router();
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 router.post("/", async (req, res) => {
+  // Move initialization here so it waits for the key to be loaded
+  const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  
   try {
     const data = req.body;
 
@@ -43,11 +45,13 @@ Salutation Style: ${data.salutationStyle}
 Write the full cover letter now using the structure and rules above.
 `;
 
-
     const completion = await client.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.4,
+      model: "gpt-4o",
+      messages: [
+        { role: "system", content: "You are a professional career coach." },
+        { role: "user", content: prompt }
+      ],
+      temperature: 0.7,
     });
 
     const letter =
