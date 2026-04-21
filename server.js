@@ -9,71 +9,89 @@ import pdf from "pdf-parse-fixed";
 const app = express();
 const upload = multer();
 
+// 1. UNIVERSAL PERMISSION
 app.use(cors({ origin: "*" }));
 app.use(express.json({ limit: "10mb" }));
 
+// 2. AI GENERATE LETTER
 app.post("/api/ai/generate", async (req, res) => {
   const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
   try {
-    const { mode, text, payload } = req.body;
-    const systemContent = "You are a professional career coach for the skilled trades.";
-    const userContent = mode === "summary" 
-      ? `Rewrite this into a professional summary: ${text}`
-      : `Write a cover letter for ${payload?.applicantName} at ${payload?.companyName}`;
+    const { payload } = req.body;
+    const letterMessages = [
+      { role: "system", content: "Write a professional cover letter body. No headers." },
+      { role: "user", content: `Write a letter for ${payload.applicantName} for ${payload.jobTitle}. Experience: ${payload.experience}` }
+    ];
 
     const completion = await client.chat.completions.create({
       model: "gpt-4o",
-      messages: [
-        { role: "system", content: systemContent },
-        { role: "user", content: userContent }
-      ]
+      messages: letterMessages
     });
 
     res.json({ result: completion.choices[0].message.content });
   } catch (err) {
-    res.status(500).json({ error: "AI Failed" });
+    res.status(500).json({ error: "Generation failed" });
   }
 });
 
+// 3. AI SUMMARY EXTRACTION
 app.post("/api/ai/extract-summary", upload.single("file"), async (req, res) => {
   const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
   try {
     if (!req.file) return res.status(400).json({ error: "No file uploaded" });
-
     const pdfData = await pdf(req.file.buffer);
-    const extractedText = pdfData.text || "";
 
-    
+    // FIXED: Defining messages here to avoid the ":" syntax error in the call below
+    const summaryMessages = [
+      { role: "system", content: "Extract and rewrite into a 5-7 sentence professional 3rd person summary." },
+      { role: "user", content: pdfData.text }
+    ];
 
     const completion = await client.chat.completions.create({
       model: "gpt-4o",
-      messages: aiMessages
+      messages: summaryMessages
     });
 
     res.json({ summary: completion.choices[0].message.content });
   } catch (err) {
-    console.error("PDF Error:", err);
-    res.status(500).json({ error: "Failed to read PDF." });
+    res.status(500).json({ error: "Summary failed" });
   }
 });
 
+// 4. PDF EXPORT
 app.post("/api/export/pdf", async (req, res) => {
   try {
     const data = req.body;
     const doc = new PDFDocument({ size: "LETTER", margin: 50 });
     res.setHeader("Content-Type", "application/pdf");
     doc.pipe(res);
+
     doc.rect(0, 0, doc.page.width, 140).fill("#1F4E79");
-    doc.fillColor("white").fontSize(24).text(data.applicantName || "Professional", 50, 45);
+    doc.fillColor("white").font("Helvetica-Bold").fontSize(26).text(data.applicantName || "", 50, 40);
+    doc.font("Helvetica").fontSize(11).text(`${data.applicantEmail} | ${data.applicantPhone}`, 50, 75);
+    doc.text(`${data.applicantAddress || ""} ${data.applicantCityStateZip || ""}`, 50, 90);
+
     doc.fillColor("black").moveDown(8);
-    doc.fontSize(12).text(data.letter || data.summary || "Content missing.", { width: 512 });
+    doc.font("Helvetica").fontSize(11).text(data.date || "", { align: "left" });
+    doc.moveDown();
+    doc.font("Helvetica-Bold").text(data.hiringManager || "Hiring Manager");
+    doc.font("Helvetica").text(data.companyName || "");
+    doc.text(data.companyAddress || "");
+    doc.text(data.companyCityStateZip || "");
+
+    doc.moveDown(2);
+    doc.font("Helvetica").fontSize(12).text(data.letter || "", { width: 500, align: "left" });
+
+    doc.moveDown(2).text("Sincerely,");
+    doc.moveDown().font("Helvetica-Bold").text(data.applicantName || "");
+
     doc.end();
   } catch (err) {
-    res.status(500).send("Failed to create PDF.");
+    res.status(500).send("PDF Error");
   }
 });
 
 app.get("/", (req, res) => res.send("TradePro Master Brain is Live"));
 
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, "0.0.0.0", () => console.log(`🚀 Listening on ${PORT}`));
+app.listen(PORT, "0.0.0.0", () => console.log(`🚀 Brain live on ${PORT}`));
