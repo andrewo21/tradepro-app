@@ -19,13 +19,10 @@ export default function PrintPage({ searchParams }: any) {
     console.error("Failed to decode payload:", err);
   }
 
-  // Inject resume data for PDFTemplateClient
-  (window as any).__INJECT_RESUME_DATA__ = () => ({
-    resumeData,
-    templateId,
-  });
-
   return (
-    <PDFTemplateClient templateId={templateId} />
+    <PDFTemplateClient
+      templateId={templateId}
+      resumeData={resumeData}
+    />
   );
 }
