@@ -1,184 +1,78 @@
 "use client";
 
 import { useResumeStore } from "@/app/store/useResumeStore";
-import ResumePreview from "@/components/ResumePreview";
-import type { TemplateKey } from "@/components/templates";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import Link from "next/link";
 
-export default function PreviewPage() {
-  const router = useRouter();
+export default function ResumePreviewPage() {
+  const { personalInfo, summary, skills, experience } = useResumeStore();
+  const [loading, setLoading] = useState(false);
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
-  // -----------------------------
-  // READ STORE VALUES
-  // -----------------------------
-  const personal = useResumeStore((s) => s.personalInfo);
-  const summary = useResumeStore((s) => s.summary);
-  const skills = useResumeStore((s) => s.skills);
-  const experience = useResumeStore((s) => s.experience);
-  const education = useResumeStore((s) => s.education);
-  const selectedTemplate = useResumeStore((s) => s.selectedTemplate);
-  const premiumUnlocked = useResumeStore((s) => s.premiumUnlocked);
-
-  // -----------------------------
-  // HYDRATION GUARD
-  // -----------------------------
-  const [hydrated, setHydrated] = useState(false);
-
-  useEffect(() => {
-    const isHydrated =
-      personal.firstName !== "" ||
-      personal.lastName !== "" ||
-      summary !== "" ||
-      skills.length > 0 ||
-      experience.length > 0 ||
-      education.length > 0 ||
-      selectedTemplate !== "sidebar-green";
-
-    if (isHydrated) {
-      setHydrated(true);
-    }
-  }, [
-    personal.firstName,
-    personal.lastName,
-    summary,
-    skills.length,
-    experience.length,
-    education.length,
-    selectedTemplate,
-  ]);
-
-  if (!hydrated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-neutral-600">
-        Loading…
-      </div>
-    );
-  }
-
-  // -----------------------------
-  // ALWAYS VALID TEMPLATE KEY
-  // -----------------------------
-  const template: TemplateKey =
-    (selectedTemplate as TemplateKey) || "sidebar-green";
-
-  // -----------------------------
-  // CLEAN SERIALIZABLE PAYLOAD
-  // -----------------------------
-  const cleanData = {
-    name: `${personal.firstName || ""} ${personal.lastName || ""}`.trim(),
-    title: personal.tradeTitle || "",
-    contact: {
-      phone: personal.phone || "",
-      email: personal.email || "",
-      location: `${personal.city || ""}${
-        personal.state ? ", " + personal.state : ""
-      }`,
-    },
-    summary: summary || "",
-    experience: experience.map((job) => ({
-      jobTitle: job.jobTitle || "",
-      company: job.company || "",
-      startDate: job.startDate || "",
-      endDate: job.endDate || "",
-      responsibilities: job.responsibilities.map((r) => r.text || ""),
-      achievements: job.achievements.map((a) => a.text || ""),
-    })),
-    education: education.map((edu) => ({
-      school: edu.school || "",
-      degree: edu.degree || "",
-      year: edu.year || "",
-      gpa: edu.gpa || "",
-    })),
-    skills: skills.map((s) => s.text || ""),
-    certifications: [],
-  };
-
-  // -----------------------------
-  // PDF GENERATION (PDFSHIFT)
-  // -----------------------------
-  const handleGeneratePDF = async () => {
+  const handleDownloadPDF = async () => {
+    if (!API_BASE) return alert("API not configured.");
+    setLoading(true);
     try {
-      // 1. Build payload
       const payload = {
-        template,
-        premiumUnlocked,
-        ...cleanData,
+        type: "resume",
+        applicantName: `${personalInfo.firstName} ${personalInfo.lastName}`,
+        applicantEmail: personalInfo.email,
+        applicantPhone: personalInfo.phone,
+        applicantAddress: `${personalInfo.city}, ${personalInfo.state}`,
+        summary: summary,
+        experience: experience.map(exp => ({
+          title: exp.jobTitle,
+          company: exp.company,
+          startDate: exp.startDate,
+          endDate: exp.endDate,
+          description: exp.responsibilities.map(r => r.text).join("\n")
+        }))
       };
 
-      // 2. Encode payload
-      const json = JSON.stringify(payload);
-      const base64 = btoa(unescape(encodeURIComponent(json)));
-      const encoded = encodeURIComponent(base64);
-
-      // 3. Next.js PDF page URL
-      const printUrl = `${process.env.NEXT_PUBLIC_SITE}/pdf/template?payload=${encoded}`;
-
-      // 4. PDFShift proxy service on Render
-      const pdfUrl = `${process.env.NEXT_PUBLIC_PDF_SERVICE_URL}/pdf`;
-
-      // 5. Call PDF service
-      const res = await fetch(pdfUrl, {
+      const res = await fetch(`${API_BASE}/api/export/pdf`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: printUrl }),
+        body: JSON.stringify(payload),
       });
 
-      if (!res.ok) {
-        const text = await res.text();
-        console.error("PDF generation failed:", text);
-        return;
-      }
-
-      // 6. Download PDF
       const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-
+      const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "resume.pdf";
+      a.download = "Resume-TradePro.pdf";
       a.click();
-
-      URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error("PDF generation error:", err);
-    }
+    } catch (err) { alert("Resume PDF Error."); } finally { setLoading(false); }
   };
 
-  // -----------------------------
-  // RENDER
-  // -----------------------------
   return (
-    <div className="min-h-screen bg-neutral-50 text-neutral-900 p-10">
-      <p className="text-sm text-neutral-500 mb-2">
-        Step 7 of 7 — Final Preview
-      </p>
-
-      <h1 className="text-2xl font-semibold mb-6">Final Preview</h1>
-
-      <div className="relative bg-white rounded-lg shadow p-0 overflow-visible">
-        <ResumePreview
-          template={template}
-          data={cleanData}
-          mode="pdf"
-          premiumUnlocked={premiumUnlocked}
-        />
+    <div className="max-w-4xl mx-auto py-10 px-6">
+      <div className="flex justify-between items-center border-b pb-6 mb-10">
+        <h1 className="text-3xl font-bold">Resume Preview</h1>
+        <div className="flex gap-4">
+          <Link href="/resume/personal" className="px-4 py-2 border rounded">Edit Details</Link>
+          <button onClick={handleDownloadPDF} disabled={loading} className="px-6 py-2 bg-blue-600 text-white rounded font-bold shadow-lg">
+            {loading ? "Generating..." : "Download Resume PDF"}
+          </button>
+        </div>
       </div>
 
-      <div className="flex justify-between mt-10">
-        <button
-          onClick={() => router.push("/resume/summary")}
-          className="px-6 py-2 bg-neutral-200 text-neutral-800 rounded-md text-sm hover:bg-neutral-300"
-        >
-          Back to Summary
-        </button>
-
-        <button
-          onClick={handleGeneratePDF}
-          className="px-6 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700"
-        >
-          Generate PDF
-        </button>
+      <div className="bg-white shadow-2xl p-10 min-h-[800px] border rounded-lg">
+        <div className="text-center border-b pb-6 mb-6">
+          <h2 className="text-4xl font-bold uppercase">{personalInfo.firstName} {personalInfo.lastName}</h2>
+          <p className="text-blue-600 font-bold">{personalInfo.tradeTitle}</p>
+        </div>
+        <div className="space-y-6">
+          <section><h3 className="font-bold border-b mb-2">SUMMARY</h3><p>{summary}</p></section>
+          <section>
+            <h3 className="font-bold border-b mb-2">EXPERIENCE</h3>
+            {experience.map(exp => (
+              <div key={exp.id} className="mb-4">
+                <p className="font-bold">{exp.jobTitle} - {exp.company}</p>
+                <ul className="list-disc ml-5 text-sm">{exp.responsibilities.map((r, i) => <li key={i}>{r.text}</li>)}</ul>
+              </div>
+            ))}
+          </section>
+        </div>
       </div>
     </div>
   );

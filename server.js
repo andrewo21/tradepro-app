@@ -10,11 +10,10 @@ const app = express();
 const upload = multer();
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-// 1. UNIVERSAL PERMISSION
 app.use(cors({ origin: "*" }));
 app.use(express.json({ limit: "10mb" }));
 
-// 2. SUMMARY GENERATOR (Extracts from PDF and rewrites in 3rd person)
+// --- 1. AI SUMMARY GENERATOR (PDF Extraction) ---
 app.post("/api/ai/extract-summary", upload.single("file"), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: "No file uploaded" });
@@ -22,36 +21,40 @@ app.post("/api/ai/extract-summary", upload.single("file"), async (req, res) => {
     const completion = await client.chat.completions.create({
       model: "gpt-4o",
       messages: [
-        { role: "system", content: "You are a professional recruiter. Rewrite this resume into a professional 5-7 sentence executive summary. Use third-person ONLY (no 'I' or 'me')." },
+        { role: "system", content: "You are a professional recruiter. Rewrite this resume into a 5-7 sentence executive summary. Use third-person ONLY (no 'I' or 'me')." },
         { role: "user", content: pdfData.text }
       ],
     });
     res.json({ summary: completion.choices[0].message.content });
   } catch (err) {
-    console.error("Summary error:", err);
     res.status(500).json({ error: "Summary extraction failed" });
   }
 });
 
-// 3. AI GENERATE LETTER (Text only)
+// --- 2. AI GENERATE TEXT (Handles Letter, Skills, and Experience) ---
 app.post("/api/ai/generate", async (req, res) => {
   try {
-    const { payload } = req.body;
+    const { mode, payload } = req.body;
+    let systemPrompt = "You are a professional career coach for the trades.";
+    let userPrompt = "";
+
+    if (mode === "cover-letter") {
+      userPrompt = `Write a cover letter for ${payload.applicantName} for ${payload.jobTitle}. Experience: ${payload.experience}`;
+    } else {
+      userPrompt = `Rewrite this professional point into a powerful resume bullet: ${payload.text}`;
+    }
+
     const completion = await client.chat.completions.create({
       model: "gpt-4o",
-      messages: [
-        { role: "system", content: "Write a professional cover letter body. Do NOT include headers, dates, or signatures. Just the body paragraphs." },
-        { role: "user", content: `Write a letter for ${payload.applicantName} for the role of ${payload.jobTitle}. Experience: ${payload.experience}` }
-      ],
+      messages: [{ role: "system", content: systemPrompt }, { role: "user", content: userPrompt }],
     });
     res.json({ result: completion.choices[0].message.content });
   } catch (err) {
-    console.error("Generation error:", err);
-    res.status(500).json({ error: "Generation failed" });
+    res.status(500).json({ error: "AI generation failed" });
   }
 });
 
-// 4. PDF EXPORT (Draws what it receives from the preview)
+// --- 3. MASTER PDF ENGINE (Resume & Cover Letter) ---
 app.post("/api/export/pdf", async (req, res) => {
   try {
     const data = req.body;
@@ -59,25 +62,35 @@ app.post("/api/export/pdf", async (req, res) => {
     res.setHeader("Content-Type", "application/pdf");
     doc.pipe(res);
 
-    // BLUE HEADER
+    // BLUE HEADER BRANDING
     doc.rect(0, 0, doc.page.width, 140).fill("#1F4E79");
     doc.fillColor("white").font("Helvetica-Bold").fontSize(26).text(data.applicantName || "", 50, 40);
-    doc.font("Helvetica").fontSize(11).text(`${data.applicantEmail || ""} | ${data.applicantPhone || ""}`, 50, 80);
-    doc.text(`${data.applicantAddress || ""} ${data.applicantCityStateZip || ""}`, 50, 95);
+    doc.font("Helvetica").fontSize(11).text(`${data.applicantEmail || ""} | ${data.applicantPhone || ""}`, 50, 75);
+    doc.text(`${data.applicantAddress || ""} ${data.applicantCityStateZip || ""}`, 50, 90);
 
-    // BODY CONTENT
     doc.fillColor("black").moveDown(8);
-    // This prints exactly what is in the editable preview window
-    doc.font("Helvetica").fontSize(12).text(data.letter || "", { width: 500, align: "left", lineGap: 2 });
+
+    if (data.type === "resume") {
+      // Resume Layout
+      doc.font("Helvetica-Bold").fontSize(14).text("PROFESSIONAL SUMMARY", { underline: true });
+      doc.font("Helvetica").fontSize(11).moveDown(0.5).text(data.summary || "", { width: 500 });
+      
+      doc.moveDown().font("Helvetica-Bold").fontSize(14).text("WORK EXPERIENCE", { underline: true });
+      data.experience?.forEach(exp => {
+        doc.moveDown(0.5).font("Helvetica-Bold").fontSize(12).text(`${exp.title} - ${exp.company}`);
+        doc.font("Helvetica").fontSize(10).text(`${exp.startDate} - ${exp.endDate}`);
+        doc.moveDown(0.2).text(exp.description, { width: 480 });
+      });
+    } else {
+      // Cover Letter Layout (Uses Editable Preview Text)
+      doc.font("Helvetica").fontSize(12).text(data.letter || "", { width: 500, align: "left", lineGap: 2 });
+    }
 
     doc.end();
   } catch (err) {
-    console.error("PDF Error:", err);
-    res.status(500).send("PDF Error");
+    res.status(500).send("PDF generation failed.");
   }
 });
 
-app.get("/", (req, res) => res.send("TradePro Master Brain is Live"));
-
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, "0.0.0.0", () => console.log(`🚀 Master Brain live on ${PORT}`));
+app.listen(PORT, "0.0.0.0", () => console.log(`🚀 Master Brain Live on Port ${PORT}`));

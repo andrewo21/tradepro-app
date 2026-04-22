@@ -24,7 +24,7 @@ export default function CoverLetterPage() {
   }, []);
 
   const handleGenerateSummary = async () => {
-    if (!resumeFile || !API_BASE) return alert("Select a PDF first.");
+    if (!resumeFile || !API_BASE) return alert("Please select a PDF file.");
     setLoadingSummary(true);
     try {
       const formData = new FormData();
@@ -42,14 +42,14 @@ export default function CoverLetterPage() {
       const res = await fetch(`${API_BASE}/api/ai/generate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ payload: { applicantName, jobTitle, experience } }),
+        body: JSON.stringify({ mode: "cover-letter", payload: { applicantName, jobTitle, experience } }),
       });
       const data = await res.json();
       if (data.result) {
-        const fullPreview = `${applicantName}\n${applicantAddress}\n${applicantCityStateZip}\n${applicantEmail}\n\n${date}\n\n${hiringManager}\n${companyName}\n${companyAddress}\n${companyCityStateZip}\n\nDear ${hiringManager},\n\n${data.result}\n\nSincerely,\n\n${applicantName}`;
-        setGeneratedLetter(fullPreview);
+        const full = `${applicantName}\n${applicantAddress}\n${applicantCityStateZip}\n\n${date}\n\n${hiringManager}\n${companyName}\n${companyAddress}\n\nDear ${hiringManager},\n\n${data.result}\n\nSincerely,\n\n${applicantName}`;
+        setGeneratedLetter(full);
       }
-    } catch (err) { alert("AI Letter failed."); } finally { setLoadingLetter(false); }
+    } catch (err) { alert("Generation failed."); } finally { setLoadingLetter(false); }
   };
 
   const handleExportPDF = async () => {
@@ -59,79 +59,64 @@ export default function CoverLetterPage() {
       const res = await fetch(`${API_BASE}/api/export/pdf`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          applicantName, applicantAddress, applicantCityStateZip, applicantEmail, applicantPhone,
-          date, hiringManager, companyName, companyAddress, companyCityStateZip, letter: generatedLetter
+        body: JSON.stringify({ 
+          applicantName, applicantEmail, applicantPhone, applicantAddress, 
+          applicantCityStateZip, letter: generatedLetter 
         }),
       });
       const blob = await res.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `Cover-Letter.pdf`;
+      a.download = "Cover-Letter.pdf";
       a.click();
-    } catch (err) { alert("PDF Failed."); } finally { setLoadingPDF(false); }
+    } catch (err) { alert("PDF Error."); } finally { setLoadingPDF(false); }
   };
 
   const canAccess = overrides.devMode || overrides.access || overrides.premium;
-  if (!canAccess) return <div className="p-10 text-center"><h1>Access Denied</h1><Link href="/pricing" className="text-blue-600">Unlock Access</Link></div>;
+  if (!canAccess) return <div className="p-20 text-center"><Link href="/pricing" className="text-blue-600">Access Denied - Upgrade Here</Link></div>;
 
   return (
     <div className="max-w-7xl mx-auto py-10 px-6 space-y-10">
       <h1 className="text-3xl font-bold border-b pb-4">Cover Letter Builder</h1>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-        <div className="space-y-10">
-          <section className="bg-slate-50 p-6 rounded-xl space-y-4 border shadow-sm">
-            <h2 className="font-bold text-blue-800 text-lg uppercase">1. Applicant Details</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-8">
+          <section className="bg-slate-50 p-6 rounded-xl border space-y-4">
+            <h2 className="font-bold text-blue-800 uppercase">1. Applicant Details</h2>
+            <div className="grid grid-cols-2 gap-4">
               <input className="border p-2 rounded" placeholder="Full Name" value={applicantName} onChange={(e) => setField("applicantName", e.target.value)} />
               <input className="border p-2 rounded" placeholder="Email" value={applicantEmail} onChange={(e) => setField("applicantEmail", e.target.value)} />
-              <input className="border p-2 rounded" placeholder="Your Address" value={applicantAddress} onChange={(e) => setField("applicantAddress", e.target.value)} />
+              <input className="border p-2 rounded" placeholder="Address" value={applicantAddress} onChange={(e) => setField("applicantAddress", e.target.value)} />
               <input className="border p-2 rounded" placeholder="City, State ZIP" value={applicantCityStateZip} onChange={(e) => setField("applicantCityStateZip", e.target.value)} />
-              <input className="border p-2 rounded" placeholder="Phone" value={applicantPhone} onChange={(e) => setField("applicantPhone", e.target.value)} />
-              <input className="border p-2 rounded" type="date" value={date} onChange={(e) => setField("date", e.target.value)} />
             </div>
           </section>
 
-          <section className="bg-slate-50 p-6 rounded-xl space-y-4 border shadow-sm">
-            <h2 className="font-bold text-blue-800 text-lg uppercase">2. Company Details</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <section className="bg-slate-50 p-6 rounded-xl border space-y-4">
+            <h2 className="font-bold text-blue-800 uppercase">2. Company Details</h2>
+            <div className="grid grid-cols-2 gap-4">
               <input className="border p-2 rounded" placeholder="Hiring Manager" value={hiringManager} onChange={(e) => setField("hiringManager", e.target.value)} />
               <input className="border p-2 rounded" placeholder="Company Name" value={companyName} onChange={(e) => setField("companyName", e.target.value)} />
-              <input className="border p-2 rounded" placeholder="Company Address" value={companyAddress} onChange={(e) => setField("companyAddress", e.target.value)} />
-              <input className="border p-2 rounded" placeholder="Company City/State ZIP" value={companyCityStateZip} onChange={(e) => setField("companyCityStateZip", e.target.value)} />
             </div>
           </section>
 
-          <section className="bg-blue-50 p-6 rounded-xl space-y-4 border border-blue-100 shadow-sm">
-            <h2 className="font-bold text-blue-800 text-lg">3. Experience Summary</h2>
+          <section className="bg-blue-50 p-6 rounded-xl border border-blue-100 space-y-4">
+            <h2 className="font-bold text-blue-800">3. Summary Generator</h2>
             <input type="file" accept=".pdf" onChange={(e) => setResumeFile(e.target.files?.[0] || null)} className="text-sm" />
             <button onClick={handleGenerateSummary} disabled={loadingSummary} className="w-full bg-blue-600 text-white p-3 rounded-lg font-bold hover:bg-blue-700">
-              {loadingSummary ? "Generating Summary..." : "Summary Generator"}
+              {loadingSummary ? "Rewriting..." : "Summary Generator"}
             </button>
-            <textarea className="w-full border p-3 rounded-lg h-32 text-sm" value={experience} onChange={(e) => setField("experience", e.target.value)} />
+            <textarea className="w-full border p-3 rounded h-32 text-sm" value={experience} onChange={(e) => setField("experience", e.target.value)} />
           </section>
 
           <div className="flex gap-4">
-            <button onClick={handleGenerateLetter} disabled={loadingLetter} className="flex-1 bg-green-600 text-white py-4 rounded-xl font-bold shadow-lg">
-              {loadingLetter ? "Generating..." : "Generate Cover-Letter"}
-            </button>
-            {generatedLetter && (
-              <button onClick={handleExportPDF} disabled={loadingPDF} className="flex-1 bg-slate-800 text-white py-4 rounded-xl font-bold shadow-lg">
-                {loadingPDF ? "Downloading..." : "Download PDF"}
-              </button>
-            )}
+            <button onClick={handleGenerateLetter} className="flex-1 bg-green-600 text-white py-4 rounded-xl font-bold shadow-lg">Generate Cover-Letter</button>
+            {generatedLetter && <button onClick={handleExportPDF} className="flex-1 bg-slate-800 text-white py-4 rounded-xl font-bold shadow-lg">Download PDF</button>}
           </div>
         </div>
 
         <div className="bg-white border rounded-xl shadow-2xl p-8 flex flex-col min-h-[800px]">
-          <h2 className="text-xs font-bold text-slate-400 mb-4 uppercase tracking-widest border-b pb-2">Full Letter Preview (Editable)</h2>
-          <textarea 
-            className="flex-1 w-full border-none focus:ring-0 font-serif leading-relaxed text-slate-800 outline-none resize-none text-base" 
-            value={generatedLetter} 
-            onChange={(e) => setGeneratedLetter(e.target.value)} 
-            placeholder="The full letter will appear here..." 
-          />
+          <h2 className="text-xs font-bold text-slate-400 mb-4 uppercase tracking-widest border-b pb-2">Letter Preview (Editable)</h2>
+          <textarea className="flex-1 w-full border-none focus:ring-0 font-serif leading-relaxed text-slate-800 outline-none resize-none" value={generatedLetter} onChange={(e) => setGeneratedLetter(e.target.value)} />
         </div>
       </div>
     </div>
