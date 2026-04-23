@@ -24,7 +24,7 @@ export default function CoverLetterPage() {
       const today = new Date();
       setField("date", `${today.getMonth() + 1}/${today.getDate()}/${today.getFullYear()}`);
     }
-  }, []);
+  }, [date, setField]);
 
   const handleGenerateSummary = async () => {
     if (!resumeFile || !API_BASE) return alert("Please select a PDF file.");
@@ -45,7 +45,7 @@ export default function CoverLetterPage() {
       const res = await fetch(`${API_BASE}/api/ai/generate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: `Write the body of a cover letter for ${applicantName} applying for ${jobTitle} at ${companyName}. Context: ${experience}` }),
+        body: JSON.stringify({ prompt: `Write a professional cover letter body for ${applicantName} applying for ${jobTitle} at ${companyName}. Context: ${experience}` }),
       });
       const data = await res.json();
       if (data.text) {
@@ -64,9 +64,18 @@ export default function CoverLetterPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
-          type: "cover-letter", applicantName, applicantEmail, applicantPhone, 
-          applicantAddress, applicantCityStateZip, date, hiringManager,
-          companyName, companyAddress, companyCityStateZip, letter: generatedLetter 
+          type: "cover-letter",
+          applicantName,
+          applicantEmail,
+          applicantPhone, 
+          applicantAddress,
+          applicantCityStateZip,
+          date,
+          hiringManager,
+          companyName,
+          companyAddress,
+          companyCityStateZip,
+          letter: generatedLetter 
         }),
       });
       const blob = await res.blob();
@@ -113,7 +122,12 @@ export default function CoverLetterPage() {
 
           <section className="bg-blue-50 p-6 rounded-xl border border-blue-100 space-y-4">
             <h2 className="font-bold text-blue-800">3. Resume Data</h2>
-            <input type="file" accept=".pdf" onChange={(e) => setResumeFile(e.target.files?.[0] || null)} className="block w-full text-sm text-blue-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer" />
+            <input 
+              type="file" 
+              accept=".pdf" 
+              onChange={(e) => setResumeFile(e.target.files?.[0] || null)} 
+              className="block w-full text-sm text-blue-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer" 
+            />
             <button onClick={handleGenerateSummary} disabled={loadingSummary} className="w-full bg-slate-800 text-white p-3 rounded-lg font-bold">
               {loadingSummary ? "Extracting..." : "Extract Resume Summary"}
             </button>
