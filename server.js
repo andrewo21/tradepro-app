@@ -13,7 +13,7 @@ const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 app.use(cors({ origin: "*" }));
 app.use(express.json({ limit: "10mb" }));
 
-// --- 1. THE AI REWRITE EXPERT (Construction & Trade Specialist) ---
+// --- 1. AI REWRITE EXPERT ---
 app.post("/api/ai/rewrite", async (req, res) => {
   try {
     const { text, type } = req.body; 
@@ -22,21 +22,14 @@ app.post("/api/ai/rewrite", async (req, res) => {
       messages: [
         { 
           role: "system", 
-          content: `You are an expert elite Construction & Trade Industry Recruiter.
-          STRICT RULES:
-          1. TRANSLATION: Instantly detect and translate Spanish, Spanglish, or broken English into superior professional American English.
-          2. SLANG: You understand all trade slang (e.g., 'mudding', 'rough-in', 'sparky', 'chippy', 'blueprints').
-          3. GRAMMAR: If the user has poor grammar (e.g., "i manage many peoples" or "yo tengo tools"), extract the professional intent.
-          4. FORMATTING:
-             - If 'skill': Return ONLY 2-4 powerful words (e.g., "Advanced Drywall Finishing").
-             - If 'summary' or 'responsibility': Use high-impact action verbs and superior sentence structure.
-          5. NO conversation. NO quotes. NO 'Here is your suggestion'. JUST the final text.` 
+          content: `You are an expert elite Construction & Trade Industry Recruiter. 
+          Instantly detect and translate Spanish/Spanglish into professional American English. 
+          Use trade-specific slang correctly. No conversation, JUST the final text.` 
         },
         { role: "user", content: `Professionalize this ${type}: ${text}` }
       ],
       temperature: 0.3,
     });
-
     let result = completion.choices[0].message.content.trim();
     result = result.replace(/^["'‘“`]+|["'’ ”`]+$/g, ""); 
     res.json({ suggestion: result });
@@ -45,7 +38,28 @@ app.post("/api/ai/rewrite", async (req, res) => {
   }
 });
 
-// --- 2. SUMMARY EXTRACTION (From PDF Upload) ---
+// --- 2. FULL COVER LETTER GENERATOR (FIXES THE 404) ---
+app.post("/api/ai/generate", async (req, res) => {
+  try {
+    const { prompt, type } = req.body;
+    const completion = await client.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        { 
+          role: "system", 
+          content: "You are a Construction Career Coach. Write a high-impact cover letter. Keep it under 300 words. No conversational filler." 
+        },
+        { role: "user", content: prompt }
+      ],
+    });
+    // This matches the data.text the frontend is looking for
+    res.json({ text: completion.choices[0].message.content });
+  } catch (err) {
+    res.status(500).json({ error: "Generation failed" });
+  }
+});
+
+// --- 3. SUMMARY EXTRACTION (From PDF Upload) ---
 app.post("/api/ai/extract-summary", upload.single("file"), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: "No file uploaded" });
@@ -53,7 +67,7 @@ app.post("/api/ai/extract-summary", upload.single("file"), async (req, res) => {
     const completion = await client.chat.completions.create({
       model: "gpt-4o",
       messages: [
-        { role: "system", content: "Professional 3rd person trade summary. Translate Spanglish to English if needed. Focus on construction expertise." },
+        { role: "system", content: "Extract a professional 3rd person trade summary focusing on construction expertise." },
         { role: "user", content: pdfData.text }
       ],
     });
@@ -63,18 +77,22 @@ app.post("/api/ai/extract-summary", upload.single("file"), async (req, res) => {
   }
 });
 
-// --- 3. MASTER PDF ENGINE ---
+// --- 4. MASTER PDF ENGINE (UPDATED FOR COMPANY ADDRESS) ---
 app.post("/api/export/pdf", async (req, res) => {
   try {
     const data = req.body;
     const doc = new PDFDocument({ size: "LETTER", margin: 50 });
     res.setHeader("Content-Type", "application/pdf");
     doc.pipe(res);
+
+    // BLUE HEADER LOGIC
     doc.rect(0, 0, doc.page.width, 140).fill("#1F4E79");
     doc.fillColor("white").font("Helvetica-Bold").fontSize(26).text(data.applicantName || "", 50, 40);
     doc.font("Helvetica").fontSize(11).text(`${data.applicantEmail || ""} | ${data.applicantPhone || ""}`, 50, 75);
     doc.text(`${data.applicantAddress || ""} ${data.applicantCityStateZip || ""}`, 50, 90);
+    
     doc.fillColor("black").moveDown(8);
+
     if (data.type === "resume") {
       doc.font("Helvetica-Bold").fontSize(14).text("PROFESSIONAL SUMMARY", { underline: true });
       doc.font("Helvetica").fontSize(11).moveDown(0.5).text(data.summary || "", { width: 500 });
@@ -86,10 +104,18 @@ app.post("/api/export/pdf", async (req, res) => {
       doc.moveDown().font("Helvetica-Bold").fontSize(14).text("SKILLS", { underline: true });
       doc.font("Helvetica").fontSize(11).text(data.skills?.join(" | ") || "");
     } else {
+      // COVER LETTER LOGIC
+      // This places the Company Address below the header but above the letter text
+      if (data.recipientAddress) {
+        doc.font("Helvetica-Bold").fontSize(11).text("TO:", 50, 160);
+        doc.font("Helvetica").fontSize(11).text(data.recipientAddress, 50, 175);
+        doc.moveDown(2);
+      }
       doc.font("Helvetica").fontSize(12).text(data.letter || "", { width: 500, align: "left", lineGap: 2 });
     }
     doc.end();
   } catch (err) {
+    console.error("PDF Export Error:", err);
     res.status(500).send("PDF generation failed.");
   }
 });

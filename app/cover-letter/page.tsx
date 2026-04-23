@@ -39,14 +39,20 @@ export default function CoverLetterPage() {
     if (!API_BASE) return;
     setLoadingLetter(true);
     try {
+      // FIX: Payload now matches the prompt logic required by the AI
       const res = await fetch(`${API_BASE}/api/ai/generate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mode: "cover-letter", payload: { applicantName, jobTitle, experience } }),
+        body: JSON.stringify({ 
+          type: "cover-letter", 
+          prompt: `Write a professional cover letter for ${applicantName} applying for the ${jobTitle} role at ${companyName}. Context: ${experience}` 
+        }),
       });
       const data = await res.json();
-      if (data.result) {
-        const full = `${applicantName}\n${applicantAddress}\n${applicantCityStateZip}\n\n${date}\n\n${hiringManager}\n${companyName}\n${companyAddress}\n\nDear ${hiringManager},\n\n${data.result}\n\nSincerely,\n\n${applicantName}`;
+      
+      // FIX: Mapping the returned 'text' and building the full professional header
+      if (data.text) {
+        const full = `${applicantName}\n${applicantAddress}\n${applicantCityStateZip}\n\n${date}\n\n${hiringManager}\n${companyName}\n${companyAddress}\n${companyCityStateZip}\n\nDear ${hiringManager},\n\n${data.text}\n\nSincerely,\n\n${applicantName}`;
         setGeneratedLetter(full);
       }
     } catch (err) { alert("Generation failed."); } finally { setLoadingLetter(false); }
@@ -56,12 +62,16 @@ export default function CoverLetterPage() {
     if (!generatedLetter || !API_BASE) return;
     setLoadingPDF(true);
     try {
+      // FIX: Passing recipientAddress to the PDF Engine
       const res = await fetch(`${API_BASE}/api/export/pdf`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
+          type: "cover-letter",
           applicantName, applicantEmail, applicantPhone, applicantAddress, 
-          applicantCityStateZip, letter: generatedLetter 
+          applicantCityStateZip, 
+          recipientAddress: `${companyName}\n${companyAddress}\n${companyCityStateZip}`,
+          letter: generatedLetter 
         }),
       });
       const blob = await res.blob();
@@ -96,14 +106,20 @@ export default function CoverLetterPage() {
             <div className="grid grid-cols-2 gap-4">
               <input className="border p-2 rounded" placeholder="Hiring Manager" value={hiringManager} onChange={(e) => setField("hiringManager", e.target.value)} />
               <input className="border p-2 rounded" placeholder="Company Name" value={companyName} onChange={(e) => setField("companyName", e.target.value)} />
+              {/* RESTORED MISSING INPUTS */}
+              <input className="border p-2 rounded col-span-2" placeholder="Company Address" value={companyAddress} onChange={(e) => setField("companyAddress", e.target.value)} />
+              <input className="border p-2 rounded col-span-2" placeholder="Company City, State ZIP" value={companyCityStateZip} onChange={(e) => setField("companyCityStateZip", e.target.value)} />
             </div>
           </section>
 
           <section className="bg-blue-50 p-6 rounded-xl border border-blue-100 space-y-4">
-            <h2 className="font-bold text-blue-800">3. Summary Generator</h2>
+            <div className="flex justify-between items-center">
+              <h2 className="font-bold text-blue-800">3. Summary Generator</h2>
+              <input className="border p-1 rounded text-sm w-1/2" placeholder="Target Job Title" value={jobTitle} onChange={(e) => setField("jobTitle", e.target.value)} />
+            </div>
             <input type="file" accept=".pdf" onChange={(e) => setResumeFile(e.target.files?.[0] || null)} className="text-sm" />
             <button onClick={handleGenerateSummary} disabled={loadingSummary} className="w-full bg-blue-600 text-white p-3 rounded-lg font-bold hover:bg-blue-700">
-              {loadingSummary ? "Rewriting..." : "Summary Generator"}
+              {loadingSummary ? "Reading Resume..." : "Extract Resume Summary"}
             </button>
             <textarea className="w-full border p-3 rounded h-32 text-sm" value={experience} onChange={(e) => setField("experience", e.target.value)} />
           </section>
