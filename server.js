@@ -20,64 +20,43 @@ app.post("/api/ai/rewrite", async (req, res) => {
     const completion = await client.chat.completions.create({
       model: "gpt-4o",
       messages: [
-        { 
-          role: "system", 
-          content: `You are an expert elite Construction & Trade Industry Recruiter. 
-          Instantly detect and translate Spanish/Spanglish into professional American English. 
-          Use trade-specific slang correctly. No conversation, JUST the final text.` 
-        },
-        { role: "user", content: `Professionalize this ${type}: ${text}` }
+        { role: "system", content: "Expert Construction Recruiter. Translate Spanish/Spanglish. Professionalize trade slang. Return ONLY the text." }
       ],
       temperature: 0.3,
     });
-    let result = completion.choices[0].message.content.trim();
-    result = result.replace(/^["'‘“`]+|["'’ ”`]+$/g, ""); 
-    res.json({ suggestion: result });
-  } catch (err) {
-    res.status(500).json({ error: "AI Rewrite failed" });
-  }
+    res.json({ suggestion: completion.choices[0].message.content.trim() });
+  } catch (err) { res.status(500).json({ error: "Rewrite failed" }); }
 });
 
-// --- 2. FULL COVER LETTER GENERATOR (FIXES THE 404) ---
+// --- 2. FULL COVER LETTER GENERATOR ---
 app.post("/api/ai/generate", async (req, res) => {
   try {
-    const { prompt, type } = req.body;
+    const { prompt } = req.body;
     const completion = await client.chat.completions.create({
       model: "gpt-4o",
       messages: [
-        { 
-          role: "system", 
-          content: "You are a Construction Career Coach. Write a high-impact cover letter. Keep it under 300 words. No conversational filler." 
-        },
+        { role: "system", content: "Construction Career Coach. Write ONLY the body paragraphs of a cover letter. No headers, no dates, no signatures." },
         { role: "user", content: prompt }
       ],
     });
-    // This matches the data.text the frontend is looking for
     res.json({ text: completion.choices[0].message.content });
-  } catch (err) {
-    res.status(500).json({ error: "Generation failed" });
-  }
+  } catch (err) { res.status(500).json({ error: "Generation failed" }); }
 });
 
-// --- 3. SUMMARY EXTRACTION (From PDF Upload) ---
+// --- 3. SUMMARY EXTRACTION ---
 app.post("/api/ai/extract-summary", upload.single("file"), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: "No file uploaded" });
     const pdfData = await pdf(req.file.buffer);
     const completion = await client.chat.completions.create({
       model: "gpt-4o",
-      messages: [
-        { role: "system", content: "Extract a professional 3rd person trade summary focusing on construction expertise." },
-        { role: "user", content: pdfData.text }
-      ],
+      messages: [{ role: "system", content: "Extract a professional trade summary from this resume." }, { role: "user", content: pdfData.text }],
     });
     res.json({ summary: completion.choices[0].message.content });
-  } catch (err) {
-    res.status(500).json({ error: "Summary extraction failed" });
-  }
+  } catch (err) { res.status(500).json({ error: "Extraction failed" }); }
 });
 
-// --- 4. MASTER PDF ENGINE (UPDATED FOR COMPANY ADDRESS) ---
+// --- 4. MASTER PDF ENGINE (The Fix) ---
 app.post("/api/export/pdf", async (req, res) => {
   try {
     const data = req.body;
@@ -85,7 +64,7 @@ app.post("/api/export/pdf", async (req, res) => {
     res.setHeader("Content-Type", "application/pdf");
     doc.pipe(res);
 
-    // BLUE HEADER LOGIC
+    // 1. Blue Header (Applicant)
     doc.rect(0, 0, doc.page.width, 140).fill("#1F4E79");
     doc.fillColor("white").font("Helvetica-Bold").fontSize(26).text(data.applicantName || "", 50, 40);
     doc.font("Helvetica").fontSize(11).text(`${data.applicantEmail || ""} | ${data.applicantPhone || ""}`, 50, 75);
@@ -104,20 +83,23 @@ app.post("/api/export/pdf", async (req, res) => {
       doc.moveDown().font("Helvetica-Bold").fontSize(14).text("SKILLS", { underline: true });
       doc.font("Helvetica").fontSize(11).text(data.skills?.join(" | ") || "");
     } else {
-      // COVER LETTER LOGIC
-      // This places the Company Address below the header but above the letter text
-      if (data.recipientAddress) {
-        doc.font("Helvetica-Bold").fontSize(11).text("TO:", 50, 160);
-        doc.font("Helvetica").fontSize(11).text(data.recipientAddress, 50, 175);
-        doc.moveDown(2);
-      }
+      // --- COVER LETTER SPECIFIC ---
+      // A. Date
+      doc.font("Helvetica").fontSize(11).text(data.date || "", 50, 160);
+
+      // B. Company Info (Below Date)
+      doc.moveDown(1.5);
+      doc.font("Helvetica-Bold").text(data.hiringManager || "");
+      doc.font("Helvetica").text(data.companyName || "");
+      doc.text(data.companyAddress || "");
+      doc.text(data.companyCityStateZip || "");
+
+      // C. Body Content
+      doc.moveDown(2);
       doc.font("Helvetica").fontSize(12).text(data.letter || "", { width: 500, align: "left", lineGap: 2 });
     }
     doc.end();
-  } catch (err) {
-    console.error("PDF Export Error:", err);
-    res.status(500).send("PDF generation failed.");
-  }
+  } catch (err) { res.status(500).send("PDF generation failed."); }
 });
 
 const PORT = process.env.PORT || 3001;
