@@ -7,12 +7,13 @@ import multer from "multer";
 import pdf from "pdf-parse-fixed";
 
 const app = express();
-const upload = multer({ storage: multer.memoryStorage() });
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 // SECURITY: LOCKDOWN (Replace "*" with your domain when ready)
 app.use(cors({ origin: "*" }));
-app.use(express.json({ limit: "10mb" }));
+app.use(express.json({ limit: "5mb" }));
 
 // --- 1. THE IMPROVED AI REWRITE EXPERT ---
 app.post("/api/ai/rewrite", async (req, res) => {
@@ -35,7 +36,8 @@ app.post("/api/ai/rewrite", async (req, res) => {
       ],
       temperature: 0.3,
     });
-    let result = completion.choices[0].message.content.trim().replace(/^["'‘“`]+|["'’ ”`]+$/g, ""); 
+    let result = completion.choices?.[0]?.message?.content?.trim() || "";
+    result = result.replace(/^["'‘“`]+|["'’ ”`]+$/g, ""); 
     res.json({ suggestion: result });
   } catch (err) {
     console.error("Rewrite Error:", err);
@@ -51,7 +53,7 @@ app.post("/api/ai/generate", async (req, res) => {
       model: "gpt-4o",
       messages: [{ role: "system", content: "Construction Career Coach. Write ONLY the body paragraphs." }, { role: "user", content: prompt }],
     });
-    res.json({ text: completion.choices[0].message.content });
+    res.json({ text: completion.choices?.[0]?.message?.content || "" });
   } catch (err) { res.status(500).json({ error: "Generation failed" }); }
 });
 
@@ -60,29 +62,29 @@ app.post("/api/ai/extract-summary", upload.single("file"), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: "No file uploaded" });
     const pdfData = await pdf(req.file.buffer);
+    if (!pdfData?.text) return res.status(422).json({ error: "No text in PDF" });
     const completion = await client.chat.completions.create({
       model: "gpt-4o",
       messages: [{ role: "system", content: "Extract a professional trade summary." }, { role: "user", content: pdfData.text }],
     });
-    res.json({ summary: completion.choices[0].message.content });
+    res.json({ summary: completion.choices?.[0]?.message?.content || "" });
   } catch (err) { res.status(500).json({ error: "Extraction failed" }); }
 });
 
-// --- 4. MASTER PDF ENGINE (DYNAMIC LAYOUTS) ---
+// --- 4. MASTER PDF ENGINE (DYNAMIC LAYOUTS RESTORED) ---
 app.post("/api/export/pdf", async (req, res) => {
   try {
     const data = req.body;
     const isSidebar = data.selectedTemplate === "sidebar-green";
     
-    // Use 0 margin for sidebar templates to allow full-bleed background
     const doc = new PDFDocument({ size: "LETTER", margin: isSidebar ? 0 : 50 });
     res.setHeader("Content-Type", "application/pdf");
     doc.pipe(res);
 
     if (data.type === "resume") {
       if (isSidebar) {
-        // --- SIDEBAR GREEN LAYOUT ---
-        doc.rect(0, 0, 220, doc.page.height).fill("#2D3748"); // Dark Sidebar
+        // --- SIDEBAR GREEN FULL RESTORED ---
+        doc.rect(0, 0, 220, doc.page.height).fill("#2D3748");
         doc.fillColor("white").font("Helvetica-Bold").fontSize(22).text(data.applicantName || "", 30, 50);
         doc.fillColor("#48BB78").fontSize(10).text(data.tradeTitle || "", 30, 80);
         
@@ -95,11 +97,11 @@ app.post("/api/export/pdf", async (req, res) => {
         const skillsText = data.skills?.join(" | ") || "";
         doc.font("Helvetica").fontSize(9).text(skillsText, 30, 280, { width: 160 });
 
-        // Main Content (Right Side)
+        // Main Content Area
         doc.fillColor("black").font("Helvetica-Bold").fontSize(14).text("PROFESSIONAL SUMMARY", 250, 50);
         doc.font("Helvetica").fontSize(10).text(data.summary || "", 250, 75, { width: 330, lineGap: 2 });
         
-        doc.moveDown(2).font("Helvetica-Bold").fontSize(14).text("WORK EXPERIENCE", 250, doc.y);
+        doc.moveDown(2).font("Helvetica-Bold").fontSize(14).text("WORK EXPERIENCE", 250);
         data.experience?.forEach(exp => {
           doc.moveDown().font("Helvetica-Bold").fontSize(11).text(`${exp.jobTitle} - ${exp.company}`, 250);
           exp.responsibilities?.forEach(r => {
@@ -107,7 +109,7 @@ app.post("/api/export/pdf", async (req, res) => {
           });
         });
       } else {
-        // --- CLASSIC PROFESSIONAL LAYOUT ---
+        // --- CLASSIC PROFESSIONAL RESTORED ---
         doc.rect(0, 0, doc.page.width, 110).fill("#1F4E79");
         doc.fillColor("white").font("Helvetica-Bold").fontSize(28).text(data.applicantName || "", 50, 35);
         doc.font("Helvetica").fontSize(10).text(`${data.applicantEmail} | ${data.applicantPhone} | ${data.applicantAddress}`, 50, 75);
