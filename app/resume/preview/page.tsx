@@ -60,8 +60,9 @@ export default function ResumePreviewPage() {
           applicantPhone: previewData.contact.phone,
           applicantAddress: previewData.contact.location,
           summary: previewData.summary,
-          skills: previewData.skills,
-          experience: experience // Send objects to backend
+          skills: previewData.skills, // Sending mapped strings
+          experience: experience,      // Sending original objects for bullet logic
+          education: education        // FIXED: Now sending Education to server
         }),
       });
 
