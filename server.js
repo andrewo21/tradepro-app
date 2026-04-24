@@ -7,81 +7,72 @@ import multer from "multer";
 import pdf from "pdf-parse-fixed";
 
 const app = express();
-
-// --- CRITICAL FIX: Explicitly use memory storage to prevent 500 Errors on Render ---
-const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
-
+const upload = multer({ storage: multer.memoryStorage() });
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
+// LOCKDOWN: Change the "*" to your domain when ready
 app.use(cors({ origin: "*" }));
 app.use(express.json({ limit: "10mb" }));
 
-// --- 1. AI REWRITE EXPERT ---
+// --- 1. THE IMPROVED AI REWRITE EXPERT ---
 app.post("/api/ai/rewrite", async (req, res) => {
   try {
     const { text, type } = req.body; 
     const completion = await client.chat.completions.create({
       model: "gpt-4o",
-      messages: [{ role: "system", content: "Expert Construction Recruiter. Return ONLY the text." }, { role: "user", content: `Professionalize: ${text}` }],
+      messages: [
+        { 
+          role: "system", 
+          content: `You are an expert Elite Construction Recruiter and Master Linguist.
+          YOUR GOAL: Take raw input (broken English, Spanglish, trade slang) and transform it into superior, high-end professional trade language.
+          
+          RULES:
+          1. DETECT: If the text is in Spanish or Spanglish (e.g., "yo trabaje en roofing" or "tengo mucha experiencia"), translate it to perfect American English.
+          2. TRADE SLANG: Convert slang into professional terms (e.g., "mudding" -> "Drywall Finishing", "sparky" -> "Journeyman Electrician").
+          3. STRUCTURE: 
+             - If 'responsibility': Start with a powerful action verb. Focus on safety and precision.
+             - If 'summary': Write a punchy, 3rd person professional narrative.
+             - If 'skill': Return ONLY 2-4 professional words.
+          4. NO CHAT: Return ONLY the corrected text. No quotes.` 
+        },
+        { role: "user", content: `Rewrite this ${type} for a master-level construction resume: ${text}` }
+      ],
       temperature: 0.3,
     });
-    res.json({ suggestion: completion.choices[0].message.content.trim() });
-  } catch (err) { 
-    console.error("Rewrite Error:", err);
-    res.status(500).json({ error: "Rewrite failed" }); 
+
+    let result = completion.choices[0].message.content.trim();
+    result = result.replace(/^["'‘“`]+|["'’ ”`]+$/g, ""); 
+    res.json({ suggestion: result });
+  } catch (err) {
+    res.status(500).json({ error: "Rewrite failed" });
   }
 });
 
-// --- 2. FULL COVER LETTER GENERATOR ---
+// --- 2. COVER LETTER GENERATOR (LOCKED & WORKING) ---
 app.post("/api/ai/generate", async (req, res) => {
   try {
     const { prompt } = req.body;
     const completion = await client.chat.completions.create({
       model: "gpt-4o",
       messages: [
-        { role: "system", content: "Construction Career Coach. Write ONLY the body paragraphs of a cover letter. No headers, no dates, no signatures." },
+        { role: "system", content: "Construction Career Coach. Write ONLY the body of the letter." },
         { role: "user", content: prompt }
       ],
     });
     res.json({ text: completion.choices[0].message.content });
-  } catch (err) { 
-    console.error("Generation Error:", err);
-    res.status(500).json({ error: "Generation failed" }); 
-  }
+  } catch (err) { res.status(500).json({ error: "Generation failed" }); }
 });
 
-// --- 3. SUMMARY EXTRACTION (FIXED TO STOP 500 ERROR) ---
+// --- 3. SUMMARY EXTRACTION ---
 app.post("/api/ai/extract-summary", upload.single("file"), async (req, res) => {
   try {
-    if (!req.file) {
-      console.error("❌ No file received by the server.");
-      return res.status(400).json({ error: "No file uploaded" });
-    }
-
-    console.log(`📂 Processing PDF: ${req.file.originalname} (${req.file.size} bytes)`);
-    
-    // Parse the PDF from the memory buffer
     const pdfData = await pdf(req.file.buffer);
-    
-    if (!pdfData.text) {
-      console.error("❌ PDF Parsing resulted in empty text.");
-      return res.status(422).json({ error: "Could not read text from this PDF." });
-    }
-
     const completion = await client.chat.completions.create({
       model: "gpt-4o",
-      messages: [
-        { role: "system", content: "You are an elite construction recruiter. Extract a professional 3rd person summary of the user's trade experience from this resume text. Focus on trades, years of experience, and key skills. Return ONLY the summary." },
-        { role: "user", content: pdfData.text }
-      ],
+      messages: [{ role: "system", content: "Extract professional trade summary." }, { role: "user", content: pdfData.text }],
     });
-
-    res.json({ summary: completion.choices[0].message.content.trim() });
-  } catch (err) {
-    console.error("❌ Extraction Server Error:", err.message);
-    res.status(500).json({ error: "Internal server error during PDF extraction." });
-  }
+    res.json({ summary: completion.choices[0].message.content });
+  } catch (err) { res.status(500).json({ error: "Extraction failed" }); }
 });
 
 // --- 4. MASTER PDF ENGINE ---
@@ -92,12 +83,10 @@ app.post("/api/export/pdf", async (req, res) => {
     res.setHeader("Content-Type", "application/pdf");
     doc.pipe(res);
 
-    // Professional Blue Header
     doc.rect(0, 0, doc.page.width, 110).fill("#1F4E79");
     doc.fillColor("white").font("Helvetica-Bold").fontSize(28).text(data.applicantName || "", 50, 35);
     doc.font("Helvetica").fontSize(10);
-    const contactLine = `${data.applicantEmail || ""}  |  ${data.applicantPhone || ""}  |  ${data.applicantAddress || ""} ${data.applicantCityStateZip || ""}`;
-    doc.text(contactLine, 50, 75);
+    doc.text(`${data.applicantEmail || ""} | ${data.applicantPhone || ""} | ${data.applicantAddress || ""} ${data.applicantCityStateZip || ""}`, 50, 75);
     
     doc.fillColor("black").moveDown(4);
 
@@ -106,28 +95,19 @@ app.post("/api/export/pdf", async (req, res) => {
       doc.font("Helvetica").fontSize(11).moveDown(0.5).text(data.summary || "", { width: 500 });
       doc.moveDown().font("Helvetica-Bold").fontSize(14).text("WORK EXPERIENCE", { underline: true });
       data.experience?.forEach(exp => {
-        doc.moveDown(0.5).font("Helvetica-Bold").fontSize(12).text(`${exp.title} - ${exp.company}`);
-        doc.font("Helvetica").fontSize(10).text(exp.description, { width: 480 });
+        doc.moveDown(0.5).font("Helvetica-Bold").fontSize(12).text(`${exp.jobTitle} - ${exp.company}`);
+        exp.responsibilities?.forEach(r => doc.font("Helvetica").fontSize(10).text(`• ${r.text}`, { indent: 10 }));
       });
       doc.moveDown().font("Helvetica-Bold").fontSize(14).text("SKILLS", { underline: true });
-      doc.font("Helvetica").fontSize(11).text(data.skills?.join(" | ") || "");
+      doc.font("Helvetica").fontSize(11).text(data.skills?.map(s => s.text).join(" | ") || "");
     } else {
-      // Cover Letter Layout
       doc.font("Helvetica").fontSize(11).text(data.date || "", 50, 130);
-      doc.moveDown(1.5);
-      doc.text(data.hiringManager || "");
-      doc.text(data.companyName || "");
-      doc.text(data.companyAddress || "");
-      doc.text(data.companyCityStateZip || "");
-      doc.moveDown(2);
-      doc.font("Helvetica").fontSize(11.5).text(data.letter || "", { width: 500, align: "left", lineGap: 3.5 });
+      doc.moveDown(1.5).text(data.hiringManager || "").text(data.companyName || "").text(data.companyAddress || "");
+      doc.moveDown(2).font("Helvetica").fontSize(11.5).text(data.letter || "", { width: 500, lineGap: 3.5 });
     }
     doc.end();
-  } catch (err) { 
-    console.error("PDF Export Error:", err);
-    res.status(500).send("PDF generation failed."); 
-  }
+  } catch (err) { res.status(500).send("PDF failed"); }
 });
 
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, "0.0.0.0", () => console.log(`🚀 Master Brain Live on port ${PORT}`));
+app.listen(PORT, "0.0.0.0", () => console.log(`🚀 Master Brain Live`));
