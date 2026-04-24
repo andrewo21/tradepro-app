@@ -21,7 +21,7 @@ export default function ResumePreviewPage() {
   const [loading, setLoading] = useState(false);
   const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
-  // 1. Map data for the Template Component
+  // 1. Map data for the Template Component and PDF Payload
   const resumeData = {
     name: `${personalInfo.firstName || ""} ${personalInfo.lastName || ""}`,
     title: personalInfo.tradeTitle || "",
@@ -36,12 +36,11 @@ export default function ResumePreviewPage() {
       company: exp.company,
       startDate: exp.startDate,
       endDate: exp.endDate,
-      responsibilities: exp.responsibilities.map((r: any) => r.text),
-      achievements: exp.achievements?.map((a: any) => a.text) || [],
+      responsibilities: exp.responsibilities.map((r: any) => ({ text: r.text })),
+      achievements: exp.achievements?.map((a: any) => ({ text: a.text })) || [],
     })),
     education: education || [],
     skills: skills.map((s: any) => s.text),
-    certifications: [],
   };
 
   const handleDownloadPDF = async () => {
@@ -53,13 +52,15 @@ export default function ResumePreviewPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           type: "resume",
+          selectedTemplate: selectedTemplate,
           applicantName: resumeData.name,
+          tradeTitle: resumeData.title,
           applicantEmail: resumeData.contact.email,
           applicantPhone: resumeData.contact.phone,
           applicantAddress: resumeData.contact.location,
           summary: resumeData.summary,
-          skills: skills.map((s: any) => s.text),
-          experience: experience 
+          skills: resumeData.skills,
+          experience: resumeData.experience 
         }),
       });
 
@@ -72,7 +73,7 @@ export default function ResumePreviewPage() {
     } catch (err) { 
       alert("PDF Error."); 
     } finally { 
-      setLoading(false); // FIXED: Correct variable name
+      setLoading(false);
     }
   };
 
@@ -83,10 +84,12 @@ export default function ResumePreviewPage() {
       <div className="flex justify-between items-center border-b pb-6 mb-10">
         <div>
           <h1 className="text-3xl font-bold text-slate-800">Final Preview</h1>
-          <p className="text-sm text-slate-500 capitalize">Design: {selectedTemplate.replace('-', ' ')}</p>
+          <p className="text-sm text-slate-500 capitalize tracking-wide">
+            Design Style: <span className="text-blue-600 font-bold">{selectedTemplate.replace('-', ' ')}</span>
+          </p>
         </div>
         <div className="flex gap-4">
-          <Link href="/resume/personal" className="px-4 py-2 border rounded hover:bg-gray-50 transition">
+          <Link href="/resume/personal" className="px-4 py-2 border rounded hover:bg-gray-50 transition font-medium">
             Edit Details
           </Link>
           <button 
@@ -94,7 +97,7 @@ export default function ResumePreviewPage() {
             disabled={loading} 
             className="px-6 py-2 bg-blue-600 text-white rounded font-bold shadow-lg hover:bg-blue-700 disabled:bg-slate-400 transition"
           >
-            {loading ? "Generating..." : "Download Resume PDF"}
+            {loading ? "Generating PDF..." : "Download Resume PDF"}
           </button>
         </div>
       </div>
@@ -102,14 +105,20 @@ export default function ResumePreviewPage() {
       <div className="bg-white shadow-2xl rounded-lg overflow-hidden border">
         {TemplateComponent ? (
           <TemplateComponent 
-            data={resumeData} 
+            data={{
+                ...resumeData,
+                experience: resumeData.experience.map((exp: any) => ({
+                    ...exp,
+                    responsibilities: exp.responsibilities.map((r: any) => r.text)
+                }))
+            }} 
             mode="preview" 
             premiumUnlocked={premiumUnlocked}
-            showWatermark={showWatermark} // FIXED: Added missing prop
+            showWatermark={showWatermark}
           />
         ) : (
           <div className="p-20 text-center text-slate-400">
-            Template not found. Please go back and select one.
+            No template selected. Please go back to Step 1.
           </div>
         )}
       </div>
