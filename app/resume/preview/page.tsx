@@ -1,7 +1,7 @@
 "use client";
 
 import { useResumeStore } from "@/app/store/useResumeStore";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { templates } from "@/components/templates";
 import type { TemplateKey } from "@/components/templates";
@@ -21,8 +21,7 @@ export default function ResumePreviewPage() {
   const [loading, setLoading] = useState(false);
   const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
-  // 1. CLEAN PREVIEW DATA
-  // Maps objects to strings to prevent React rendering errors.
+  // 1. SAFE DATA MAPPING (String-only for React safety)
   const previewData = {
     name: `${personalInfo.firstName || ""} ${personalInfo.lastName || ""}`,
     title: personalInfo.tradeTitle || "",
@@ -62,7 +61,7 @@ export default function ResumePreviewPage() {
           applicantAddress: previewData.contact.location,
           summary: previewData.summary,
           skills: previewData.skills,
-          experience: experience // Send original objects so backend handles bullet points
+          experience: experience // Send objects to backend
         }),
       });
 
@@ -72,14 +71,12 @@ export default function ResumePreviewPage() {
       a.href = url;
       a.download = `${personalInfo.lastName || "Resume"}_TradePro.pdf`;
       a.click();
-    } catch (err) { 
-      alert("PDF Error."); 
-    } finally { 
-      setLoading(false);
-    }
+    } catch (err) { alert("PDF Error."); } finally { setLoading(false); }
   };
 
-  const TemplateComponent = templates[selectedTemplate as TemplateKey]?.component;
+  // 2. SAFE COMPONENT LOOKUP
+  const TemplateEntry = templates[selectedTemplate as TemplateKey];
+  const TemplateComponent = TemplateEntry?.component;
 
   return (
     <div className="max-w-6xl mx-auto py-10 px-6">
@@ -87,13 +84,11 @@ export default function ResumePreviewPage() {
         <div>
           <h1 className="text-3xl font-bold">Final Preview</h1>
           <p className="text-sm text-slate-500 capitalize tracking-wide">
-            Design: <span className="text-blue-600 font-bold">{selectedTemplate?.replace('-', ' ')}</span>
+            Design Style: <span className="text-blue-600 font-bold">{selectedTemplate?.replace('-', ' ') || 'Default'}</span>
           </p>
         </div>
         <div className="flex gap-4">
-          <Link href="/resume/personal" className="px-4 py-2 border rounded hover:bg-gray-50 transition">
-            Edit Details
-          </Link>
+          <Link href="/resume/personal" className="px-4 py-2 border rounded hover:bg-gray-50 transition">Edit Details</Link>
           <button 
             onClick={handleDownloadPDF} 
             disabled={loading} 
@@ -114,7 +109,7 @@ export default function ResumePreviewPage() {
           />
         ) : (
           <div className="p-20 text-center text-slate-400">
-            No template found. Please go back and select one.
+            Select a design in the first step to preview it here.
           </div>
         )}
       </div>
