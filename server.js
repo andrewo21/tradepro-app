@@ -7,7 +7,11 @@ import multer from "multer";
 import pdf from "pdf-parse-fixed";
 
 const app = express();
-const upload = multer({ storage: multer.memoryStorage() }); // Explicitly use memory storage
+
+// --- CRITICAL FIX: Explicitly use memory storage to prevent 500 Errors on Render ---
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
+
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 app.use(cors({ origin: "*" }));
@@ -22,7 +26,7 @@ app.post("/api/ai/rewrite", async (req, res) => {
       messages: [{ role: "system", content: "Expert Construction Recruiter. Return ONLY the text." }, { role: "user", content: `Professionalize: ${text}` }],
       temperature: 0.3,
     });
-    res.json({ suggestion: completion.choices.message.content.trim() });
+    res.json({ suggestion: completion.choices[0].message.content.trim() });
   } catch (err) { 
     console.error("Rewrite Error:", err);
     res.status(500).json({ error: "Rewrite failed" }); 
@@ -40,37 +44,43 @@ app.post("/api/ai/generate", async (req, res) => {
         { role: "user", content: prompt }
       ],
     });
-    res.json({ text: completion.choices.message.content });
+    res.json({ text: completion.choices[0].message.content });
   } catch (err) { 
     console.error("Generation Error:", err);
     res.status(500).json({ error: "Generation failed" }); 
   }
 });
 
-// --- 3. SUMMARY EXTRACTION (FIXED FOR 500 ERROR) ---
+// --- 3. SUMMARY EXTRACTION (FIXED TO STOP 500 ERROR) ---
 app.post("/api/ai/extract-summary", upload.single("file"), async (req, res) => {
   try {
     if (!req.file) {
-      console.log("❌ No file received by server");
+      console.error("❌ No file received by the server.");
       return res.status(400).json({ error: "No file uploaded" });
     }
 
-    console.log(`📂 Processing file: ${req.file.originalname}`);
+    console.log(`📂 Processing PDF: ${req.file.originalname} (${req.file.size} bytes)`);
     
+    // Parse the PDF from the memory buffer
     const pdfData = await pdf(req.file.buffer);
     
+    if (!pdfData.text) {
+      console.error("❌ PDF Parsing resulted in empty text.");
+      return res.status(422).json({ error: "Could not read text from this PDF." });
+    }
+
     const completion = await client.chat.completions.create({
       model: "gpt-4o",
       messages: [
-        { role: "system", content: "You are an elite construction recruiter. Extract a professional 3rd person summary of the user's trade experience from this text. Focus on years of experience, specific trades, and leadership roles. Return ONLY the summary." },
+        { role: "system", content: "You are an elite construction recruiter. Extract a professional 3rd person summary of the user's trade experience from this resume text. Focus on trades, years of experience, and key skills. Return ONLY the summary." },
         { role: "user", content: pdfData.text }
       ],
     });
 
-    res.json({ summary: completion.choices.message.content.trim() });
+    res.json({ summary: completion.choices[0].message.content.trim() });
   } catch (err) {
-    console.error("❌ Extraction Server Error:", err);
-    res.status(500).json({ error: "Summary extraction failed internally." });
+    console.error("❌ Extraction Server Error:", err.message);
+    res.status(500).json({ error: "Internal server error during PDF extraction." });
   }
 });
 
@@ -82,7 +92,7 @@ app.post("/api/export/pdf", async (req, res) => {
     res.setHeader("Content-Type", "application/pdf");
     doc.pipe(res);
 
-    // Blue Header
+    // Professional Blue Header
     doc.rect(0, 0, doc.page.width, 110).fill("#1F4E79");
     doc.fillColor("white").font("Helvetica-Bold").fontSize(28).text(data.applicantName || "", 50, 35);
     doc.font("Helvetica").fontSize(10);
@@ -102,7 +112,7 @@ app.post("/api/export/pdf", async (req, res) => {
       doc.moveDown().font("Helvetica-Bold").fontSize(14).text("SKILLS", { underline: true });
       doc.font("Helvetica").fontSize(11).text(data.skills?.join(" | ") || "");
     } else {
-      // Cover Letter
+      // Cover Letter Layout
       doc.font("Helvetica").fontSize(11).text(data.date || "", 50, 130);
       doc.moveDown(1.5);
       doc.text(data.hiringManager || "");
@@ -114,7 +124,7 @@ app.post("/api/export/pdf", async (req, res) => {
     }
     doc.end();
   } catch (err) { 
-    console.error("PDF Error:", err);
+    console.error("PDF Export Error:", err);
     res.status(500).send("PDF generation failed."); 
   }
 });
