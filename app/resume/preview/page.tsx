@@ -1,7 +1,7 @@
 "use client";
 
 import { useResumeStore } from "@/app/store/useResumeStore";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { templates } from "@/components/templates";
 import type { TemplateKey } from "@/components/templates";
@@ -21,8 +21,9 @@ export default function ResumePreviewPage() {
   const [loading, setLoading] = useState(false);
   const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
-  // 1. Map data for the Template Component and PDF Payload
-  const resumeData = {
+  // 1. Logic for the On-Screen Preview (Fixes the Vercel Build Error)
+  // We MUST map these to simple strings for React to render them safely.
+  const previewData = {
     name: `${personalInfo.firstName || ""} ${personalInfo.lastName || ""}`,
     title: personalInfo.tradeTitle || "",
     contact: {
@@ -36,11 +37,12 @@ export default function ResumePreviewPage() {
       company: exp.company,
       startDate: exp.startDate,
       endDate: exp.endDate,
-      responsibilities: exp.responsibilities.map((r: any) => ({ text: r.text })),
-      achievements: exp.achievements?.map((a: any) => ({ text: a.text })) || [],
+      responsibilities: exp.responsibilities.map((r: any) => r.text || ""), // STRING ONLY
+      achievements: exp.achievements?.map((a: any) => a.text || "") || [], // STRING ONLY
     })),
     education: education || [],
-    skills: skills.map((s: any) => s.text),
+    skills: skills.map((s: any) => s.text || ""), // STRING ONLY
+    certifications: [],
   };
 
   const handleDownloadPDF = async () => {
@@ -53,14 +55,14 @@ export default function ResumePreviewPage() {
         body: JSON.stringify({
           type: "resume",
           selectedTemplate: selectedTemplate,
-          applicantName: resumeData.name,
-          tradeTitle: resumeData.title,
-          applicantEmail: resumeData.contact.email,
-          applicantPhone: resumeData.contact.phone,
-          applicantAddress: resumeData.contact.location,
-          summary: resumeData.summary,
-          skills: resumeData.skills,
-          experience: resumeData.experience 
+          applicantName: previewData.name,
+          tradeTitle: previewData.title,
+          applicantEmail: previewData.contact.email,
+          applicantPhone: previewData.contact.phone,
+          applicantAddress: previewData.contact.location,
+          summary: previewData.summary,
+          skills: previewData.skills,
+          experience: experience // Backend still gets the full objects for robust parsing
         }),
       });
 
@@ -105,13 +107,7 @@ export default function ResumePreviewPage() {
       <div className="bg-white shadow-2xl rounded-lg overflow-hidden border">
         {TemplateComponent ? (
           <TemplateComponent 
-            data={{
-                ...resumeData,
-                experience: resumeData.experience.map((exp: any) => ({
-                    ...exp,
-                    responsibilities: exp.responsibilities.map((r: any) => r.text)
-                }))
-            }} 
+            data={previewData} 
             mode="preview" 
             premiumUnlocked={premiumUnlocked}
             showWatermark={showWatermark}
