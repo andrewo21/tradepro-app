@@ -4,14 +4,17 @@ import cors from "cors";
 import OpenAI from "openai";
 import PDFDocument from "pdfkit";
 import multer from "multer";
+import pdf from "pdf-parse-fixed";
 
 const app = express();
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 app.use(cors({ origin: "*" }));
 app.use(express.json({ limit: "5mb" }));
 
-// --- 1. THE AI ENGINE (REWRITES & EXTRACTION) ---
+// --- 1. AI ENGINE (REWRITES & EXTRACTION) ---
 
 // RESTORED: Summary Extraction logic for the "Extract Summary" button
 app.post("/api/ai/extract-summary", async (req, res) => {
@@ -35,7 +38,7 @@ app.post("/api/ai/extract-summary", async (req, res) => {
   }
 });
 
-// FIXED: AI Rewrite logic with improved system prompt
+// FIXED: AI Rewrite logic for Professional Summary and Experience
 app.post("/api/ai/rewrite", async (req, res) => {
   try {
     const { text, type } = req.body; 
@@ -66,64 +69,92 @@ app.post("/api/ai/generate", async (req, res) => {
   } catch (err) { res.status(500).json({ error: "Generation failed" }); }
 });
 
-// --- 2. DYNAMIC PDF TEMPLATE ENGINE ---
+// --- 2. MASTER TEMPLATE REGISTRY (ALL 9 TEMPLATES) ---
 
 const templateRegistry = {
   "sidebar-green": (doc, data) => {
-    doc.rect(0, 0, 220, doc.page.height).fill("#2D3748");
-    doc.fillColor("white").font("Helvetica-Bold").fontSize(22).text(data.applicantName || "", 30, 50);
-    doc.fillColor("#48BB78").fontSize(10).text(data.tradeTitle || "", 30, 80);
-    doc.fillColor("white").fontSize(10).font("Helvetica-Bold").text("CONTACT", 30, 150);
-    doc.font("Helvetica").fontSize(9).text(data.applicantEmail || "", 30, 170).text(data.applicantPhone || "", 30, 185).text(data.applicantAddress || "", 30, 200);
-    doc.fillColor("black").font("Helvetica-Bold").fontSize(14).text("SUMMARY", 250, 50);
-    doc.font("Helvetica").fontSize(10).text(data.summary || "", 250, 75, { width: 330 });
-    doc.moveDown(2).font("Helvetica-Bold").fontSize(14).text("EXPERIENCE", 250);
-    (data.experience || []).forEach(exp => {
-      doc.moveDown().font("Helvetica-Bold").fontSize(11).text(`${exp.jobTitle || exp.title} - ${exp.company}`, 250);
-      (exp.responsibilities || []).forEach(r => doc.font("Helvetica").fontSize(10).text(`• ${r.text || r}`, 260, doc.y, { width: 310 }));
+    const sidebarWidth = doc.page.width * 0.32;
+    doc.rect(0, 0, sidebarWidth, doc.page.height).fill("#E6F4EA");
+    doc.fillColor("#1a202c").font("Helvetica-Bold").fontSize(18).text(data.name || "", 20, 50, { width: sidebarWidth - 40 });
+    doc.fillColor("#4a5568").font("Helvetica").fontSize(10).text(data.title || "", 20, doc.y + 5);
+    doc.moveDown(2).fillColor("#1a202c").font("Helvetica-Bold").fontSize(11).text("PROFESSIONAL SUMMARY", sidebarWidth + 30, 50);
+    doc.font("Helvetica").fontSize(10).text(data.summary || "", sidebarWidth + 30, 75, { width: doc.page.width - sidebarWidth - 60 });
+    doc.moveDown(2).font("Helvetica-Bold").fontSize(11).text("EXPERIENCE", sidebarWidth + 30);
+    (data.experience || []).forEach(job => {
+      doc.moveDown().font("Helvetica-Bold").fontSize(10).text(job.jobTitle || "", sidebarWidth + 30);
+      (job.responsibilities || []).forEach(r => doc.font("Helvetica").fontSize(9).text(`• ${r}`, sidebarWidth + 40));
     });
   },
 
-  "standard-contemporary": (doc, data) => {
-    doc.fillColor("black").font("Helvetica-Bold").fontSize(24).text(data.applicantName || "", 50, 50);
-    doc.font("Helvetica").fontSize(9).fillColor("#4A5568");
-    doc.text(data.applicantAddress || "", 400, 50, { align: "right" });
-    doc.text(data.applicantEmail || "", 400, 62, { align: "right" });
-    doc.text(data.applicantPhone || "", 400, 74, { align: "right" });
-    doc.moveDown(3).fillColor("black").font("Helvetica-Bold").fontSize(10).text("CORE SKILLS");
-    doc.moveTo(50, doc.y + 2).lineTo(550, doc.y + 2).stroke("#E2E8F0");
-    doc.moveDown(1.5);
-    if (data.skills?.length > 0) {
-      const mid = Math.ceil(data.skills.length / 2);
-      let skillY = doc.y;
-      data.skills.slice(0, mid).forEach((s, i) => doc.font("Helvetica").fontSize(9).text(`• ${s}`, 50, skillY + (i * 12)));
-      data.skills.slice(mid).forEach((s, i) => doc.font("Helvetica").fontSize(9).text(`• ${s}`, 300, skillY + (i * 12)));
-      doc.moveDown(Math.max(mid, data.skills.length - mid) * 0.8);
-    }
-    doc.moveDown(2).font("Helvetica-Bold").fontSize(10).text("EXPERIENCE");
-    doc.moveTo(50, doc.y + 2).lineTo(550, doc.y + 2).stroke("#E2E8F0");
-    (data.experience || []).forEach(exp => {
-      doc.moveDown(1).font("Helvetica-Bold").fontSize(10).text(exp.jobTitle || exp.title || "", 50);
-      doc.font("Helvetica").fontSize(9).fillColor("#718096").text(exp.dateRange || "Present", 400, doc.y - 10, { align: "right" });
-      doc.fillColor("black").font("Helvetica").text(exp.company || "", 50);
-      (exp.responsibilities || []).forEach(r => doc.font("Helvetica").fontSize(9).text(`• ${r.text || r}`, 60, doc.y, { width: 480 }));
-    });
+  "basic-two-column": (doc, data) => {
+    const sidebarWidth = doc.page.width * 0.30;
+    doc.rect(0, 0, sidebarWidth, doc.page.height).fill("#f3f4f6");
+    doc.fillColor("#111827").font("Helvetica-Bold").fontSize(20).text(data.name || "", 25, 50);
+    doc.fontSize(10).font("Helvetica").text(data.title || "", 25, doc.y + 5);
+    doc.fillColor("#1f2937").font("Helvetica-Bold").fontSize(12).text("EXPERIENCE", sidebarWidth + 40, 50);
+    doc.font("Helvetica").fontSize(10).text(data.summary || "", sidebarWidth + 40, 75, { width: doc.page.width - sidebarWidth - 80 });
+  },
+
+  "modern-blue": (doc, data) => {
+    doc.rect(0, 0, doc.page.width, 120).fill("#1d4ed8");
+    doc.fillColor("white").font("Helvetica-Bold").fontSize(28).text(data.name || "", 40, 40);
+    doc.fontSize(14).font("Helvetica").text(data.title || "", 40, doc.y + 5);
+    doc.fillColor("black").moveDown(5).font("Helvetica-Bold").fontSize(14).text("Summary", 40);
+    doc.font("Helvetica").fontSize(11).text(data.summary || "", 40, doc.y + 10, { width: 500 });
   },
 
   "standard-classic": (doc, data) => {
-    doc.font("Helvetica-Bold").fontSize(26).text(data.applicantName || "", { align: "center" });
-    doc.font("Helvetica").fontSize(10).text(`${data.applicantEmail} | ${data.applicantPhone} | ${data.applicantAddress}`, { align: "center" });
-    doc.moveDown(2).font("Helvetica-Bold").fontSize(14).text("SUMMARY", { underline: true });
-    doc.font("Helvetica").fontSize(11).moveDown(0.5).text(data.summary || "", { width: 500 });
-    doc.moveDown().font("Helvetica-Bold").fontSize(14).text("EXPERIENCE", { underline: true });
-    (data.experience || []).forEach(exp => {
-      doc.moveDown(0.5).font("Helvetica-Bold").fontSize(11).text(`${exp.jobTitle || exp.title} - ${exp.company}`);
-      (exp.responsibilities || []).forEach(r => doc.font("Helvetica").fontSize(10).text(`• ${r.text || r}`, 65));
-    });
+    doc.rect(0, 0, doc.page.width, 100).fill("#1a202c");
+    doc.fillColor("white").font("Helvetica-Bold").fontSize(20).text(data.name || "", 40, 40);
+    doc.fillColor("#e5e7eb").fontSize(10).text(`${data.contact?.location || ""} | ${data.contact?.email || ""}`, 40, doc.y + 5);
+    doc.fillColor("black").moveDown(4).font("Helvetica-Bold").fontSize(11).text("PROFESSIONAL SUMMARY");
+    doc.font("Helvetica").fontSize(10).text(data.summary || "", 40, doc.y + 5, { width: 500 });
+  },
+
+  "standard-contemporary": (doc, data) => {
+    doc.fillColor("#1a202c").font("Helvetica-Bold").fontSize(20).text(data.name || "", 40, 50);
+    doc.font("Helvetica").fontSize(10).fillColor("#4b5563").text(`${data.contact?.location || ""} | ${data.contact?.email || ""}`, 40, doc.y + 5);
+    doc.moveTo(40, doc.y + 10).lineTo(570, doc.y + 10).stroke("#d1d5db");
+    doc.fillColor("black").moveDown(2).font("Helvetica-Bold").fontSize(11).text("PROFESSIONAL SUMMARY");
+    doc.font("Helvetica").fontSize(10).text(data.summary || "", 40, doc.y + 5, { width: 500 });
+  },
+
+  "executive-classic": (doc, data) => {
+    doc.rect(0, 0, doc.page.width, 100).fill("#003A70");
+    doc.fillColor("white").font("Helvetica-Bold").fontSize(20).text(data.name || "", 40, 40);
+    doc.fillColor("white").fontSize(10).text(data.contact?.email || "", 400, 40, { align: "right" });
+    doc.moveDown(4).fillColor("#0A1F44").font("Helvetica-Bold").fontSize(12).text(data.title || "", { align: "center" });
+    doc.moveTo(40, doc.y + 5).lineTo(570, doc.y + 5).stroke("#F28C28");
+  },
+
+  "executive-luxe": (doc, data) => {
+    const sidebarWidth = doc.page.width * 0.30;
+    doc.rect(0, 0, sidebarWidth, doc.page.height).fill("#F4E7C6");
+    doc.fillColor("#1a202c").font("Helvetica-Bold").fontSize(20).text(data.name || "", 20, 50);
+    doc.font("Helvetica-Bold").fontSize(11).text("PROFESSIONAL SUMMARY", sidebarWidth + 30, 50);
+    doc.font("Helvetica").fontSize(10).text(data.summary || "", sidebarWidth + 30, 75, { width: 350 });
+  },
+
+  "modern-elite": (doc, data) => {
+    doc.rect(0, 0, doc.page.width, 100).fill("#4B5563");
+    doc.fillColor("white").font("Helvetica-Bold").fontSize(22).text(data.name || "", 40, 35);
+    doc.fontSize(12).text(data.title || "", 40, doc.y + 5);
+    const col1 = 40; const col2 = 220;
+    doc.fillColor("black").font("Helvetica-Bold").fontSize(11).text("Summary", col1, 130);
+    doc.font("Helvetica").fontSize(10).text(data.summary || "", col1, 150, { width: 150 });
+    doc.font("Helvetica-Bold").text("Experience", col2, 130);
+  },
+
+  "modern-professional": (doc, data) => {
+    doc.fillColor("#111827").font("Helvetica-Bold").fontSize(22).text(data.name || "", { align: "center" });
+    doc.font("Helvetica").fontSize(12).text(data.title || "", { align: "center" });
+    doc.moveTo(40, doc.y + 10).lineTo(570, doc.y + 10).stroke("#d1d5db");
+    doc.moveDown(2).font("Helvetica-Bold").fontSize(11).text("Professional Summary");
+    doc.font("Helvetica").fontSize(10).text(data.summary || "", 40, doc.y + 5, { width: 500 });
   }
 };
 
-// --- 3. EXPORT CONTROLLER ---
+// --- 3. MASTER EXPORT CONTROLLER ---
 
 app.post("/api/export/pdf", async (req, res) => {
   try {
@@ -131,16 +162,17 @@ app.post("/api/export/pdf", async (req, res) => {
     const isResume = data.type === "resume";
     const templateId = data.selectedTemplate || "standard-contemporary";
 
+    // Set margin to 0 for full-bleed sidebar templates
     const doc = new PDFDocument({ 
       size: "LETTER", 
-      margin: (isResume && templateId === "sidebar-green") ? 0 : 50 
+      margin: (templateId === "sidebar-green" || templateId === "basic-two-column" || templateId === "executive-luxe") ? 0 : 50 
     });
 
     res.setHeader("Content-Type", "application/pdf");
     doc.pipe(res);
 
     if (isResume) {
-      // DYNAMIC DISPATCH: Matches Step 1 Template ID to drawing logic
+      // DYNAMIC DISPATCH: Matches selectedTemplate to its specific drawing logic
       const draw = templateRegistry[templateId] || templateRegistry["standard-contemporary"];
       draw(doc, data);
     } else {
