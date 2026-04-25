@@ -11,27 +11,9 @@ const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 app.use(cors({ origin: "*" }));
 app.use(express.json({ limit: "5mb" }));
 
-// --- 1. AI ENGINE (REWRITE & SUMMARY) ---
-app.post("/api/ai/rewrite", async (req, res) => {
-  try {
-    const { text, type } = req.body; 
-    const completion = await client.chat.completions.create({
-      model: "gpt-4o",
-      messages: [
-        { 
-          role: "system", 
-          content: "You are an Elite Construction Recruiter. Translate Spanish/Spanglish and fix all grammar into high-end professional American English. Return ONLY the text." 
-        },
-        { role: "user", content: `Rewrite this ${type}: ${text}` }
-      ],
-      temperature: 0.3,
-    });
-    let result = completion.choices?.[0]?.message?.content?.trim() || "";
-    res.json({ suggestion: result.replace(/^["'‘“`]+|["'’ ”`]+$/g, "") });
-  } catch (err) { res.status(500).json({ error: "Rewrite failed" }); }
-});
+// --- 1. THE AI ENGINE (REWRITES & EXTRACTION) ---
 
-// RESTORED: Extract Summary Button Logic
+// RESTORED: Summary Extraction logic for the "Extract Summary" button
 app.post("/api/ai/extract-summary", async (req, res) => {
   try {
     const { text } = req.body;
@@ -40,13 +22,37 @@ app.post("/api/ai/extract-summary", async (req, res) => {
       messages: [
         { 
           role: "system", 
-          content: "You are a professional resume writer. Write a 3-4 sentence professional summary focusing on construction experience. Return ONLY the text." 
+          content: "You are a professional resume writer. Based on the provided resume text, write a 3-4 sentence professional summary focusing on construction experience and leadership. Return ONLY the summary text." 
         },
         { role: "user", content: text }
       ],
+      temperature: 0.5,
     });
     res.json({ summary: completion.choices?.[0]?.message?.content?.trim() || "" });
-  } catch (err) { res.status(500).json({ error: "Extraction failed" }); }
+  } catch (err) { 
+    console.error("Extraction error:", err);
+    res.status(500).json({ error: "Extraction failed" }); 
+  }
+});
+
+// FIXED: AI Rewrite logic with improved system prompt
+app.post("/api/ai/rewrite", async (req, res) => {
+  try {
+    const { text, type } = req.body; 
+    const completion = await client.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        { 
+          role: "system", 
+          content: "You are an Elite Construction Recruiter. Translate Spanish/Spanglish and fix all grammar like 'many peoples' into high-end professional American English. Return ONLY the text without quotes." 
+        },
+        { role: "user", content: `Rewrite this ${type}: ${text}` }
+      ],
+      temperature: 0.3,
+    });
+    let result = completion.choices?.[0]?.message?.content?.trim() || "";
+    res.json({ suggestion: result.replace(/^["'‘“`]+|["'’ ”`]+$/g, "") });
+  } catch (err) { res.status(500).json({ error: "Rewrite failed" }); }
 });
 
 app.post("/api/ai/generate", async (req, res) => {
@@ -60,8 +66,8 @@ app.post("/api/ai/generate", async (req, res) => {
   } catch (err) { res.status(500).json({ error: "Generation failed" }); }
 });
 
-// --- 2. THE PDF TEMPLATE REGISTRY ---
-// Each function here draws a specific layout matching your template-list.ts
+// --- 2. DYNAMIC PDF TEMPLATE ENGINE ---
+
 const templateRegistry = {
   "sidebar-green": (doc, data) => {
     doc.rect(0, 0, 220, doc.page.height).fill("#2D3748");
@@ -72,7 +78,7 @@ const templateRegistry = {
     doc.fillColor("black").font("Helvetica-Bold").fontSize(14).text("SUMMARY", 250, 50);
     doc.font("Helvetica").fontSize(10).text(data.summary || "", 250, 75, { width: 330 });
     doc.moveDown(2).font("Helvetica-Bold").fontSize(14).text("EXPERIENCE", 250);
-    data.experience?.forEach(exp => {
+    (data.experience || []).forEach(exp => {
       doc.moveDown().font("Helvetica-Bold").fontSize(11).text(`${exp.jobTitle || exp.title} - ${exp.company}`, 250);
       (exp.responsibilities || []).forEach(r => doc.font("Helvetica").fontSize(10).text(`• ${r.text || r}`, 260, doc.y, { width: 310 }));
     });
@@ -80,74 +86,69 @@ const templateRegistry = {
 
   "standard-contemporary": (doc, data) => {
     doc.fillColor("black").font("Helvetica-Bold").fontSize(24).text(data.applicantName || "", 50, 50);
-    doc.font("Helvetica").fontSize(9).fillColor("#4A5568").text(`${data.applicantAddress} | ${data.applicantEmail} | ${data.applicantPhone}`, 50, 80);
-    doc.moveDown(2).fillColor("black").font("Helvetica-Bold").fontSize(12).text("PROFESSIONAL SUMMARY");
+    doc.font("Helvetica").fontSize(9).fillColor("#4A5568");
+    doc.text(data.applicantAddress || "", 400, 50, { align: "right" });
+    doc.text(data.applicantEmail || "", 400, 62, { align: "right" });
+    doc.text(data.applicantPhone || "", 400, 74, { align: "right" });
+    doc.moveDown(3).fillColor("black").font("Helvetica-Bold").fontSize(10).text("CORE SKILLS");
     doc.moveTo(50, doc.y + 2).lineTo(550, doc.y + 2).stroke("#E2E8F0");
-    doc.moveDown(0.5).font("Helvetica").fontSize(10).text(data.summary || "", { width: 500 });
-    doc.moveDown(2).font("Helvetica-Bold").fontSize(12).text("EXPERIENCE");
+    doc.moveDown(1.5);
+    if (data.skills?.length > 0) {
+      const mid = Math.ceil(data.skills.length / 2);
+      let skillY = doc.y;
+      data.skills.slice(0, mid).forEach((s, i) => doc.font("Helvetica").fontSize(9).text(`• ${s}`, 50, skillY + (i * 12)));
+      data.skills.slice(mid).forEach((s, i) => doc.font("Helvetica").fontSize(9).text(`• ${s}`, 300, skillY + (i * 12)));
+      doc.moveDown(Math.max(mid, data.skills.length - mid) * 0.8);
+    }
+    doc.moveDown(2).font("Helvetica-Bold").fontSize(10).text("EXPERIENCE");
     doc.moveTo(50, doc.y + 2).lineTo(550, doc.y + 2).stroke("#E2E8F0");
-    data.experience?.forEach(exp => {
-      doc.moveDown(1).font("Helvetica-Bold").fontSize(11).text(exp.jobTitle || exp.title || "");
-      doc.font("Helvetica-Oblique").fontSize(10).text(exp.company || "");
-      (exp.responsibilities || []).forEach(r => doc.font("Helvetica").fontSize(10).text(`• ${r.text || r}`, 60));
-    });
-  },
-
-  "modern-blue": (doc, data) => {
-    doc.rect(0, 0, doc.page.width, 100).fill("#2B6CB0");
-    doc.fillColor("white").font("Helvetica-Bold").fontSize(26).text(data.applicantName || "", 50, 35);
-    doc.fontSize(10).text(data.tradeTitle || "", 50, 65);
-    doc.fillColor("black").moveDown(4);
-    doc.font("Helvetica-Bold").fontSize(12).text("EXPERIENCE", 50);
-    data.experience?.forEach(exp => {
-      doc.moveDown(1).font("Helvetica-Bold").text(`${exp.jobTitle} @ ${exp.company}`);
-      (exp.responsibilities || []).forEach(r => doc.font("Helvetica").fontSize(10).text(`- ${r.text || r}`, 60));
+    (data.experience || []).forEach(exp => {
+      doc.moveDown(1).font("Helvetica-Bold").fontSize(10).text(exp.jobTitle || exp.title || "", 50);
+      doc.font("Helvetica").fontSize(9).fillColor("#718096").text(exp.dateRange || "Present", 400, doc.y - 10, { align: "right" });
+      doc.fillColor("black").font("Helvetica").text(exp.company || "", 50);
+      (exp.responsibilities || []).forEach(r => doc.font("Helvetica").fontSize(9).text(`• ${r.text || r}`, 60, doc.y, { width: 480 }));
     });
   },
 
   "standard-classic": (doc, data) => {
-    doc.font("Helvetica-Bold").fontSize(28).text(data.applicantName || "", { align: "center" });
-    doc.font("Helvetica").fontSize(10).text(`${data.applicantEmail} | ${data.applicantPhone}`, { align: "center" });
-    doc.moveDown(2).font("Helvetica-Bold").text("SUMMARY", { underline: true });
-    doc.font("Helvetica").text(data.summary || "");
-    doc.moveDown().font("Helvetica-Bold").text("EXPERIENCE", { underline: true });
-    data.experience?.forEach(exp => {
-      doc.moveDown(0.5).font("Helvetica-Bold").text(exp.jobTitle || "");
-      (exp.responsibilities || []).forEach(r => doc.font("Helvetica").text(`• ${r.text || r}`, 70));
+    doc.font("Helvetica-Bold").fontSize(26).text(data.applicantName || "", { align: "center" });
+    doc.font("Helvetica").fontSize(10).text(`${data.applicantEmail} | ${data.applicantPhone} | ${data.applicantAddress}`, { align: "center" });
+    doc.moveDown(2).font("Helvetica-Bold").fontSize(14).text("SUMMARY", { underline: true });
+    doc.font("Helvetica").fontSize(11).moveDown(0.5).text(data.summary || "", { width: 500 });
+    doc.moveDown().font("Helvetica-Bold").fontSize(14).text("EXPERIENCE", { underline: true });
+    (data.experience || []).forEach(exp => {
+      doc.moveDown(0.5).font("Helvetica-Bold").fontSize(11).text(`${exp.jobTitle || exp.title} - ${exp.company}`);
+      (exp.responsibilities || []).forEach(r => doc.font("Helvetica").fontSize(10).text(`• ${r.text || r}`, 65));
     });
   }
-  // Note: Add remaining executive/premium keys here following the same pattern
 };
 
-// --- 3. MASTER EXPORT ENGINE ---
+// --- 3. EXPORT CONTROLLER ---
+
 app.post("/api/export/pdf", async (req, res) => {
   try {
     const data = req.body;
     const isResume = data.type === "resume";
-    
-    // Create Doc - Sidebar templates get 0 margin for full-bleed background
+    const templateId = data.selectedTemplate || "standard-contemporary";
+
     const doc = new PDFDocument({ 
       size: "LETTER", 
-      margin: (data.selectedTemplate === "sidebar-green") ? 0 : 50 
+      margin: (isResume && templateId === "sidebar-green") ? 0 : 50 
     });
 
     res.setHeader("Content-Type", "application/pdf");
     doc.pipe(res);
 
     if (isResume) {
-      // 1. Get the drawing recipe based on Step 1 selection
-      const templateId = data.selectedTemplate || "standard-contemporary";
+      // DYNAMIC DISPATCH: Matches Step 1 Template ID to drawing logic
       const draw = templateRegistry[templateId] || templateRegistry["standard-contemporary"];
-      
-      // 2. Execute drawing
       draw(doc, data);
     } else {
-      // COVER LETTER - Surgically isolated Blue Header logic
+      // COVER LETTER: The blue header remains locked to cover letters only
       doc.rect(0, 0, doc.page.width, 130).fill("#1F4E79");
       doc.fillColor("white").font("Helvetica-Bold").fontSize(26).text(data.applicantName || "", 50, 40);
       doc.font("Helvetica").fontSize(10).text(`${data.applicantEmail || ""} | ${data.applicantPhone || ""}`, 50, 75);
       doc.text(data.applicantAddress || "", 50, 90);
-      
       doc.fillColor("black").font("Helvetica").fontSize(11).text(data.date || "", 50, 150);
       doc.moveDown(1.5).text(data.hiringManager || "").text(data.companyName || "").text(data.companyAddress || "");
       doc.moveDown(2).fontSize(12).text(data.letter || "", { width: 500, lineGap: 3 });
