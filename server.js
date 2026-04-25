@@ -16,13 +16,13 @@ app.use(express.urlencoded({ extended: true }));
 
 /**
  * --- 1. AI ENGINE (REWRITES & EXTRACTION) ---
+ * Surgically fixed to handle both Resume Page (JSON) and Cover Letter Page (FormData)
  */
 
-// FIXED: Now handles both JSON and FormData from Cover Letter Page
 app.post("/api/ai/extract-summary", upload.none(), async (req, res) => {
   try {
-    // Check if data is in body (JSON) or req.body (FormData)
-    const text = req.body.text || req.body.resumeText;
+    // FIXED: Catches 'resumeText' from Cover Letter FormData or 'text' from Resume Builder JSON
+    const text = req.body.resumeText || req.body.text;
     
     if (!text) return res.status(400).json({ error: "No text provided" });
 
@@ -59,10 +59,9 @@ app.post("/api/ai/rewrite", async (req, res) => {
 
 app.post("/api/ai/generate", upload.none(), async (req, res) => {
   try {
-    const prompt = req.body.prompt;
     const completion = await client.chat.completions.create({
       model: "gpt-4o",
-      messages: [{ role: "system", content: "Construction Career Coach. Body paragraphs only." }, { role: "user", content: prompt }],
+      messages: [{ role: "system", content: "Construction Career Coach. Body paragraphs only." }, { role: "user", content: req.body.prompt }],
     });
     res.json({ text: completion.choices?.[0]?.message?.content || "" });
   } catch (err) { res.status(500).json({ error: "Generation failed" }); }
@@ -70,76 +69,77 @@ app.post("/api/ai/generate", upload.none(), async (req, res) => {
 
 /**
  * --- 2. MASTER TEMPLATE REGISTRY (ALL 9 TEMPLATES) ---
+ * FIXED: Explicit left-alignment and complete data display for all sections.
  */
 
 const templateRegistry = {
   "modern-blue": (doc, data) => {
+    const leftMargin = 40;
     doc.rect(0, 0, doc.page.width, 130).fill("#1d4ed8");
-    doc.fillColor("white").font("Helvetica-Bold").fontSize(28).text(data.applicantName || "", 40, 35);
-    doc.fontSize(14).font("Helvetica").text(data.tradeTitle || "", 40, doc.y + 5);
-    doc.fontSize(9).text(`${data.applicantPhone || ""} | ${data.applicantEmail || ""} | ${data.applicantAddress || ""}`, 40, doc.y + 10);
-    doc.fillColor("black").moveDown(6).font("Helvetica-Bold").fontSize(14).text("Summary", 40);
-    doc.font("Helvetica").fontSize(10).text(data.summary || "", 40, doc.y + 5, { width: 520 });
+    doc.fillColor("white").font("Helvetica-Bold").fontSize(28).text(data.applicantName || "", leftMargin, 35);
+    doc.fontSize(14).font("Helvetica").text(data.tradeTitle || "", leftMargin, doc.y + 5);
+    doc.fontSize(9).text(`${data.applicantPhone || ""} | ${data.applicantEmail || ""} | ${data.applicantAddress || ""}`, leftMargin, doc.y + 10);
+    
+    doc.fillColor("black").moveDown(6).font("Helvetica-Bold").fontSize(14).text("Summary", leftMargin);
+    doc.font("Helvetica").fontSize(10).text(data.summary || "", leftMargin, doc.y + 5, { width: 520 });
+
     if (data.skills && data.skills.length > 0) {
-      doc.moveDown(2).font("Helvetica-Bold").fontSize(14).text("Skills", 40);
+      doc.moveDown(2).font("Helvetica-Bold").fontSize(14).text("Skills", leftMargin);
       const skillStrings = data.skills.map(s => typeof s === 'string' ? s : (s.text || ""));
-      doc.font("Helvetica").fontSize(10).text(skillStrings.join("  |  "), 40, doc.y + 5, { width: 520 });
+      doc.font("Helvetica").fontSize(10).text(skillStrings.join("  |  "), leftMargin, doc.y + 5, { width: 520 });
     }
-    doc.moveDown(2).font("Helvetica-Bold").fontSize(14).text("Experience", 40);
+
+    doc.moveDown(2).font("Helvetica-Bold").fontSize(14).text("Experience", leftMargin);
     (data.experience || []).forEach(job => {
-      doc.moveDown(1).font("Helvetica-Bold").fontSize(11).text(`${job.jobTitle || ""} — ${job.company || ""}`);
+      doc.moveDown(1).font("Helvetica-Bold").fontSize(11).text(`${job.jobTitle || ""} — ${job.company || ""}`, leftMargin);
       const bullets = [...(job.responsibilities || []), ...(job.achievements || [])];
       bullets.forEach(r => {
         const txt = typeof r === 'string' ? r : (r.text || "");
-        if (txt) doc.font("Helvetica").fontSize(10).text(`• ${txt}`, 55, doc.y, { width: 500 });
-      });
-    });
-  },
-
-  "standard-classic": (doc, data) => {
-    doc.rect(0, 0, doc.page.width, 100).fill("#1a202c");
-    doc.fillColor("white").font("Helvetica-Bold").fontSize(20).text(data.applicantName || "", 40, 40);
-    doc.fontSize(10).text(`${data.applicantEmail} | ${data.applicantPhone}`, 40, doc.y + 5);
-    doc.fillColor("black").moveDown(5).font("Helvetica-Bold").fontSize(12).text("PROFESSIONAL SUMMARY");
-    doc.font("Helvetica").fontSize(10).text(data.summary || "", 40, doc.y + 5, { width: 520 });
-    if (data.skills && data.skills.length > 0) {
-      doc.moveDown(2).font("Helvetica-Bold").fontSize(12).text("SKILLS");
-      const mid = Math.ceil(data.skills.length / 2);
-      const sy = doc.y + 5;
-      data.skills.slice(0, mid).forEach((s, i) => doc.font("Helvetica").fontSize(9).text(`• ${s.text || s}`, 40, sy + (i * 12)));
-      data.skills.slice(mid).forEach((s, i) => doc.font("Helvetica").fontSize(9).text(`• ${s.text || s}`, 300, sy + (i * 12)));
-      doc.moveDown(mid * 0.8 + 1);
-    }
-    doc.moveDown(1).font("Helvetica-Bold").fontSize(12).text("EXPERIENCE");
-    (data.experience || []).forEach(job => {
-      doc.moveDown(0.5).font("Helvetica-Bold").fontSize(11).text(`${job.jobTitle} — ${job.company}`);
-      [...(job.responsibilities || []), ...(job.achievements || [])].forEach(r => {
-        const txt = typeof r === 'string' ? r : (r.text || "");
-        if (txt) doc.font("Helvetica").fontSize(9).text(`• ${txt}`, 50);
+        if (txt) doc.font("Helvetica").fontSize(10).text(`• ${txt}`, leftMargin + 15, doc.y, { width: 500 });
       });
     });
   },
 
   "standard-contemporary": (doc, data) => {
-    doc.fillColor("#1a202c").font("Helvetica-Bold").fontSize(20).text(data.applicantName || "", 40, 50);
-    doc.font("Helvetica").fontSize(10).fillColor("#4b5563").text(`${data.applicantAddress} | ${data.applicantEmail} | ${data.applicantPhone}`, 40, doc.y + 5);
-    doc.moveTo(40, doc.y + 10).lineTo(570, doc.y + 10).stroke("#d1d5db");
-    doc.fillColor("black").moveDown(2).font("Helvetica-Bold").fontSize(12).text("SUMMARY");
-    doc.font("Helvetica").fontSize(10).text(data.summary || "", 40, doc.y + 5, { width: 520 });
+    const leftMargin = 40;
+    doc.fillColor("#1a202c").font("Helvetica-Bold").fontSize(20).text(data.applicantName || "", leftMargin, 50);
+    doc.font("Helvetica").fontSize(10).fillColor("#4b5563").text(`${data.applicantAddress} | ${data.applicantEmail} | ${data.applicantPhone}`, leftMargin, doc.y + 5);
+    doc.moveTo(leftMargin, doc.y + 10).lineTo(570, doc.y + 10).stroke("#d1d5db");
+    
+    doc.fillColor("black").moveDown(2).font("Helvetica-Bold").fontSize(12).text("SUMMARY", leftMargin);
+    doc.font("Helvetica").fontSize(10).text(data.summary || "", leftMargin, doc.y + 5, { width: 520 });
+
     if (data.skills && data.skills.length > 0) {
-      doc.moveDown(2).font("Helvetica-Bold").fontSize(12).text("SKILLS");
+      doc.moveDown(2).font("Helvetica-Bold").fontSize(12).text("SKILLS", leftMargin);
       const mid = Math.ceil(data.skills.length / 2);
       const sy = doc.y + 5;
-      data.skills.slice(0, mid).forEach((s, i) => doc.font("Helvetica").fontSize(9).text(`• ${s.text || s}`, 40, sy + (i * 12)));
+      data.skills.slice(0, mid).forEach((s, i) => doc.font("Helvetica").fontSize(9).text(`• ${s.text || s}`, leftMargin, sy + (i * 12)));
       data.skills.slice(mid).forEach((s, i) => doc.font("Helvetica").fontSize(9).text(`• ${s.text || s}`, 300, sy + (i * 12)));
       doc.moveDown(mid * 0.8 + 1);
     }
-    doc.moveDown(1).font("Helvetica-Bold").fontSize(12).text("EXPERIENCE");
+
+    doc.moveDown(1).font("Helvetica-Bold").fontSize(12).text("EXPERIENCE", leftMargin);
     (data.experience || []).forEach(job => {
-      doc.moveDown(0.5).font("Helvetica-Bold").fontSize(11).text(`${job.jobTitle} — ${job.company}`);
+      doc.moveDown(0.5).font("Helvetica-Bold").fontSize(11).text(`${job.jobTitle} — ${job.company}`, leftMargin);
+      const bullets = [...(job.responsibilities || []), ...(job.achievements || [])];
+      bullets.forEach(r => {
+        const txt = typeof r === 'string' ? r : (r.text || "");
+        if (txt) doc.font("Helvetica").fontSize(9).text(`• ${txt}`, leftMargin + 10, doc.y, { width: 510 });
+      });
+    });
+  },
+
+  "standard-classic": (doc, data) => {
+    const leftMargin = 40;
+    doc.rect(0, 0, doc.page.width, 100).fill("#1a202c");
+    doc.fillColor("white").font("Helvetica-Bold").fontSize(20).text(data.applicantName || "", leftMargin, 40);
+    doc.fontSize(10).text(`${data.applicantEmail} | ${data.applicantPhone}`, leftMargin, doc.y + 5);
+    doc.fillColor("black").moveDown(5).font("Helvetica-Bold").fontSize(12).text("EXPERIENCE", leftMargin);
+    (data.experience || []).forEach(job => {
+      doc.moveDown(1).font("Helvetica-Bold").text(`${job.jobTitle} — ${job.company}`, leftMargin);
       [...(job.responsibilities || []), ...(job.achievements || [])].forEach(r => {
         const txt = typeof r === 'string' ? r : (r.text || "");
-        if (txt) doc.font("Helvetica").fontSize(9).text(`• ${txt}`, 50);
+        if (txt) doc.font("Helvetica").text(`• ${txt}`, leftMargin + 10);
       });
     });
   },
@@ -153,11 +153,6 @@ const templateRegistry = {
     const mx = sw + 30;
     doc.fillColor("#1a202c").font("Helvetica-Bold").fontSize(11).text("SUMMARY", mx, 50);
     doc.font("Helvetica").fontSize(10).text(data.summary || "", mx, 70, { width: doc.page.width - sw - 60 });
-    if (data.skills && data.skills.length > 0) {
-      doc.moveDown(2).font("Helvetica-Bold").fontSize(11).text("SKILLS", mx);
-      const skillStrings = data.skills.map(s => typeof s === 'string' ? s : (s.text || ""));
-      doc.font("Helvetica").fontSize(9).text(skillStrings.join("  •  "), mx, doc.y + 5);
-    }
     doc.moveDown(2).font("Helvetica-Bold").fontSize(11).text("EXPERIENCE", mx);
     (data.experience || []).forEach(job => {
       doc.moveDown(1).font("Helvetica-Bold").fontSize(10).text(`${job.jobTitle || ""} — ${job.company || ""}`, mx);
@@ -173,10 +168,6 @@ const templateRegistry = {
     doc.rect(0, 0, sw, doc.page.height).fill("#f3f4f6");
     doc.fillColor("#111827").font("Helvetica-Bold").fontSize(20).text(data.applicantName || "", 25, 50);
     doc.fontSize(9).font("Helvetica").text(`${data.applicantPhone}\n${data.applicantEmail}\n${data.applicantAddress}`, 25, doc.y + 10);
-    if (data.skills && data.skills.length > 0) {
-      doc.moveDown(2).font("Helvetica-Bold").fontSize(10).text("SKILLS", 25);
-      data.skills.forEach(s => doc.font("Helvetica").fontSize(9).text(`• ${s.text || s}`, 25));
-    }
     doc.fillColor("#1f2937").font("Helvetica-Bold").fontSize(12).text("EXPERIENCE", sw + 40, 50);
     (data.experience || []).forEach(job => {
       doc.moveDown(1).font("Helvetica-Bold").text(`${job.jobTitle} — ${job.company}`, sw + 40);
@@ -194,7 +185,7 @@ const templateRegistry = {
     doc.moveDown(4).fillColor("#0A1F44").font("Helvetica-Bold").fontSize(12).text(data.tradeTitle || "", { align: "center" });
     doc.moveTo(40, doc.y + 5).lineTo(570, doc.y + 5).stroke("#F28C28");
     (data.experience || []).forEach(job => {
-        doc.moveDown(1).fillColor("black").font("Helvetica-Bold").text(`${job.jobTitle} — ${job.company}`);
+        doc.moveDown(1).fillColor("black").font("Helvetica-Bold").text(`${job.jobTitle} — ${job.company}`, 40);
         [...(job.responsibilities || []), ...(job.achievements || [])].forEach(r => {
           const txt = typeof r === 'string' ? r : (r.text || "");
           if (txt) doc.font("Helvetica").text(`• ${txt}`, 50);
@@ -231,11 +222,10 @@ const templateRegistry = {
 
   "modern-professional": (doc, data) => {
     doc.fillColor("#111827").font("Helvetica-Bold").fontSize(22).text(data.applicantName || "", { align: "center" });
-    doc.fontSize(10).text(`${data.applicantEmail} | ${data.applicantPhone}`, { align: "center" });
     doc.moveTo(40, doc.y + 10).lineTo(570, doc.y + 10).stroke("#d1d5db");
-    doc.moveDown(2).font("Helvetica-Bold").fontSize(11).text("Experience");
+    doc.moveDown(2).font("Helvetica-Bold").fontSize(11).text("Experience", 40);
     (data.experience || []).forEach(job => {
-        doc.moveDown(1).font("Helvetica-Bold").text(`${job.jobTitle} — ${job.company}`);
+        doc.moveDown(1).font("Helvetica-Bold").text(`${job.jobTitle} — ${job.company}`, 40);
         [...(job.responsibilities || []), ...(job.achievements || [])].forEach(r => {
           const txt = typeof r === 'string' ? r : (r.text || "");
           if (txt) doc.font("Helvetica").text(`• ${txt}`, 50);
