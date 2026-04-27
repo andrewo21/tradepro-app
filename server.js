@@ -180,6 +180,7 @@ app.post("/api/export/pdf", async (req, res) => {
       doc.fillColor("white").font("Helvetica-Bold").fontSize(26).text(data.applicantName || "", 50, 40);
       doc.font("Helvetica").fontSize(10).text(`${data.applicantEmail || ""} | ${data.applicantPhone || ""}`, 50, 75);
       doc.text(data.applicantAddress || "", 50, 90);
+      doc.text(data.applicantCityStateZip || "", 50, 103);
       doc.fillColor("black").font("Helvetica").fontSize(11).text(data.date || "", 50, 150);
       doc.moveDown(2).fontSize(12).text(data.letter || "", { width: 500, lineGap: 3 });
     }
