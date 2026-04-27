@@ -1,7 +1,7 @@
 "use client";
 
 import { useResumeStore } from "@/app/store/useResumeStore";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
 import { templates } from "@/components/templates";
 import type { TemplateKey } from "@/components/templates";
@@ -19,6 +19,7 @@ export default function ResumePreviewPage() {
   } = useResumeStore();
   
   const [loading, setLoading] = useState(false);
+  const previewRef = useRef<HTMLDivElement>(null);
 
   // Safe data mapping (string-only values for template rendering)
   const previewData = {
@@ -43,35 +44,33 @@ export default function ResumePreviewPage() {
     certifications: [],
   };
 
-  /**
-   * Opens the React-rendered template in a dedicated print popup window.
-   * The PDF page itself hides the site header and auto-triggers window.print()
-   * once the template has fully mounted.
-   */
-  const handleDownloadPDF = () => {
+  const handleDownloadPDF = async () => {
+    if (!previewRef.current) return;
     setLoading(true);
     try {
-      const payload = {
-        templateId: selectedTemplate || "sidebar-green",
-        resumeData: previewData,
-      };
-      const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
-      const printUrl = `/pdf/template?payload=${encoded}`;
+      const html2canvas = (await import("html2canvas")).default;
+      const { jsPDF } = await import("jspdf");
 
-      const win = window.open(printUrl, "_blank", "width=900,height=1200");
-      if (!win) {
-        alert("Please allow popups for this site to download your resume.");
-        setLoading(false);
-        return;
-      }
+      const canvas = await html2canvas(previewRef.current, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+      });
 
-      // The PDF page triggers its own print dialog after the template renders.
-      // Reset the button state after a safe delay.
-      setTimeout(() => {
-        setLoading(false);
-      }, 4000);
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF({ orientation: "portrait", unit: "pt", format: "letter" });
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = canvas.width;
+      const imgHeight = canvas.height;
+      const ratio = Math.min(pageWidth / imgWidth, pageHeight / imgHeight);
+      const imgX = (pageWidth - imgWidth * ratio) / 2;
+
+      pdf.addImage(imgData, "PNG", imgX, 0, imgWidth * ratio, imgHeight * ratio);
+      pdf.save("Resume.pdf");
     } catch (err) {
       alert("PDF Error. Please try again.");
+    } finally {
       setLoading(false);
     }
   };
@@ -101,7 +100,7 @@ export default function ResumePreviewPage() {
         </div>
       </div>
 
-      <div className="bg-white shadow-2xl rounded-lg overflow-hidden border">
+      <div ref={previewRef} className="bg-white shadow-2xl rounded-lg overflow-hidden border">
         {TemplateComponent ? (
           <TemplateComponent 
             data={previewData} 
