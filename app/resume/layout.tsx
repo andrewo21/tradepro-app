@@ -19,7 +19,7 @@ async function ResumeGate({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50 p-6">
+    <div className="min-h-screen bg-neutral-50 px-2 py-4 sm:p-6">
       {children}
       <BundleUpsell userId={userId} entitlements={entitlements} />
     </div>

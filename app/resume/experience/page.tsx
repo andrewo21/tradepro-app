@@ -34,7 +34,7 @@ export default function ExperiencePage() {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50 text-neutral-900 p-10">
+    <div className="min-h-screen bg-neutral-50 text-neutral-900 px-4 py-8 sm:p-10">
       <p className="text-sm text-neutral-500 mb-2">
         Step 3 of 7 — Work Experience
       </p>
@@ -45,10 +45,10 @@ export default function ExperiencePage() {
         {experience.map((job, jobIndex) => (
           <div
             key={job.id}
-            className="bg-white border border-neutral-300 rounded-lg p-6 shadow-sm"
+            className="bg-white border border-neutral-300 rounded-lg p-4 sm:p-6 shadow-sm"
           >
             {/* JOB HEADER */}
-            <div className="grid grid-cols-2 gap-6 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
               <div>
                 <label className="block text-sm font-medium mb-1">Job Title</label>
                 <input

@@ -40,7 +40,7 @@ export default function SkillsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-50 text-neutral-900 p-10">
+    <div className="min-h-screen bg-neutral-50 text-neutral-900 px-4 py-8 sm:p-10">
       {/* Step Label */}
       <p className="text-sm text-neutral-500 mb-2">
         Step 4 of 7 — Skills
@@ -48,26 +48,26 @@ export default function SkillsPage() {
 
       <h1 className="text-2xl font-semibold mb-6">Skills</h1>
 
-      <div className="bg-white border border-neutral-300 rounded-lg p-6 shadow-sm max-w-3xl mx-auto">
-        <div className="space-y-6">
+      <div className="bg-white border border-neutral-300 rounded-lg p-4 sm:p-6 shadow-sm max-w-3xl mx-auto">
+        <div className="space-y-4">
           {skills.map((skill, index) => (
             <div
               key={index}
               className="border border-neutral-300 rounded-lg p-4 bg-white"
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-stretch gap-2">
                 <input
                   type="text"
-                  spellCheck={true}   // ⭐ ENABLED
+                  spellCheck={true}
                   value={skill.text}
                   onChange={(e) => handleChange(index, e.target.value)}
-                  className="flex-1 border border-neutral-300 rounded px-3 py-2 text-sm"
+                  className="flex-1 min-w-0 border border-neutral-300 rounded px-3 py-2 text-sm"
                   placeholder="Enter a skill..."
                 />
 
                 <button
                   onClick={() => removeSkill(index)}
-                  className="px-3 py-2 bg-neutral-200 rounded hover:bg-neutral-300 text-sm"
+                  className="flex-shrink-0 px-3 py-2 bg-neutral-200 rounded hover:bg-neutral-300 text-sm whitespace-nowrap"
                 >
                   Remove
                 </button>
@@ -111,7 +111,7 @@ export default function SkillsPage() {
       </div>
 
       {/* NAVIGATION */}
-      <div className="flex justify-between mt-12 max-w-3xl mx-auto">
+      <div className="flex justify-between mt-10 max-w-3xl mx-auto">
         <Link
           href="/resume/experience"
           className="px-6 py-2 bg-neutral-200 text-neutral-800 rounded-md text-sm hover:bg-neutral-300"

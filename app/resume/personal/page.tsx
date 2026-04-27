@@ -8,7 +8,7 @@ export default function PersonalPage() {
   const updatePersonalInfo = useResumeStore((s) => s.updatePersonalInfo);
 
   return (
-    <div className="min-h-screen bg-neutral-50 text-neutral-900 p-10">
+    <div className="min-h-screen bg-neutral-50 text-neutral-900 px-4 py-8 sm:p-10">
       {/* Step Label */}
       <p className="text-sm text-neutral-500 mb-2">
         Step 2 of 7 — Personal Information
@@ -17,7 +17,7 @@ export default function PersonalPage() {
       <h1 className="text-2xl font-semibold mb-6">Personal Information</h1>
 
       {/* Form */}
-      <div className="grid grid-cols-2 gap-6 mb-10">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-10">
 
         {/* First Name */}
         <div>

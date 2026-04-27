@@ -14,7 +14,7 @@ export default function SelectPage() {
   const router = useRouter();
 
   return (
-    <div className="min-h-screen bg-neutral-100 p-10">
+    <div className="min-h-screen bg-neutral-100 px-4 py-8 sm:p-10">
       <h1 className="text-2xl font-semibold mb-6">Choose Your Template</h1>
 
       {/* 
