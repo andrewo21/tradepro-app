@@ -32,12 +32,19 @@ export default function PDFTemplateClient({ templateId, resumeData }: PDFTemplat
       header, nav, footer, .menu-ui-only {
         display: none !important;
       }
+      @page {
+        size: letter;
+        margin: 0;
+        /* Suppress browser-injected header/footer (date, title, URL) */
+        margin-top: 0;
+        margin-bottom: 0;
+      }
       @media print {
         header, nav, footer, .menu-ui-only {
           display: none !important;
         }
         * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-        body { margin: 0; padding: 0; }
+        html, body { margin: 0; padding: 0; }
         #pdf-root { width: 100%; }
       }
       body { margin: 0; padding: 0; background: white; }
