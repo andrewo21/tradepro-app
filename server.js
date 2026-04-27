@@ -19,11 +19,15 @@ app.use(express.urlencoded({ extended: true }));
  * --- 1. AI ENGINE (REWRITES & EXTRACTION) ---
  */
 
-// FIX 1: Cover Letter / Resume Summary Extraction (Handles FormData & JSON)
+// FIX: Cover Letter / Resume Summary Extraction
+// Handles 'resumeText' (Cover Letter FormData) and 'text' (Resume Builder JSON)
 app.post("/api/ai/extract-summary", upload.none(), async (req, res) => {
   try {
-    const text = req.body.resumeText || req.body.text;
-    if (!text) return res.status(400).json({ error: "No text provided" });
+    const text = req.body.resumeText || req.body.text || req.body.resumeContent;
+    
+    if (!text) {
+      return res.status(400).json({ error: "No resume text provided for extraction" });
+    }
 
     const completion = await client.chat.completions.create({
       model: "gpt-4o",
@@ -35,15 +39,18 @@ app.post("/api/ai/extract-summary", upload.none(), async (req, res) => {
     });
     res.json({ summary: completion.choices?.[0]?.message?.content?.trim() || "" });
   } catch (err) { 
-    console.error("Extraction error:", err);
+    console.error("Extraction error:", err.message);
     res.status(500).json({ error: "Extraction failed" }); 
   }
 });
 
-// FIX 2: Specific AI Summary Rewrite Assist
+// FIX: Professional Summary AI Assist Rewrite
+// Specifically targets the "Rewrite" button in the Resume Builder summary section
 app.post("/api/ai/rewrite-summary", async (req, res) => {
   try {
     const { text } = req.body;
+    if (!text) return res.status(400).json({ error: "No summary text provided" });
+
     const completion = await client.chat.completions.create({
       model: "gpt-4o",
       messages: [{ 
@@ -54,6 +61,7 @@ app.post("/api/ai/rewrite-summary", async (req, res) => {
     });
     res.json({ suggestion: completion.choices?.[0]?.message?.content?.trim() || "" });
   } catch (err) {
+    console.error("Summary rewrite error:", err.message);
     res.status(500).json({ error: "Summary rewrite failed" });
   }
 });
@@ -95,16 +103,13 @@ const templateRegistry = {
     doc.fillColor("white").font("Helvetica-Bold").fontSize(28).text(data.applicantName || "", leftMargin, 35);
     doc.fontSize(14).font("Helvetica").text(data.tradeTitle || "", leftMargin, doc.y + 5);
     doc.fontSize(9).text(`${data.applicantPhone || ""} | ${data.applicantEmail || ""} | ${data.applicantAddress || ""}`, leftMargin, doc.y + 10);
-    
     doc.fillColor("black").moveDown(6).font("Helvetica-Bold").fontSize(14).text("Summary", leftMargin);
     doc.font("Helvetica").fontSize(10).text(data.summary || "", leftMargin, doc.y + 5, { width: 520 });
-
     if (data.skills && Array.isArray(data.skills)) {
       doc.moveDown(2).font("Helvetica-Bold").fontSize(14).text("Skills", leftMargin);
       const skillStrings = data.skills.map(s => typeof s === 'string' ? s : (s.text || ""));
       doc.font("Helvetica").fontSize(10).text(skillStrings.join("  |  "), leftMargin, doc.y + 5, { width: 520 });
     }
-
     doc.moveDown(2).font("Helvetica-Bold").fontSize(14).text("Experience", leftMargin);
     (data.experience || []).forEach(job => {
       doc.moveDown(1).font("Helvetica-Bold").fontSize(11).text(`${job.jobTitle || ""} — ${job.company || ""}`, leftMargin);
@@ -121,10 +126,8 @@ const templateRegistry = {
     doc.fillColor("#1a202c").font("Helvetica-Bold").fontSize(20).text(data.applicantName || "", leftMargin, 50);
     doc.font("Helvetica").fontSize(10).fillColor("#4b5563").text(`${data.applicantAddress || ""} | ${data.applicantEmail || ""} | ${data.applicantPhone || ""}`, leftMargin, doc.y + 5);
     doc.moveTo(leftMargin, doc.y + 10).lineTo(570, doc.y + 10).stroke("#d1d5db");
-    
     doc.fillColor("black").moveDown(2).font("Helvetica-Bold").fontSize(12).text("SUMMARY", leftMargin);
     doc.font("Helvetica").fontSize(10).text(data.summary || "", leftMargin, doc.y + 5, { width: 520 });
-
     if (data.skills && data.skills.length > 0) {
       doc.moveDown(2).font("Helvetica-Bold").fontSize(12).text("SKILLS", leftMargin);
       const mid = Math.ceil(data.skills.length / 2);
@@ -139,7 +142,6 @@ const templateRegistry = {
       });
       doc.moveDown(mid * 0.8 + 1);
     }
-
     doc.moveDown(1).font("Helvetica-Bold").fontSize(12).text("EXPERIENCE", leftMargin);
     (data.experience || []).forEach(job => {
       doc.moveDown(0.5).font("Helvetica-Bold").fontSize(11).text(`${job.jobTitle || ""} — ${job.company || ""}`, leftMargin);
@@ -285,7 +287,7 @@ app.post("/api/export/pdf", async (req, res) => {
       const draw = templateRegistry[templateId] || templateRegistry["standard-contemporary"];
       draw(doc, data);
     } else {
-      // COVER LETTER: Isolated Blue Header
+      // COVER LETTER: Standard formatting
       doc.rect(0, 0, doc.page.width, 130).fill("#1F4E79");
       doc.fillColor("white").font("Helvetica-Bold").fontSize(26).text(data.applicantName || "", 50, 40);
       doc.font("Helvetica").fontSize(10).text(`${data.applicantEmail || ""} | ${data.applicantPhone || ""}`, 50, 75);
@@ -301,4 +303,4 @@ app.post("/api/export/pdf", async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, "0.0.0.0", () => console.log(`🚀 Master Brain Live`));
+app.listen(PORT, "0.0.0.0", () => console.log(`🚀 Master Brain Live on Port ${PORT}`));
