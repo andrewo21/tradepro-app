@@ -44,10 +44,9 @@ export default function ResumePreviewPage() {
   };
 
   /**
-   * Opens the React-rendered template in a new popup window and triggers
-   * the browser's native print dialog. This guarantees the downloaded PDF
-   * matches exactly what the user sees in the preview, regardless of which
-   * template was selected.
+   * Opens the React-rendered template in a dedicated print popup window.
+   * The PDF page itself hides the site header and auto-triggers window.print()
+   * once the template has fully mounted.
    */
   const handleDownloadPDF = () => {
     setLoading(true);
@@ -66,18 +65,11 @@ export default function ResumePreviewPage() {
         return;
       }
 
-      // Wait for the page to load, then trigger print
-      win.addEventListener("load", () => {
-        setTimeout(() => {
-          win.print();
-          setLoading(false);
-        }, 800);
-      });
-
-      // Fallback in case the load event doesn't fire reliably
+      // The PDF page triggers its own print dialog after the template renders.
+      // Reset the button state after a safe delay.
       setTimeout(() => {
         setLoading(false);
-      }, 5000);
+      }, 4000);
     } catch (err) {
       alert("PDF Error. Please try again.");
       setLoading(false);
