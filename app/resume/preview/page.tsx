@@ -19,11 +19,10 @@ export default function ResumePreviewPage() {
   } = useResumeStore();
   
   const [loading, setLoading] = useState(false);
-  const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
-  // 1. SAFE DATA MAPPING (String-only for React safety)
+  // Safe data mapping (string-only values for template rendering)
   const previewData = {
-    name: `${personalInfo.firstName || ""} ${personalInfo.lastName || ""}`,
+    name: `${personalInfo.firstName || ""} ${personalInfo.lastName || ""}`.trim(),
     title: personalInfo.tradeTitle || "",
     contact: {
       phone: personalInfo.phone || "",
@@ -32,47 +31,57 @@ export default function ResumePreviewPage() {
     },
     summary: summary || "",
     experience: experience.map((exp: any) => ({
-      jobTitle: exp.jobTitle || "Job Title",
-      company: exp.company || "Company Name",
+      jobTitle: exp.jobTitle || "",
+      company: exp.company || "",
       startDate: exp.startDate || "",
       endDate: exp.endDate || "",
-      responsibilities: exp.responsibilities?.map((r: any) => r.text || "") || [],
-      achievements: exp.achievements?.map((a: any) => a.text || "") || [],
+      responsibilities: exp.responsibilities?.map((r: any) => r.text || "").filter(Boolean) || [],
+      achievements: exp.achievements?.map((a: any) => a.text || "").filter(Boolean) || [],
     })),
     education: education || [],
-    skills: skills?.map((s: any) => s.text || "") || [],
+    skills: skills?.map((s: any) => s.text || "").filter(Boolean) || [],
     certifications: [],
   };
 
-  const handleDownloadPDF = async () => {
-    if (!API_BASE) return alert("API not configured.");
+  /**
+   * Opens the React-rendered template in a new popup window and triggers
+   * the browser's native print dialog. This guarantees the downloaded PDF
+   * matches exactly what the user sees in the preview, regardless of which
+   * template was selected.
+   */
+  const handleDownloadPDF = () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/api/export/pdf`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          type: "resume",
-          selectedTemplate: selectedTemplate,
-          applicantName: previewData.name,
-          tradeTitle: previewData.title,
-          applicantEmail: previewData.contact.email,
-          applicantPhone: previewData.contact.phone,
-          applicantAddress: previewData.contact.location,
-          summary: previewData.summary,
-          skills: previewData.skills, // Sending mapped strings
-          experience: experience,      // Sending original objects for bullet logic
-          education: education        // FIXED: Now sending Education to server
-        }),
+      const payload = {
+        templateId: selectedTemplate || "sidebar-green",
+        resumeData: previewData,
+      };
+      const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+      const printUrl = `/pdf/template?payload=${encoded}`;
+
+      const win = window.open(printUrl, "_blank", "width=900,height=1200");
+      if (!win) {
+        alert("Please allow popups for this site to download your resume.");
+        setLoading(false);
+        return;
+      }
+
+      // Wait for the page to load, then trigger print
+      win.addEventListener("load", () => {
+        setTimeout(() => {
+          win.print();
+          setLoading(false);
+        }, 800);
       });
 
-      const blob = await res.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${personalInfo.lastName || "Resume"}_TradePro.pdf`;
-      a.click();
-    } catch (err) { alert("PDF Error."); } finally { setLoading(false); }
+      // Fallback in case the load event doesn't fire reliably
+      setTimeout(() => {
+        setLoading(false);
+      }, 5000);
+    } catch (err) {
+      alert("PDF Error. Please try again.");
+      setLoading(false);
+    }
   };
 
   // 2. SAFE COMPONENT LOOKUP

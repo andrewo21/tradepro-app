@@ -44,11 +44,17 @@ app.post("/api/ai/extract-summary", upload.any(), async (req, res) => {
 
     const completion = await client.chat.completions.create({
       model: "gpt-4o",
-      messages: [{ 
-        role: "system", 
-        content: "You are a professional resume writer. Write a 3-4 sentence professional summary focusing on construction. Return ONLY text." 
-      }, { role: "user", content: typeof text === 'string' ? text : JSON.stringify(text) }],
-      temperature: 0.5,
+      messages: [
+        { 
+          role: "system", 
+          content: `You are an elite bilingual resume strategist specializing in skilled trades, construction, and blue-collar industries.
+Extract the candidate's experience from the provided text and write a 3–5 sentence professional English summary suitable for an ATS-optimized resume.
+Use strong action verbs, include relevant trade keywords and certifications detected in the text, quantify experience where possible, and write without first-person pronouns.
+Return ONLY the summary text — no labels, no explanations.`
+        },
+        { role: "user", content: typeof text === 'string' ? text : JSON.stringify(text) }
+      ],
+      temperature: 0.4,
     });
 
     res.json({ summary: completion.choices?.[0]?.message?.content?.trim() || "" });
@@ -64,11 +70,26 @@ app.post("/api/ai/rewrite-summary", async (req, res) => {
     if (!text) return res.status(400).json({ error: "No summary text provided" });
     const completion = await client.chat.completions.create({
       model: "gpt-4o",
-      messages: [{ 
-        role: "system", 
-        content: "You are an expert resume editor. Rewrite this professional summary to be more impactful. Return ONLY text." 
-      }, { role: "user", content: text }],
-      temperature: 0.4,
+      messages: [
+        { 
+          role: "system", 
+          content: `You are an elite bilingual resume strategist and ATS (Applicant Tracking System) optimization expert who specializes in skilled trades, construction, and blue-collar industries.
+
+Your job is to transform raw input — which may be written in any language (English, Spanish, Spanglish, Portuguese, etc.), in trade slang, informal language, or a mix — into a polished, professional English resume summary that:
+
+1. DETECTS the language(s) and slang automatically — never ask for clarification.
+2. EXTRACTS the candidate's real skills, trade experience, certifications, and value from whatever words they used.
+3. REWRITES into 3–5 sentences of professional English that:
+   - Uses strong action verbs (Led, Managed, Executed, Oversaw, Delivered, Coordinated, Supervised, etc.)
+   - Incorporates high-value ATS keywords for the detected trade (e.g. for construction: project management, safety compliance, OSHA 30, blueprint reading, cost estimation, crew supervision, concrete forming, structural steel, MEP coordination, quality control)
+   - Quantifies achievements when hinted at (e.g. "manage 15 guys" → "Supervised crews of up to 15 skilled tradespeople")
+   - Maintains a confident, results-driven tone suitable for resume headhunters and corporate HR software
+   - Avoids first-person pronouns (no "I" or "my")
+4. Returns ONLY the rewritten summary text — no labels, no explanations, no quotes.`
+        },
+        { role: "user", content: text }
+      ],
+      temperature: 0.35,
     });
     res.json({ suggestion: completion.choices?.[0]?.message?.content?.trim() || "" });
   } catch (err) { res.status(500).json({ error: "Summary rewrite failed" }); }
@@ -76,16 +97,43 @@ app.post("/api/ai/rewrite-summary", async (req, res) => {
 
 app.post("/api/ai/rewrite", async (req, res) => {
   try {
-    const { text, type } = req.body; 
+    const { text, type } = req.body;
+
+    const systemPrompts = {
+      summary: `You are an elite bilingual resume strategist specializing in skilled trades, construction, and blue-collar industries. 
+Accept input in any language or slang (English, Spanish, Spanglish, Portuguese, trade jargon, informal speech) and rewrite it as a polished professional English resume summary. 
+Use strong action verbs, quantify achievements where possible, incorporate ATS keywords for the trade, and write in third person (no "I"). 
+Return ONLY the rewritten text — no labels or explanations.`,
+
+      skill: `You are a professional resume keyword optimizer for skilled trades and construction industries.
+Accept any input (trade slang, abbreviations, any language) and rewrite it as a clean, ATS-friendly skill phrase in English.
+Examples: "done concrete" → "Concrete Forming & Pouring", "run the crane" → "Crane Operation & Rigging", "HVAC fix stuff" → "HVAC Installation & Repair".
+Return ONLY the polished skill phrase — no labels, no explanations.`,
+
+      responsibility: `You are an expert resume bullet point writer for skilled trades, construction, and blue-collar industries.
+Accept input in any language, slang, or informal style and rewrite it as a single, powerful, ATS-optimized bullet point in professional English.
+Use strong past-tense action verbs, quantify with numbers when hinted at, and include relevant trade keywords.
+Examples: "mixed and poured cement all day" → "Executed concrete mixing and placement operations for large-scale commercial foundations, ensuring compliance with structural specifications."
+Return ONLY the rewritten bullet — no dash, no bullet symbol, no explanations.`,
+
+      achievement: `You are an expert resume achievement writer for skilled trades, construction, and blue-collar industries.
+Accept input in any language or informal style and rewrite it as a single, compelling, quantified achievement statement in professional English.
+Use strong action verbs and include measurable impact where hinted at.
+Examples: "i saved my boss money on a big job" → "Identified material procurement inefficiencies that reduced project costs by an estimated 12% on a $2M commercial build."
+Return ONLY the rewritten achievement — no dash, no bullet symbol, no explanations.`,
+    };
+
+    const systemContent = systemPrompts[type] || systemPrompts.responsibility;
+
     const completion = await client.chat.completions.create({
       model: "gpt-4o",
-      messages: [{ 
-        role: "system", 
-        content: "You are an Elite Construction Recruiter. Fix grammar and professionalism. Return ONLY text." 
-      }, { role: "user", content: `Rewrite this ${type}: ${text}` }],
+      messages: [
+        { role: "system", content: systemContent },
+        { role: "user", content: text }
+      ],
       temperature: 0.3,
     });
-    res.json({ suggestion: completion.choices?.[0]?.message?.content?.trim().replace(/^["']+|["']+$/g, "") });
+    res.json({ suggestion: completion.choices?.[0]?.message?.content?.trim().replace(/^["'''"`]+|["'''"`]+$/g, "").replace(/^[-•]\s*/, "") });
   } catch (err) { res.status(500).json({ error: "Rewrite failed" }); }
 });
 
