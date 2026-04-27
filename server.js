@@ -4,6 +4,7 @@ import cors from "cors";
 import OpenAI from "openai";
 import PDFDocument from "pdfkit";
 import multer from "multer";
+import pdfParse from "pdf-parse-fixed";
 
 const app = express();
 const storage = multer.memoryStorage();
@@ -19,27 +20,26 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
  * --- 1. AI ENGINE (REWRITES & EXTRACTION) ---
  */
 
-// THE FIX: This route now accepts ANY format (JSON or FormData)
+// Accepts a PDF upload (field name "file") or a JSON/form body with a "resumeText" field
 app.post("/api/ai/extract-summary", upload.any(), async (req, res) => {
   try {
-    // 1. Check for text in Multipart/FormData (req.body from Multer)
-    // 2. Check for text in JSON (req.body from Express)
-    let text = req.body.resumeText || req.body.text || req.body.resumeContent || req.body.content;
+    let text = "";
 
-    // 3. Last resort: If req.body is empty, try to see if the data is stringified in a single field
-    if (!text && Object.keys(req.body).length > 0) {
-        const firstKey = Object.keys(req.body)[0];
-        try {
-            const parsed = JSON.parse(firstKey);
-            text = parsed.resumeText || parsed.text;
-        } catch (e) {
-            text = firstKey; // Use the key itself if it's just raw text
-        }
+    // 1. If a PDF file was uploaded, parse it to extract text
+    const uploadedFile = req.files && req.files.find(f => f.fieldname === "file");
+    if (uploadedFile) {
+      const parsed = await pdfParse(uploadedFile.buffer);
+      text = parsed.text || "";
     }
 
+    // 2. Fall back to plain-text body fields (JSON or URL-encoded)
     if (!text) {
-      console.error("Payload Empty. Check frontend field name. Received:", req.body);
-      return res.status(400).json({ error: "Server received an empty request. Ensure the 'resumeText' field is populated." });
+      text = req.body.resumeText || req.body.text || req.body.resumeContent || req.body.content || "";
+    }
+
+    if (!text.trim()) {
+      console.error("Payload empty. req.body:", req.body, "req.files:", req.files);
+      return res.status(400).json({ error: "No resume content received. Upload a PDF file or send resumeText in the request body." });
     }
 
     const completion = await client.chat.completions.create({
@@ -111,10 +111,12 @@ const templateRegistry = {
     doc.fontSize(9).text(`${data.applicantPhone || ""} | ${data.applicantEmail || ""} | ${data.applicantAddress || ""}`, leftMargin, doc.y + 10);
     doc.fillColor("black").moveDown(6).font("Helvetica-Bold").fontSize(14).text("Summary", leftMargin);
     doc.font("Helvetica").fontSize(10).text(data.summary || "", leftMargin, doc.y + 5, { width: 520 });
-    if (data.skills && Array.isArray(data.skills)) {
+    if (Array.isArray(data.skills) && data.skills.length > 0) {
       doc.moveDown(2).font("Helvetica-Bold").fontSize(14).text("Skills", leftMargin);
-      const skillStrings = data.skills.map(s => typeof s === 'string' ? s : (s.text || ""));
-      doc.font("Helvetica").fontSize(10).text(skillStrings.join("  |  "), leftMargin, doc.y + 5, { width: 520 });
+      const skillStrings = data.skills.map(s => typeof s === 'string' ? s : (s.text || "")).filter(Boolean);
+      if (skillStrings.length > 0) {
+        doc.font("Helvetica").fontSize(10).text(skillStrings.join("  |  "), leftMargin, doc.y + 5, { width: 520 });
+      }
     }
     doc.moveDown(2).font("Helvetica-Bold").fontSize(14).text("Experience", leftMargin);
     (data.experience || []).forEach(job => {
