@@ -1,4 +1,3 @@
-
 import 'dotenv/config';
 import express from "express";
 import cors from "cors";
@@ -8,6 +7,7 @@ import multer from "multer";
 
 const app = express();
 const storage = multer.memoryStorage();
+// Use upload.any() to prevent "Unexpected Field" errors regardless of what frontend sends
 const upload = multer({ storage: storage });
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -19,14 +19,15 @@ app.use(express.urlencoded({ extended: true }));
  * --- 1. AI ENGINE (REWRITES & EXTRACTION) ---
  */
 
-// FIX: Cover Letter / Resume Summary Extraction
-// Handles 'resumeText' (Cover Letter FormData) and 'text' (Resume Builder JSON)
-app.post("/api/ai/extract-summary", upload.none(), async (req, res) => {
+// FIXED: Changed upload.none() to upload.any() to stop the Multer "Unexpected Field" crash
+app.post("/api/ai/extract-summary", upload.any(), async (req, res) => {
   try {
-    const text = req.body.resumeText || req.body.text || req.body.resumeContent;
+    // Check every possible location for the text
+    const text = req.body.resumeText || req.body.text || req.body.resumeContent || req.body.content;
     
     if (!text) {
-      return res.status(400).json({ error: "No resume text provided for extraction" });
+      console.error("Payload received but no text field found:", req.body);
+      return res.status(400).json({ error: "No resume text found in request body." });
     }
 
     const completion = await client.chat.completions.create({
@@ -44,8 +45,7 @@ app.post("/api/ai/extract-summary", upload.none(), async (req, res) => {
   }
 });
 
-// FIX: Professional Summary AI Assist Rewrite
-// Specifically targets the "Rewrite" button in the Resume Builder summary section
+// Professional Summary AI Assist Rewrite
 app.post("/api/ai/rewrite-summary", async (req, res) => {
   try {
     const { text } = req.body;
@@ -61,7 +61,6 @@ app.post("/api/ai/rewrite-summary", async (req, res) => {
     });
     res.json({ suggestion: completion.choices?.[0]?.message?.content?.trim() || "" });
   } catch (err) {
-    console.error("Summary rewrite error:", err.message);
     res.status(500).json({ error: "Summary rewrite failed" });
   }
 });
@@ -82,11 +81,13 @@ app.post("/api/ai/rewrite", async (req, res) => {
   } catch (err) { res.status(500).json({ error: "Rewrite failed" }); }
 });
 
-app.post("/api/ai/generate", upload.none(), async (req, res) => {
+// FIXED: Changed to upload.any() to prevent FormData issues
+app.post("/api/ai/generate", upload.any(), async (req, res) => {
   try {
+    const prompt = req.body.prompt;
     const completion = await client.chat.completions.create({
       model: "gpt-4o",
-      messages: [{ role: "system", content: "Construction Career Coach. Body paragraphs only." }, { role: "user", content: req.body.prompt }],
+      messages: [{ role: "system", content: "Construction Career Coach. Body paragraphs only." }, { role: "user", content: prompt }],
     });
     res.json({ text: completion.choices?.[0]?.message?.content || "" });
   } catch (err) { res.status(500).json({ error: "Generation failed" }); }
