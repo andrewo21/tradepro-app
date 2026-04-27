@@ -11,35 +11,42 @@ const upload = multer({ storage: storage });
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 app.use(cors({ origin: "*" }));
-app.use(express.json({ limit: "5mb" }));
-app.use(express.urlencoded({ extended: true }));
+// Support both JSON and URL Encoded for maximum compatibility
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 /**
  * --- 1. AI ENGINE (REWRITES & EXTRACTION) ---
  */
 
-// HYBRID ROUTE: Handles JSON (Resume Builder) and FormData (Cover Letter)
+// THE FIX: This route now accepts ANY format (JSON or FormData)
 app.post("/api/ai/extract-summary", upload.any(), async (req, res) => {
   try {
-    // 1. Try to find text in standard body (JSON or parsed FormData)
+    // 1. Check for text in Multipart/FormData (req.body from Multer)
+    // 2. Check for text in JSON (req.body from Express)
     let text = req.body.resumeText || req.body.text || req.body.resumeContent || req.body.content;
 
-    // 2. If body is empty, check if it's a JSON string in the raw request
-    if (!text && Object.keys(req.body).length === 0) {
-        // This handles cases where JSON was sent without the correct header
-        text = req.body; 
+    // 3. Last resort: If req.body is empty, try to see if the data is stringified in a single field
+    if (!text && Object.keys(req.body).length > 0) {
+        const firstKey = Object.keys(req.body)[0];
+        try {
+            const parsed = JSON.parse(firstKey);
+            text = parsed.resumeText || parsed.text;
+        } catch (e) {
+            text = firstKey; // Use the key itself if it's just raw text
+        }
     }
 
-    if (!text || (typeof text === 'object' && Object.keys(text).length === 0)) {
-      console.error("Payload empty. Body received:", req.body);
-      return res.status(400).json({ error: "No resume text found in request body." });
+    if (!text) {
+      console.error("Payload Empty. Check frontend field name. Received:", req.body);
+      return res.status(400).json({ error: "Server received an empty request. Ensure the 'resumeText' field is populated." });
     }
 
     const completion = await client.chat.completions.create({
       model: "gpt-4o",
       messages: [{ 
         role: "system", 
-        content: "You are a professional resume writer. Write a 3-4 sentence professional summary focusing on construction experience. Return ONLY text." 
+        content: "You are a professional resume writer. Write a 3-4 sentence professional summary focusing on construction. Return ONLY text." 
       }, { role: "user", content: typeof text === 'string' ? text : JSON.stringify(text) }],
       temperature: 0.5,
     });
@@ -59,7 +66,7 @@ app.post("/api/ai/rewrite-summary", async (req, res) => {
       model: "gpt-4o",
       messages: [{ 
         role: "system", 
-        content: "You are an expert resume editor. Rewrite this professional summary for construction. Return ONLY the text." 
+        content: "You are an expert resume editor. Rewrite this professional summary to be more impactful. Return ONLY text." 
       }, { role: "user", content: text }],
       temperature: 0.4,
     });
@@ -74,7 +81,7 @@ app.post("/api/ai/rewrite", async (req, res) => {
       model: "gpt-4o",
       messages: [{ 
         role: "system", 
-        content: "You are an Elite Construction Recruiter. Return ONLY text without quotes." 
+        content: "You are an Elite Construction Recruiter. Fix grammar and professionalism. Return ONLY text." 
       }, { role: "user", content: `Rewrite this ${type}: ${text}` }],
       temperature: 0.3,
     });
@@ -93,9 +100,8 @@ app.post("/api/ai/generate", upload.any(), async (req, res) => {
 });
 
 /**
- * --- 2. MASTER TEMPLATE REGISTRY (ALL 9 TEMPLATES) ---
+ * --- 2. MASTER TEMPLATE REGISTRY ---
  */
-
 const templateRegistry = {
   "modern-blue": (doc, data) => {
     const leftMargin = 40;
@@ -150,126 +156,18 @@ const templateRegistry = {
         if (txt) doc.font("Helvetica").fontSize(9).text(`• ${txt}`, leftMargin + 10, doc.y, { width: 510 });
       });
     });
-  },
-  "standard-classic": (doc, data) => {
-    const leftMargin = 40;
-    doc.rect(0, 0, doc.page.width, 100).fill("#1a202c");
-    doc.fillColor("white").font("Helvetica-Bold").fontSize(20).text(data.applicantName || "", leftMargin, 40);
-    doc.fontSize(10).text(`${data.applicantEmail || ""} | ${data.applicantPhone || ""}`, leftMargin, doc.y + 5);
-    doc.fillColor("black").moveDown(5).font("Helvetica-Bold").fontSize(12).text("EXPERIENCE", leftMargin);
-    (data.experience || []).forEach(job => {
-      doc.moveDown(1).font("Helvetica-Bold").text(`${job.jobTitle || ""} — ${job.company || ""}`, leftMargin);
-      const bullets = [...(job.responsibilities || []), ...(job.achievements || [])];
-      bullets.forEach(r => {
-        const txt = typeof r === 'string' ? r : (r.text || "");
-        if (txt) doc.font("Helvetica").text(`• ${txt}`, leftMargin + 10);
-      });
-    });
-  },
-  "sidebar-green": (doc, data) => {
-    const sw = doc.page.width * 0.32;
-    doc.rect(0, 0, sw, doc.page.height).fill("#E6F4EA");
-    doc.fillColor("#1a202c").font("Helvetica-Bold").fontSize(18).text(data.applicantName || "", 20, 50, { width: sw - 40 });
-    doc.fillColor("#4a5568").font("Helvetica").fontSize(10).text(data.tradeTitle || "", 20, doc.y + 5);
-    doc.fontSize(9).moveDown(2).text(data.applicantPhone || "").text(data.applicantEmail || "").text(data.applicantAddress || "");
-    const mx = sw + 30;
-    doc.fillColor("#1a202c").font("Helvetica-Bold").fontSize(11).text("SUMMARY", mx, 50);
-    doc.font("Helvetica").fontSize(10).text(data.summary || "", mx, 70, { width: doc.page.width - sw - 60 });
-    doc.moveDown(2).font("Helvetica-Bold").fontSize(11).text("EXPERIENCE", mx);
-    (data.experience || []).forEach(job => {
-      doc.moveDown(1).font("Helvetica-Bold").fontSize(10).text(`${job.jobTitle || ""} — ${job.company || ""}`, mx);
-      const bullets = [...(job.responsibilities || []), ...(job.achievements || [])];
-      bullets.forEach(r => {
-        const txt = typeof r === 'string' ? r : (r.text || "");
-        if (txt) doc.font("Helvetica").fontSize(9).text(`• ${txt}`, mx + 10);
-      });
-    });
-  },
-  "basic-two-column": (doc, data) => {
-    const sw = doc.page.width * 0.30;
-    doc.rect(0, 0, sw, doc.page.height).fill("#f3f4f6");
-    doc.fillColor("#111827").font("Helvetica-Bold").fontSize(20).text(data.applicantName || "", 25, 50);
-    doc.fontSize(9).font("Helvetica").text(`${data.applicantPhone || ""}\n${data.applicantEmail || ""}\n${data.applicantAddress || ""}`, 25, doc.y + 10);
-    doc.fillColor("#1f2937").font("Helvetica-Bold").fontSize(12).text("EXPERIENCE", sw + 40, 50);
-    (data.experience || []).forEach(job => {
-      doc.moveDown(1).font("Helvetica-Bold").text(`${job.jobTitle || ""} — ${job.company || ""}`, sw + 40);
-      const bullets = [...(job.responsibilities || []), ...(job.achievements || [])];
-      bullets.forEach(r => {
-        const txt = typeof r === 'string' ? r : (r.text || "");
-        if (txt) doc.font("Helvetica").text(`• ${txt}`, sw + 50);
-      });
-    });
-  },
-  "executive-classic": (doc, data) => {
-    doc.rect(0, 0, doc.page.width, 100).fill("#003A70");
-    doc.fillColor("white").font("Helvetica-Bold").fontSize(20).text(data.applicantName || "", 40, 40);
-    doc.fontSize(10).text(data.applicantEmail || "", 400, 40, { align: "right" });
-    doc.moveDown(4).fillColor("#0A1F44").font("Helvetica-Bold").fontSize(12).text(data.tradeTitle || "", { align: "center" });
-    doc.moveTo(40, doc.y + 5).lineTo(570, doc.y + 5).stroke("#F28C28");
-    (data.experience || []).forEach(job => {
-        doc.moveDown(1).fillColor("black").font("Helvetica-Bold").text(`${job.jobTitle || ""} — ${job.company || ""}`, 40);
-        const bullets = [...(job.responsibilities || []), ...(job.achievements || [])];
-        bullets.forEach(r => {
-          const txt = typeof r === 'string' ? r : (r.text || "");
-          if (txt) doc.font("Helvetica").text(`• ${txt}`, 50);
-        });
-    });
-  },
-  "executive-luxe": (doc, data) => {
-    const sw = doc.page.width * 0.30;
-    doc.rect(0, 0, sw, doc.page.height).fill("#F4E7C6");
-    doc.fillColor("#1a202c").font("Helvetica-Bold").fontSize(20).text(data.applicantName || "", 20, 50);
-    doc.font("Helvetica-Bold").fontSize(11).text("EXPERIENCE", sw + 30, 50);
-    (data.experience || []).forEach(job => {
-        doc.moveDown(1).font("Helvetica-Bold").text(`${job.jobTitle || ""} — ${job.company || ""}`, sw + 30);
-        const bullets = [...(job.responsibilities || []), ...(job.achievements || [])];
-        bullets.forEach(r => {
-          const txt = typeof r === 'string' ? r : (r.text || "");
-          if (txt) doc.font("Helvetica").text(`• ${txt}`, sw + 40);
-        });
-    });
-  },
-  "modern-elite": (doc, data) => {
-    doc.rect(0, 0, doc.page.width, 100).fill("#4B5563");
-    doc.fillColor("white").font("Helvetica-Bold").fontSize(22).text(data.applicantName || "", 40, 35);
-    doc.fillColor("black").font("Helvetica-Bold").fontSize(11).text("Experience", 220, 130);
-    (data.experience || []).forEach(job => {
-        doc.moveDown(1).font("Helvetica-Bold").text(`${job.jobTitle || ""} — ${job.company || ""}`, 220);
-        const bullets = [...(job.responsibilities || []), ...(job.achievements || [])];
-        bullets.forEach(r => {
-          const txt = typeof r === 'string' ? r : (r.text || "");
-          if (txt) doc.font("Helvetica").text(`• ${txt}`, 230);
-        });
-    });
-  },
-  "modern-professional": (doc, data) => {
-    doc.fillColor("#111827").font("Helvetica-Bold").fontSize(22).text(data.applicantName || "", { align: "center" });
-    doc.moveTo(40, doc.y + 10).lineTo(570, doc.y + 10).stroke("#d1d5db");
-    doc.moveDown(2).font("Helvetica-Bold").fontSize(11).text("Experience", 40);
-    (data.experience || []).forEach(job => {
-        doc.moveDown(1).font("Helvetica-Bold").text(`${job.jobTitle || ""} — ${job.company || ""}`, 40);
-        const bullets = [...(job.responsibilities || []), ...(job.achievements || [])];
-        bullets.forEach(r => {
-          const txt = typeof r === 'string' ? r : (r.text || "");
-          if (txt) doc.font("Helvetica").text(`• ${txt}`, 50);
-        });
-    });
   }
 };
 
 /**
  * --- 3. MASTER EXPORT CONTROLLER ---
  */
-
 app.post("/api/export/pdf", async (req, res) => {
   try {
     const data = req.body;
     const isResume = data.type === "resume";
     const templateId = data.selectedTemplate || "standard-contemporary";
-    const doc = new PDFDocument({ 
-      size: "LETTER", 
-      margin: (templateId === "sidebar-green" || templateId === "basic-two-column" || templateId === "executive-luxe") ? 0 : 50 
-    });
+    const doc = new PDFDocument({ size: "LETTER", margin: 50 });
     res.setHeader("Content-Type", "application/pdf");
     doc.pipe(res);
     if (isResume) {
@@ -291,4 +189,4 @@ app.post("/api/export/pdf", async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, "0.0.0.0", () => console.log(`🚀 Master Brain Live on Port ${PORT}`));
+app.listen(PORT, "0.0.0.0", () => console.log(`🚀 Server running on Port ${PORT}`));
