@@ -15,6 +15,8 @@ export default function SummaryPage() {
   const discardSummarySuggestion = useResumeStore((s) => s.discardSummarySuggestion);
 
   const [localSummary, setLocalSummary] = useState(summary);
+  // Tracks when the user has just accepted a suggestion so auto-rewrite is suppressed
+  const justAcceptedRef = useRef(false);
 
   // Keep local state in sync when store changes externally
   useEffect(() => {
@@ -35,13 +37,14 @@ export default function SummaryPage() {
     };
   }, [localSummary]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Auto-rewrite after the user stops typing (debounced), same as experience bullets
+  // Auto-rewrite after the user stops typing (debounced)
   const rewriteTimer = useRef<NodeJS.Timeout | null>(null);
   useEffect(() => {
     if (rewriteTimer.current) clearTimeout(rewriteTimer.current);
 
     const trimmed = localSummary.trim();
-    if (!trimmed || summarySuggestion || summaryLoading) return;
+    // Skip if empty, already has a suggestion, loading, or text came from accepting a suggestion
+    if (!trimmed || summarySuggestion || summaryLoading || justAcceptedRef.current) return;
 
     rewriteTimer.current = setTimeout(() => {
       rewriteSummary();
@@ -53,9 +56,15 @@ export default function SummaryPage() {
   }, [localSummary]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleChange = (value: string) => {
+    // User is editing manually — allow auto-rewrite again
+    justAcceptedRef.current = false;
     setLocalSummary(value);
-    // Clear any existing suggestion when the user edits again
     if (summarySuggestion) discardSummarySuggestion();
+  };
+
+  const handleAccept = () => {
+    justAcceptedRef.current = true;
+    acceptSummarySuggestion();
   };
 
   return (
@@ -71,8 +80,7 @@ export default function SummaryPage() {
 
       <p className="text-sm text-neutral-600 mb-6 max-w-2xl">
         Write a short summary in your own words — any language, trade slang, or mix of languages is fine.
-        The AI will automatically improve it as you type, or click <strong>AI Rewrite</strong> to trigger
-        it manually.
+        The AI will automatically improve it as you type.
       </p>
 
       {/* Summary Input */}
@@ -87,27 +95,6 @@ export default function SummaryPage() {
         <div className="absolute bottom-2 right-3 text-xs text-neutral-400">
           {localSummary.length} chars
         </div>
-      </div>
-
-      {/* AI Rewrite Button */}
-      <div className="mb-6 flex items-center gap-4">
-        <button
-          onClick={() => rewriteSummary()}
-          disabled={summaryLoading || !localSummary.trim()}
-          className="px-5 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition"
-        >
-          {summaryLoading ? (
-            <span className="flex items-center gap-2">
-              <span className="inline-block h-3 w-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              Rewriting...
-            </span>
-          ) : (
-            "✨ AI Rewrite"
-          )}
-        </button>
-        <span className="text-xs text-neutral-500">
-          Works with any language, trade slang, or mixed input
-        </span>
       </div>
 
       {/* Loading indicator (auto-rewrite in progress) */}
@@ -125,7 +112,7 @@ export default function SummaryPage() {
         </div>
       )}
 
-      {/* Suggestion Box — matches experience/skills "Accept Suggestion" UX */}
+      {/* Suggestion Box */}
       {summarySuggestion && (
         <div className="p-4 bg-blue-50 border border-blue-200 rounded-md mb-6">
           <p className="text-sm font-medium text-blue-800 mb-2">✅ AI Suggested Rewrite:</p>
@@ -134,7 +121,7 @@ export default function SummaryPage() {
           </p>
           <div className="flex gap-3">
             <button
-              onClick={acceptSummarySuggestion}
+              onClick={handleAccept}
               className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition"
             >
               Accept Suggestion

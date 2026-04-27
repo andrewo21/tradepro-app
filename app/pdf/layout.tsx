@@ -1,5 +1,5 @@
 export const metadata = {
-  title: "Resume PDF",
+  title: " ",
 };
 
 export default function PDFLayout({ children }: { children: React.ReactNode }) {
