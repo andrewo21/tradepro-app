@@ -4,24 +4,24 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useResumeStore } from "@/app/store/useResumeStore";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL;
-
 export default function SummaryPage() {
   const summary = useResumeStore((s) => s.summary);
+  const summarySuggestion = useResumeStore((s) => s.summarySuggestion);
+  const summaryLoading = useResumeStore((s) => s.summaryLoading);
+  const summaryError = useResumeStore((s) => s.summaryError);
   const updateSummary = useResumeStore((s) => s.updateSummary);
+  const rewriteSummary = useResumeStore((s) => s.rewriteSummary);
+  const acceptSummarySuggestion = useResumeStore((s) => s.acceptSummarySuggestion);
+  const discardSummarySuggestion = useResumeStore((s) => s.discardSummarySuggestion);
 
   const [localSummary, setLocalSummary] = useState(summary);
-  const [suggestion, setSuggestion] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
   // Keep local state in sync when store changes externally
   useEffect(() => {
     setLocalSummary(summary);
   }, [summary]);
 
-  // Persist the user's typed text to the store whenever it changes
-  // This ensures the summary is always saved even without accepting an AI suggestion
+  // Persist typed text to the store (debounced)
   const saveTimer = useRef<NodeJS.Timeout | null>(null);
   useEffect(() => {
     if (saveTimer.current) clearTimeout(saveTimer.current);
@@ -35,56 +35,27 @@ export default function SummaryPage() {
     };
   }, [localSummary]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleRewrite = async () => {
-    const text = localSummary.trim();
-    if (!text) {
-      setError("Please write something first so AI can improve it.");
-      return;
-    }
-    if (!API_BASE) {
-      setError("API not configured.");
-      return;
-    }
+  // Auto-rewrite after the user stops typing (debounced), same as experience bullets
+  const rewriteTimer = useRef<NodeJS.Timeout | null>(null);
+  useEffect(() => {
+    if (rewriteTimer.current) clearTimeout(rewriteTimer.current);
 
-    setError("");
-    setLoading(true);
-    setSuggestion("");
+    const trimmed = localSummary.trim();
+    if (!trimmed || summarySuggestion || summaryLoading) return;
 
-    try {
-      const res = await fetch(`${API_BASE}/api/ai/rewrite-summary`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text }),
-      });
+    rewriteTimer.current = setTimeout(() => {
+      rewriteSummary();
+    }, 1200);
 
-      if (!res.ok) {
-        throw new Error(`Server error: ${res.status}`);
-      }
+    return () => {
+      if (rewriteTimer.current) clearTimeout(rewriteTimer.current);
+    };
+  }, [localSummary]); // eslint-disable-line react-hooks/exhaustive-deps
 
-      const data = await res.json();
-      const result = data?.suggestion?.trim() || "";
-
-      if (result) {
-        setSuggestion(result);
-      } else {
-        setError("No suggestion returned. Please try again.");
-      }
-    } catch (err) {
-      console.error("Summary rewrite error:", err);
-      setError("AI rewrite failed. Check your connection and try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleApply = () => {
-    updateSummary(suggestion);
-    setLocalSummary(suggestion);
-    setSuggestion("");
-  };
-
-  const handleDiscard = () => {
-    setSuggestion("");
+  const handleChange = (value: string) => {
+    setLocalSummary(value);
+    // Clear any existing suggestion when the user edits again
+    if (summarySuggestion) discardSummarySuggestion();
   };
 
   return (
@@ -100,8 +71,8 @@ export default function SummaryPage() {
 
       <p className="text-sm text-neutral-600 mb-6 max-w-2xl">
         Write a short summary in your own words — any language, trade slang, or mix of languages is fine.
-        Hit <strong>AI Rewrite</strong> and the AI will turn it into a polished, keyword-rich summary that
-        gets past recruiter software (ATS).
+        The AI will automatically improve it as you type, or click <strong>AI Rewrite</strong> to trigger
+        it manually.
       </p>
 
       {/* Summary Input */}
@@ -109,10 +80,7 @@ export default function SummaryPage() {
         <textarea
           spellCheck={true}
           value={localSummary}
-          onChange={(e) => {
-            setLocalSummary(e.target.value);
-            setError("");
-          }}
+          onChange={(e) => handleChange(e.target.value)}
           placeholder="e.g. I done concrete work for 10 years, poured slabs, framed walls, did drywall too. I speak Spanish and English. I'm a foreman and manage crews up to 15 guys..."
           className="w-full h-44 border border-neutral-300 rounded-md px-3 py-2 text-sm bg-white resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
@@ -124,11 +92,11 @@ export default function SummaryPage() {
       {/* AI Rewrite Button */}
       <div className="mb-6 flex items-center gap-4">
         <button
-          onClick={handleRewrite}
-          disabled={loading || !localSummary.trim()}
+          onClick={() => rewriteSummary()}
+          disabled={summaryLoading || !localSummary.trim()}
           className="px-5 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition"
         >
-          {loading ? (
+          {summaryLoading ? (
             <span className="flex items-center gap-2">
               <span className="inline-block h-3 w-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
               Rewriting...
@@ -142,29 +110,37 @@ export default function SummaryPage() {
         </span>
       </div>
 
-      {/* Error */}
-      {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-700">
-          {error}
+      {/* Loading indicator (auto-rewrite in progress) */}
+      {summaryLoading && !summarySuggestion && (
+        <div className="mb-4 text-sm text-neutral-500 flex items-center gap-2">
+          <span className="inline-block h-3 w-3 border-2 border-neutral-400 border-t-transparent rounded-full animate-spin" />
+          AI is improving your summary…
         </div>
       )}
 
-      {/* Suggestion Box */}
-      {suggestion && (
+      {/* Error */}
+      {summaryError && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-700">
+          {summaryError}
+        </div>
+      )}
+
+      {/* Suggestion Box — matches experience/skills "Accept Suggestion" UX */}
+      {summarySuggestion && (
         <div className="p-4 bg-blue-50 border border-blue-200 rounded-md mb-6">
           <p className="text-sm font-medium text-blue-800 mb-2">✅ AI Suggested Rewrite:</p>
           <p className="text-sm text-neutral-900 leading-relaxed mb-4 whitespace-pre-wrap">
-            {suggestion}
+            {summarySuggestion}
           </p>
           <div className="flex gap-3">
             <button
-              onClick={handleApply}
+              onClick={acceptSummarySuggestion}
               className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition"
             >
-              Apply Suggestion
+              Accept Suggestion
             </button>
             <button
-              onClick={handleDiscard}
+              onClick={discardSummarySuggestion}
               className="px-4 py-2 bg-neutral-200 text-neutral-700 rounded-md text-sm hover:bg-neutral-300 transition"
             >
               Discard
@@ -185,7 +161,6 @@ export default function SummaryPage() {
         <Link
           href="/resume/preview"
           onClick={() => {
-            // Ensure any unsaved text is committed before navigating
             if (localSummary !== summary) {
               updateSummary(localSummary);
             }
