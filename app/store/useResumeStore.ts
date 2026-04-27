@@ -32,6 +32,7 @@ export const useResumeStore = create<any>()(
     summary: "", 
     summarySuggestion: null, 
     summaryLoading: false, 
+    summaryError: null,
     skills: [], 
     experience: [createExperienceItem()], 
     education: [{ school: "", degree: "", year: "", gpa: "" }], 
@@ -47,24 +48,39 @@ export const useResumeStore = create<any>()(
         personalInfo: { ...state.personalInfo, [field]: value } 
     })),
     
-    updateSummary: (text: string) => set({ summary: text, summarySuggestion: null }),
+    updateSummary: (text: string) => set({ summary: text, summarySuggestion: null, summaryError: null }),
     
     rewriteSummary: async () => {
       const text = get().summary; 
       if (!text.trim() || !API_BASE) return;
-      set({ summaryLoading: true });
+      set({ summaryLoading: true, summaryError: null, summarySuggestion: null });
       try {
-        const res = await fetch(`${API_BASE}/api/ai/rewrite`, { 
+        const res = await fetch(`${API_BASE}/api/ai/rewrite-summary`, { 
           method: "POST", 
           headers: { "Content-Type": "application/json" }, 
-          body: JSON.stringify({ type: "summary", text }) 
+          body: JSON.stringify({ text }) 
         });
+        if (!res.ok) {
+          set({ summaryLoading: false, summaryError: `Server error: ${res.status}` });
+          return;
+        }
         const data = await res.json();
-        set({ summaryLoading: false, summarySuggestion: sanitize(data.suggestion) });
-      } catch (e) { set({ summaryLoading: false }); }
+        const result = sanitize(data.suggestion);
+        if (result) {
+          set({ summaryLoading: false, summarySuggestion: result });
+        } else {
+          set({ summaryLoading: false, summaryError: "No suggestion returned. Please try again." });
+        }
+      } catch (e) { set({ summaryLoading: false, summaryError: "AI rewrite failed. Check your connection and try again." }); }
     },
     
-    acceptSummarySuggestion: () => set((state: any) => ({ summary: state.summarySuggestion || state.summary, summarySuggestion: null })),
+    acceptSummarySuggestion: () => set((state: any) => ({ 
+      summary: state.summarySuggestion || state.summary, 
+      summarySuggestion: null, 
+      summaryError: null 
+    })),
+    
+    discardSummarySuggestion: () => set({ summarySuggestion: null, summaryError: null }),
 
     // --- SKILLS ACTIONS ---
     addSkill: (initialText = "") => set((state: any) => ({ 
