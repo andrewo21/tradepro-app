@@ -97,7 +97,7 @@ export default function CoverLetterPage() {
         <div className="space-y-8">
           <section className="bg-slate-50 p-6 rounded-xl border space-y-4">
             <h2 className="font-bold text-blue-800 uppercase">1. Applicant Details</h2>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <input className="border p-2 rounded" placeholder="Full Name" value={applicantName} onChange={(e) => setField("applicantName", e.target.value)} />
               <input className="border p-2 rounded" placeholder="Email" value={applicantEmail} onChange={(e) => setField("applicantEmail", e.target.value)} />
               <input className="border p-2 rounded" placeholder="Address" value={applicantAddress} onChange={(e) => setField("applicantAddress", e.target.value)} />
@@ -107,7 +107,7 @@ export default function CoverLetterPage() {
 
           <section className="bg-slate-50 p-6 rounded-xl border space-y-4">
             <h2 className="font-bold text-blue-800 uppercase">2. Company Details</h2>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <input className="border p-2 rounded" placeholder="Target Job Title" value={jobTitle} onChange={(e) => setField("jobTitle", e.target.value)} />
               <select className="border p-2 rounded bg-white" value={salutationStyle} onChange={(e) => setField("salutationStyle", e.target.value)}>
                 <option value="Dear">Dear [Manager Name]</option>
@@ -115,8 +115,8 @@ export default function CoverLetterPage() {
               </select>
               <input className="border p-2 rounded" placeholder="Hiring Manager" value={hiringManager} onChange={(e) => setField("hiringManager", e.target.value)} />
               <input className="border p-2 rounded" placeholder="Company Name" value={companyName} onChange={(e) => setField("companyName", e.target.value)} />
-              <input className="border p-2 rounded col-span-2" placeholder="Company Address" value={companyAddress} onChange={(e) => setField("companyAddress", e.target.value)} />
-              <input className="border p-2 rounded col-span-2" placeholder="Company City, State ZIP" value={companyCityStateZip} onChange={(e) => setField("companyCityStateZip", e.target.value)} />
+              <input className="border p-2 rounded sm:col-span-2" placeholder="Company Address" value={companyAddress} onChange={(e) => setField("companyAddress", e.target.value)} />
+              <input className="border p-2 rounded sm:col-span-2" placeholder="Company City, State ZIP" value={companyCityStateZip} onChange={(e) => setField("companyCityStateZip", e.target.value)} />
             </div>
           </section>
 

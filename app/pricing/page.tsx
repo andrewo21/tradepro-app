@@ -46,19 +46,19 @@ export default function PricingPage() {
           <div className="grid gap-8 md:grid-cols-3 items-stretch">
 
             {/* STANDARD RESUME */}
-            <div className="bg-white border border-neutral-300 rounded-lg shadow-sm p-8 flex flex-col h-full">
+            <div className="bg-white border border-neutral-300 rounded-lg shadow-sm p-6 sm:p-8 flex flex-col">
 
               <h2 className="text-2xl font-semibold mb-2">Standard Resume Builder</h2>
 
-              <p className="text-neutral-600 mb-6 h-16 flex items-center justify-center text-center">
+              <p className="text-neutral-600 mb-6 text-center">
                 A clean, professional resume using our standard templates.
               </p>
 
-              <div className="h-24 flex items-center justify-center -mt-1">
+              <div className="flex items-center justify-center mb-6">
                 <div className="text-5xl font-bold">$14.99</div>
               </div>
 
-              <ul className="text-left text-neutral-700 space-y-3 mb-8 h-64">
+              <ul className="text-left text-neutral-700 space-y-3 mb-8">
                 <li>• 8 Standard templates</li>
                 <li>• AI‑assisted writing and cleanup</li>
                 <li>• Unlimited edits</li>
@@ -79,19 +79,19 @@ export default function PricingPage() {
             </div>
 
             {/* COVER LETTER ONLY */}
-            <div className="bg-white border border-neutral-300 rounded-lg shadow-sm p-8 flex flex-col h-full">
+            <div className="bg-white border border-neutral-300 rounded-lg shadow-sm p-6 sm:p-8 flex flex-col">
 
               <h2 className="text-2xl font-semibold mb-2">Cover Letter Builder</h2>
 
-              <p className="text-neutral-600 mb-6 h-16 flex items-center justify-center text-center">
+              <p className="text-neutral-600 mb-6 text-center">
                 Honest, straightforward cover letters that sound like you.
               </p>
 
-              <div className="h-24 flex items-center justify-center mt-7">
+              <div className="flex items-center justify-center mb-6">
                 <div className="text-5xl font-bold">$8.99</div>
               </div>
 
-              <ul className="text-left text-neutral-700 space-y-3 mb-8 h-64">
+              <ul className="text-left text-neutral-700 space-y-3 mb-8">
                 <li>• AI‑assisted writing</li>
                 <li>• Unlimited edits</li>
                 <li>• PDF export included</li>
@@ -111,26 +111,26 @@ export default function PricingPage() {
             </div>
 
             {/* PREMIUM BUNDLE */}
-            <div className="relative">
+            <div className="relative mt-4 md:mt-0">
 
               {/* BADGE */}
               <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-amber-500 text-white text-xs font-semibold px-3 py-1 rounded-full shadow">
                 Most Popular
               </div>
 
-              <div className="bg-white border border-neutral-300 rounded-lg shadow-sm p-8 flex flex-col h-full">
+              <div className="bg-white border border-neutral-300 rounded-lg shadow-sm p-6 sm:p-8 flex flex-col h-full">
 
                 <h2 className="text-2xl font-semibold mb-2">Premium Resume Bundle</h2>
 
-                <p className="text-neutral-600 mb-6 h-16 flex items-center justify-center text-center">
+                <p className="text-neutral-600 mb-6 text-center">
                   Unlock everything — premium templates, cover letters, and upcoming tools.
                 </p>
 
-                <div className="h-24 flex items-center justify-center">
+                <div className="flex items-center justify-center mb-6">
                   <div className="text-5xl font-bold">$29.99</div>
                 </div>
 
-                <ul className="text-left text-neutral-700 space-y-3 mb-8 h-64">
+                <ul className="text-left text-neutral-700 space-y-3 mb-8">
                   <li>• 8 Standard templates</li>
                   <li>• 6 Premium templates</li>
                   <li>• AI‑assisted writing and cleanup</li>

@@ -68,7 +68,7 @@ export default function SummaryPage() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-50 text-neutral-900 p-10">
+    <div className="min-h-screen bg-neutral-50 text-neutral-900 px-4 py-8 sm:p-10">
 
       <p className="text-sm text-neutral-500 mb-2">
         Step 6 of 7 — Professional Summary

@@ -10,7 +10,7 @@ export default function EducationPage() {
   const removeEducation = useResumeStore((s) => s.removeEducation);
 
   return (
-    <div className="min-h-screen bg-neutral-50 text-neutral-900 p-10">
+    <div className="min-h-screen bg-neutral-50 text-neutral-900 px-4 py-8 sm:p-10">
       <p className="text-sm text-neutral-500 mb-2">
         Step 5 of 7 — Education
       </p>
