@@ -7,7 +7,6 @@ import multer from "multer";
 
 const app = express();
 const storage = multer.memoryStorage();
-// Global Multer config to handle all incoming field types safely
 const upload = multer({ storage: storage });
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -19,63 +18,53 @@ app.use(express.urlencoded({ extended: true }));
  * --- 1. AI ENGINE (REWRITES & EXTRACTION) ---
  */
 
-// FIX: Cover Letter / Resume Summary Extraction
-// Uses upload.any() to prevent Multer "Unexpected Field" 500 errors
+// HYBRID ROUTE: Handles JSON (Resume Builder) and FormData (Cover Letter)
 app.post("/api/ai/extract-summary", upload.any(), async (req, res) => {
   try {
-    console.log("Extraction Request Received. Body:", req.body);
-
-    // Deep search for the text content across potential keys
+    // 1. Try to find text in standard body (JSON or parsed FormData)
     let text = req.body.resumeText || req.body.text || req.body.resumeContent || req.body.content;
-    
-    // Fallback: If it's a nested object or stringified JSON
-    if (!text && req.body.data) {
-      try {
-        const parsed = JSON.parse(req.body.data);
-        text = parsed.resumeText || parsed.text;
-      } catch (e) { /* ignore parse error */ }
+
+    // 2. If body is empty, check if it's a JSON string in the raw request
+    if (!text && Object.keys(req.body).length === 0) {
+        // This handles cases where JSON was sent without the correct header
+        text = req.body; 
     }
 
-    if (!text) {
-      console.error("CRITICAL: Extraction failed - No text field found in request.");
-      return res.status(400).json({ error: "No resume text found. Ensure the 'Extract' tool is passing 'resumeText'." });
+    if (!text || (typeof text === 'object' && Object.keys(text).length === 0)) {
+      console.error("Payload empty. Body received:", req.body);
+      return res.status(400).json({ error: "No resume text found in request body." });
     }
 
     const completion = await client.chat.completions.create({
       model: "gpt-4o",
       messages: [{ 
         role: "system", 
-        content: "You are a professional resume writer. Based on the provided resume text, write a 3-4 sentence professional summary focusing on construction experience. Return ONLY text." 
-      }, { role: "user", content: text }],
+        content: "You are a professional resume writer. Write a 3-4 sentence professional summary focusing on construction experience. Return ONLY text." 
+      }, { role: "user", content: typeof text === 'string' ? text : JSON.stringify(text) }],
       temperature: 0.5,
     });
 
     res.json({ summary: completion.choices?.[0]?.message?.content?.trim() || "" });
   } catch (err) { 
     console.error("Extraction error:", err.message);
-    res.status(500).json({ error: "Extraction failed", details: err.message }); 
+    res.status(500).json({ error: "Extraction failed" }); 
   }
 });
 
-// FIX: Professional Summary AI Assist Rewrite
 app.post("/api/ai/rewrite-summary", async (req, res) => {
   try {
     const { text } = req.body;
     if (!text) return res.status(400).json({ error: "No summary text provided" });
-
     const completion = await client.chat.completions.create({
       model: "gpt-4o",
       messages: [{ 
         role: "system", 
-        content: "You are an expert resume editor. Rewrite this professional summary to be more impactful and professional for the construction industry. Keep it under 60 words. Return ONLY the text." 
+        content: "You are an expert resume editor. Rewrite this professional summary for construction. Return ONLY the text." 
       }, { role: "user", content: text }],
       temperature: 0.4,
     });
     res.json({ suggestion: completion.choices?.[0]?.message?.content?.trim() || "" });
-  } catch (err) {
-    console.error("Summary rewrite error:", err.message);
-    res.status(500).json({ error: "Summary rewrite failed" });
-  }
+  } catch (err) { res.status(500).json({ error: "Summary rewrite failed" }); }
 });
 
 app.post("/api/ai/rewrite", async (req, res) => {
@@ -85,21 +74,19 @@ app.post("/api/ai/rewrite", async (req, res) => {
       model: "gpt-4o",
       messages: [{ 
         role: "system", 
-        content: "You are an Elite Construction Recruiter. Fix grammar and translate to professional English. Return ONLY text without quotes." 
+        content: "You are an Elite Construction Recruiter. Return ONLY text without quotes." 
       }, { role: "user", content: `Rewrite this ${type}: ${text}` }],
       temperature: 0.3,
     });
-    let result = completion.choices?.[0]?.message?.content?.trim() || "";
-    res.json({ suggestion: result.replace(/^["'‘“`]+|["'’ ”`]+$/g, "") });
+    res.json({ suggestion: completion.choices?.[0]?.message?.content?.trim().replace(/^["']+|["']+$/g, "") });
   } catch (err) { res.status(500).json({ error: "Rewrite failed" }); }
 });
 
 app.post("/api/ai/generate", upload.any(), async (req, res) => {
   try {
-    const prompt = req.body.prompt;
     const completion = await client.chat.completions.create({
       model: "gpt-4o",
-      messages: [{ role: "system", content: "Construction Career Coach. Body paragraphs only." }, { role: "user", content: prompt }],
+      messages: [{ role: "system", content: "Construction Career Coach. Body paragraphs only." }, { role: "user", content: req.body.prompt }],
     });
     res.json({ text: completion.choices?.[0]?.message?.content || "" });
   } catch (err) { res.status(500).json({ error: "Generation failed" }); }
@@ -133,7 +120,6 @@ const templateRegistry = {
       });
     });
   },
-
   "standard-contemporary": (doc, data) => {
     const leftMargin = 40;
     doc.fillColor("#1a202c").font("Helvetica-Bold").fontSize(20).text(data.applicantName || "", leftMargin, 50);
@@ -165,7 +151,6 @@ const templateRegistry = {
       });
     });
   },
-
   "standard-classic": (doc, data) => {
     const leftMargin = 40;
     doc.rect(0, 0, doc.page.width, 100).fill("#1a202c");
@@ -181,7 +166,6 @@ const templateRegistry = {
       });
     });
   },
-
   "sidebar-green": (doc, data) => {
     const sw = doc.page.width * 0.32;
     doc.rect(0, 0, sw, doc.page.height).fill("#E6F4EA");
@@ -201,7 +185,6 @@ const templateRegistry = {
       });
     });
   },
-
   "basic-two-column": (doc, data) => {
     const sw = doc.page.width * 0.30;
     doc.rect(0, 0, sw, doc.page.height).fill("#f3f4f6");
@@ -217,7 +200,6 @@ const templateRegistry = {
       });
     });
   },
-
   "executive-classic": (doc, data) => {
     doc.rect(0, 0, doc.page.width, 100).fill("#003A70");
     doc.fillColor("white").font("Helvetica-Bold").fontSize(20).text(data.applicantName || "", 40, 40);
@@ -233,7 +215,6 @@ const templateRegistry = {
         });
     });
   },
-
   "executive-luxe": (doc, data) => {
     const sw = doc.page.width * 0.30;
     doc.rect(0, 0, sw, doc.page.height).fill("#F4E7C6");
@@ -248,7 +229,6 @@ const templateRegistry = {
         });
     });
   },
-
   "modern-elite": (doc, data) => {
     doc.rect(0, 0, doc.page.width, 100).fill("#4B5563");
     doc.fillColor("white").font("Helvetica-Bold").fontSize(22).text(data.applicantName || "", 40, 35);
@@ -262,7 +242,6 @@ const templateRegistry = {
         });
     });
   },
-
   "modern-professional": (doc, data) => {
     doc.fillColor("#111827").font("Helvetica-Bold").fontSize(22).text(data.applicantName || "", { align: "center" });
     doc.moveTo(40, doc.y + 10).lineTo(570, doc.y + 10).stroke("#d1d5db");
@@ -287,20 +266,16 @@ app.post("/api/export/pdf", async (req, res) => {
     const data = req.body;
     const isResume = data.type === "resume";
     const templateId = data.selectedTemplate || "standard-contemporary";
-
     const doc = new PDFDocument({ 
       size: "LETTER", 
       margin: (templateId === "sidebar-green" || templateId === "basic-two-column" || templateId === "executive-luxe") ? 0 : 50 
     });
-
     res.setHeader("Content-Type", "application/pdf");
     doc.pipe(res);
-
     if (isResume) {
       const draw = templateRegistry[templateId] || templateRegistry["standard-contemporary"];
       draw(doc, data);
     } else {
-      // COVER LETTER
       doc.rect(0, 0, doc.page.width, 130).fill("#1F4E79");
       doc.fillColor("white").font("Helvetica-Bold").fontSize(26).text(data.applicantName || "", 50, 40);
       doc.font("Helvetica").fontSize(10).text(`${data.applicantEmail || ""} | ${data.applicantPhone || ""}`, 50, 75);
