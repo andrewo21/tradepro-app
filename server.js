@@ -7,7 +7,7 @@ import multer from "multer";
 
 const app = express();
 const storage = multer.memoryStorage();
-// Use upload.any() to prevent "Unexpected Field" errors regardless of what frontend sends
+// Global Multer config to handle all incoming field types safely
 const upload = multer({ storage: storage });
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -19,15 +19,26 @@ app.use(express.urlencoded({ extended: true }));
  * --- 1. AI ENGINE (REWRITES & EXTRACTION) ---
  */
 
-// FIXED: Changed upload.none() to upload.any() to stop the Multer "Unexpected Field" crash
+// FIX: Cover Letter / Resume Summary Extraction
+// Uses upload.any() to prevent Multer "Unexpected Field" 500 errors
 app.post("/api/ai/extract-summary", upload.any(), async (req, res) => {
   try {
-    // Check every possible location for the text
-    const text = req.body.resumeText || req.body.text || req.body.resumeContent || req.body.content;
+    console.log("Extraction Request Received. Body:", req.body);
+
+    // Deep search for the text content across potential keys
+    let text = req.body.resumeText || req.body.text || req.body.resumeContent || req.body.content;
     
+    // Fallback: If it's a nested object or stringified JSON
+    if (!text && req.body.data) {
+      try {
+        const parsed = JSON.parse(req.body.data);
+        text = parsed.resumeText || parsed.text;
+      } catch (e) { /* ignore parse error */ }
+    }
+
     if (!text) {
-      console.error("Payload received but no text field found:", req.body);
-      return res.status(400).json({ error: "No resume text found in request body." });
+      console.error("CRITICAL: Extraction failed - No text field found in request.");
+      return res.status(400).json({ error: "No resume text found. Ensure the 'Extract' tool is passing 'resumeText'." });
     }
 
     const completion = await client.chat.completions.create({
@@ -38,14 +49,15 @@ app.post("/api/ai/extract-summary", upload.any(), async (req, res) => {
       }, { role: "user", content: text }],
       temperature: 0.5,
     });
+
     res.json({ summary: completion.choices?.[0]?.message?.content?.trim() || "" });
   } catch (err) { 
     console.error("Extraction error:", err.message);
-    res.status(500).json({ error: "Extraction failed" }); 
+    res.status(500).json({ error: "Extraction failed", details: err.message }); 
   }
 });
 
-// Professional Summary AI Assist Rewrite
+// FIX: Professional Summary AI Assist Rewrite
 app.post("/api/ai/rewrite-summary", async (req, res) => {
   try {
     const { text } = req.body;
@@ -61,6 +73,7 @@ app.post("/api/ai/rewrite-summary", async (req, res) => {
     });
     res.json({ suggestion: completion.choices?.[0]?.message?.content?.trim() || "" });
   } catch (err) {
+    console.error("Summary rewrite error:", err.message);
     res.status(500).json({ error: "Summary rewrite failed" });
   }
 });
@@ -81,7 +94,6 @@ app.post("/api/ai/rewrite", async (req, res) => {
   } catch (err) { res.status(500).json({ error: "Rewrite failed" }); }
 });
 
-// FIXED: Changed to upload.any() to prevent FormData issues
 app.post("/api/ai/generate", upload.any(), async (req, res) => {
   try {
     const prompt = req.body.prompt;
@@ -288,7 +300,7 @@ app.post("/api/export/pdf", async (req, res) => {
       const draw = templateRegistry[templateId] || templateRegistry["standard-contemporary"];
       draw(doc, data);
     } else {
-      // COVER LETTER: Standard formatting
+      // COVER LETTER
       doc.rect(0, 0, doc.page.width, 130).fill("#1F4E79");
       doc.fillColor("white").font("Helvetica-Bold").fontSize(26).text(data.applicantName || "", 50, 40);
       doc.font("Helvetica").fontSize(10).text(`${data.applicantEmail || ""} | ${data.applicantPhone || ""}`, 50, 75);
