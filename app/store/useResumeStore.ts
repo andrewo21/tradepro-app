@@ -37,6 +37,7 @@ export const useResumeStore = create<any>()(
     education: [{ school: "", degree: "", year: "", gpa: "" }], 
     selectedTemplate: "sidebar-green",
     premiumUnlocked: false,
+    showWatermark: false,
 
     // --- SHARED ACTIONS ---
     setField: (field: string, value: any) => set({ [field]: value }),
