@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
   // Handle successful checkout
   if (event.type === "checkout.session.completed") {
     const session = event.data?.object;
-    const userId: string = session?.metadata?.userId || "demo-user";
+    const userId: string = session?.metadata?.userId || "anonymous";
     const productId: ProductId = session?.metadata?.productId as ProductId;
 
     if (userId && productId) {

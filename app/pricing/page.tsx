@@ -6,17 +6,19 @@ import { ProductId } from "@/lib/pricing";
 import { useEffect, useState } from "react";
 import EntitlementBadge from "@/components/EntitlementBadge";
 import StripeTestPanel from "@/components/StripeTestPanel";
+import { getOrCreateUserId } from "@/lib/userId";
 
 import Footer from "@/components/Footer";
 
 export default function PricingPage() {
-  const userId = "demo-user";
-
+  const [userId, setUserId] = useState("anonymous");
   const [entitlements, setEntitlements] = useState<any>(null);
 
   useEffect(() => {
+    const uid = getOrCreateUserId();
+    setUserId(uid);
     async function load() {
-      const res = await fetch(`/api/debug/entitlements?userId=${userId}`);
+      const res = await fetch(`/api/debug/entitlements?userId=${uid}`);
       const data = await res.json();
       setEntitlements(data.entitlements);
     }

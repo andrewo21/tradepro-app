@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { grantEntitlement, getUserEntitlements } from "@/lib/entitlements";
 import { ProductId, PRICE_IDS, resolveCheckoutProduct } from "@/lib/pricing";
 import { overrides } from "@/config/overrides";
+import { getUserIdFromCookieHeader } from "@/lib/userId";
 
 function getStripe() {
   const secretKey = process.env.STRIPE_SECRET_KEY;
@@ -16,7 +17,8 @@ function getStripe() {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json().catch(() => ({}));
-    const userId: string = body.userId || "demo-user";
+    const cookieUserId = getUserIdFromCookieHeader(req.headers.get("cookie"));
+    const userId: string = body.userId || cookieUserId;
     const desiredProductId: ProductId = body.productId || ProductId.RESUME;
 
     // If Stripe is disabled or not configured, grant immediately (dev/founder mode)

@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { grantEntitlement, getUserEntitlements } from "@/lib/entitlements";
 import { ProductId } from "@/lib/pricing";
 import { overrides } from "@/config/overrides";
+import { getUserIdFromCookieHeader } from "@/lib/userId";
 
 /**
  * POST /api/stripe/grant
@@ -13,7 +14,8 @@ import { overrides } from "@/config/overrides";
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json().catch(() => ({}));
-    const userId: string = body.userId || "demo-user";
+    const cookieUserId = getUserIdFromCookieHeader(req.headers.get("cookie"));
+    const userId: string = body.userId || cookieUserId;
     const productId: ProductId = body.productId as ProductId;
     const sessionId: string = body.sessionId || "";
 

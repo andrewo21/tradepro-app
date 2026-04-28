@@ -6,11 +6,13 @@ import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { useResumeStore } from "@/app/store/useResumeStore";
+import { getOrCreateUserId } from "@/lib/userId";
 
 function CheckoutSuccessContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const userId = searchParams.get("userId") || "demo-user";
+  // Prefer the userId from the URL param (set by Stripe redirect), fall back to cookie
+  const userId = searchParams.get("userId") || getOrCreateUserId();
   const productId = searchParams.get("productId") || null;
   const sessionId = searchParams.get("session_id") || null;
 

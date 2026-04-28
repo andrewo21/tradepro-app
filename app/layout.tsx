@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Header from "@/components/Header";
+import UserIdProvider from "@/components/UserIdProvider";
 
 export const metadata: Metadata = {
   title: "TradePro",
@@ -11,6 +12,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className="bg-neutral-50 text-neutral-900">
+        <UserIdProvider />
         <div suppressHydrationWarning>
           <Header />
         </div>
