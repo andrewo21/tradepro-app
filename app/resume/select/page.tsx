@@ -63,9 +63,9 @@ export default function SelectPage() {
       {showPremiumNotice && (
         <div className="mb-6 p-4 bg-amber-50 border border-amber-300 rounded-lg flex items-center justify-between gap-4">
           <div>
-            <p className="text-amber-800 font-semibold text-sm">Premium Template</p>
+            <p className="text-amber-800 font-semibold text-sm">Premium Template — $29.99</p>
             <p className="text-amber-700 text-sm">
-              Upgrade to the Premium Bundle to unlock this template.
+              This template is included in the Premium Bundle. Get all 9 templates + Cover Letter Generator.
             </p>
           </div>
           <div className="flex gap-2 flex-shrink-0">
@@ -73,7 +73,7 @@ export default function SelectPage() {
               href="/pricing"
               className="px-4 py-2 bg-amber-500 text-white rounded text-sm font-semibold hover:bg-amber-600 transition"
             >
-              Upgrade
+              Get Bundle — $29.99
             </Link>
             <button
               onClick={() => setShowPremiumNotice(false)}
