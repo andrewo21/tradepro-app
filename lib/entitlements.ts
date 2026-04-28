@@ -1,7 +1,9 @@
 // lib/entitlements.ts
+//
+// Storage strategy:
+//   - Vercel (KV_REST_API_URL set): use @vercel/kv — persistent across all serverless instances
+//   - Local dev: use data/entitlements.json on disk
 
-import fs from "fs/promises";
-import path from "path";
 import { ProductId } from "./pricing";
 import { overrides } from "@/config/overrides";
 
@@ -11,31 +13,50 @@ export type UserEntitlements = {
   bundle: boolean;
 };
 
-type EntitlementStore = Record<string, UserEntitlements>;
+const EMPTY: UserEntitlements = { resume: false, coverLetter: false, bundle: false };
 
-// Vercel serverless functions run in a read-only filesystem except for /tmp.
-// Use /tmp when running on Vercel, and the local data/ directory otherwise.
-const DATA_DIR = process.env.VERCEL
-  ? "/tmp"
-  : path.join(process.cwd(), "data");
-const ENTITLEMENTS_FILE = path.join(DATA_DIR, "entitlements.json");
+// ── KV helpers ────────────────────────────────────────────────────────────────
 
-async function ensureStoreFile(): Promise<void> {
-  try {
-    await fs.mkdir(DATA_DIR, { recursive: true });
-    await fs.access(ENTITLEMENTS_FILE);
-  } catch {
-    const initial: EntitlementStore = {};
-    await fs.writeFile(ENTITLEMENTS_FILE, JSON.stringify(initial, null, 2), {
-      encoding: "utf-8",
-    });
-  }
+function useKV(): boolean {
+  return !!process.env.KV_REST_API_URL;
 }
 
+async function kvGet(userId: string): Promise<UserEntitlements> {
+  const { kv } = await import("@vercel/kv");
+  const val = await kv.get<UserEntitlements>(`entitlements:${userId}`);
+  return val ?? { ...EMPTY };
+}
+
+async function kvSet(userId: string, data: UserEntitlements): Promise<void> {
+  const { kv } = await import("@vercel/kv");
+  await kv.set(`entitlements:${userId}`, data);
+}
+
+async function kvDel(userId: string): Promise<void> {
+  const { kv } = await import("@vercel/kv");
+  await kv.del(`entitlements:${userId}`);
+}
+
+async function kvDelAll(): Promise<void> {
+  const { kv } = await import("@vercel/kv");
+  const keys = await kv.keys("entitlements:*");
+  if (keys.length > 0) await Promise.all(keys.map((k) => kv.del(k)));
+}
+
+// ── JSON file helpers (local dev) ─────────────────────────────────────────────
+
+import fs from "fs/promises";
+import path from "path";
+
+type EntitlementStore = Record<string, UserEntitlements>;
+
+const DATA_DIR = path.join(process.cwd(), "data");
+const ENTITLEMENTS_FILE = path.join(DATA_DIR, "entitlements.json");
+
 async function readStore(): Promise<EntitlementStore> {
-  await ensureStoreFile();
-  const raw = await fs.readFile(ENTITLEMENTS_FILE, "utf-8");
   try {
+    await fs.mkdir(DATA_DIR, { recursive: true });
+    const raw = await fs.readFile(ENTITLEMENTS_FILE, "utf-8").catch(() => "{}");
     return JSON.parse(raw) as EntitlementStore;
   } catch {
     return {};
@@ -43,47 +64,30 @@ async function readStore(): Promise<EntitlementStore> {
 }
 
 async function writeStore(store: EntitlementStore): Promise<void> {
-  await fs.writeFile(ENTITLEMENTS_FILE, JSON.stringify(store, null, 2), {
-    encoding: "utf-8",
-  });
+  await fs.mkdir(DATA_DIR, { recursive: true });
+  await fs.writeFile(ENTITLEMENTS_FILE, JSON.stringify(store, null, 2), "utf-8");
 }
 
-export async function getUserEntitlements(
-  userId: string
-): Promise<UserEntitlements> {
-  // ⭐ Founder-safe override system
-  // If devMode OR access is true → unlock builders
+// ── Public API ────────────────────────────────────────────────────────────────
+
+export async function getUserEntitlements(userId: string): Promise<UserEntitlements> {
   if (overrides.devMode || overrides.access) {
-    return {
-      resume: true,
-      coverLetter: true,
-      bundle: overrides.premium, // premium still controls bundle
-    };
+    return { resume: true, coverLetter: true, bundle: overrides.premium };
   }
 
-  // ⭐ Production: use real entitlements
+  if (useKV()) {
+    return kvGet(userId);
+  }
+
   const store = await readStore();
-  return (
-    store[userId] || {
-      resume: false,
-      coverLetter: false,
-      bundle: false,
-    }
-  );
+  return store[userId] ?? { ...EMPTY };
 }
 
 export async function grantEntitlement(
   userId: string,
   productId: ProductId
 ): Promise<UserEntitlements> {
-  const store = await readStore();
-
-  const current: UserEntitlements =
-    store[userId] || ({
-      resume: false,
-      coverLetter: false,
-      bundle: false,
-    } as UserEntitlements);
+  const current = useKV() ? await kvGet(userId) : (await readStore())[userId] ?? { ...EMPTY };
 
   let updated: UserEntitlements = { ...current };
 
@@ -95,17 +99,37 @@ export async function grantEntitlement(
       updated.coverLetter = true;
       break;
     case ProductId.BUNDLE:
-      updated = {
-        resume: true,
-        coverLetter: true,
-        bundle: true,
-      };
+      updated = { resume: true, coverLetter: true, bundle: true };
       break;
     default:
       throw new Error(`Unknown productId in grantEntitlement: ${productId}`);
   }
 
-  store[userId] = updated;
-  await writeStore(store);
+  if (useKV()) {
+    await kvSet(userId, updated);
+  } else {
+    const store = await readStore();
+    store[userId] = updated;
+    await writeStore(store);
+  }
+
   return updated;
+}
+
+export async function resetEntitlements(userId?: string): Promise<void> {
+  if (useKV()) {
+    if (userId) {
+      await kvDel(userId);
+    } else {
+      await kvDelAll();
+    }
+  } else {
+    const store = await readStore();
+    if (userId) {
+      delete store[userId];
+    } else {
+      for (const key of Object.keys(store)) delete store[key];
+    }
+    await writeStore(store);
+  }
 }
