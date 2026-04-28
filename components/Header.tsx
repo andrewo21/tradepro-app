@@ -36,20 +36,20 @@ export default function Header() {
 
           {open && (
             <div className="absolute right-0 mt-2 w-48 bg-white border rounded-md shadow-lg py-2 text-sm z-50">
-              <Link href="/" className="block px-4 py-2 hover:bg-neutral-100">Home</Link>
-              <Link href="/resume" className="block px-4 py-2 hover:bg-neutral-100">Resume Builder</Link>
-              <Link href="/cover-letter" className="block px-4 py-2 hover:bg-neutral-100">Cover Letter Generator</Link>
+              <Link href="/" className="block px-4 py-2 text-neutral-800 hover:bg-neutral-100 hover:text-neutral-900">Home</Link>
+              <Link href="/resume" className="block px-4 py-2 text-neutral-800 hover:bg-neutral-100 hover:text-neutral-900">Resume Builder</Link>
+              <Link href="/cover-letter" className="block px-4 py-2 text-neutral-800 hover:bg-neutral-100 hover:text-neutral-900">Cover Letter Generator</Link>
 
-              <div className="px-4 py-2 opacity-80">
-                <div>Project List Builder</div>
-                <div className="text-[10px] uppercase tracking-wide bg-neutral-300 px-1.5 py-0.5 rounded inline-block mt-1">
+              <div className="px-4 py-2 text-neutral-400">
+                <div className="text-neutral-500">Project List Builder</div>
+                <div className="text-[10px] uppercase tracking-wide bg-neutral-200 text-neutral-500 px-1.5 py-0.5 rounded inline-block mt-1">
                   Coming Soon
                 </div>
               </div>
 
-              <Link href="/pricing" className="block px-4 py-2 hover:bg-neutral-100">Pricing</Link>
-              <Link href="/about" className="block px-4 py-2 hover:bg-neutral-100">About Us</Link>
-              <Link href="/contact" className="block px-4 py-2 hover:bg-neutral-100">Contact Us</Link>
+              <Link href="/pricing" className="block px-4 py-2 text-neutral-800 hover:bg-neutral-100 hover:text-neutral-900">Pricing</Link>
+              <Link href="/about" className="block px-4 py-2 text-neutral-800 hover:bg-neutral-100 hover:text-neutral-900">About Us</Link>
+              <Link href="/contact" className="block px-4 py-2 text-neutral-800 hover:bg-neutral-100 hover:text-neutral-900">Contact Us</Link>
             </div>
           )}
         </div>
@@ -61,6 +61,7 @@ export default function Header() {
           src="/brand/Tradepro-logo.svg"
           alt="TradePro Technologies"
           className="inline-block w-[220px] sm:w-[380px] md:w-[500px] lg:w-[620px] h-auto"
+          style={{ transform: "translateX(-12%)" }}
         />
         <p
           className="font-semibold text-neutral-600 mt-4 leading-snug
