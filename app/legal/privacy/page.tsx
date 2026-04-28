@@ -70,17 +70,12 @@ export default function PrivacyPage() {
             </section>
 
             <section>
-              <h2 className="text-lg font-semibold text-neutral-900 mb-2">8. Children&apos;s Privacy</h2>
-              <p>TradePro is not directed at children under 13. We do not knowingly collect personal information from anyone under 13 years of age.</p>
-            </section>
-
-            <section>
-              <h2 className="text-lg font-semibold text-neutral-900 mb-2">9. Changes to This Policy</h2>
+              <h2 className="text-lg font-semibold text-neutral-900 mb-2">8. Changes to This Policy</h2>
               <p>We may update this Privacy Policy from time to time. We will update the &quot;Last updated&quot; date above when changes are made. Continued use of the service after updates constitutes acceptance.</p>
             </section>
 
             <section>
-              <h2 className="text-lg font-semibold text-neutral-900 mb-2">10. Contact</h2>
+              <h2 className="text-lg font-semibold text-neutral-900 mb-2">9. Contact</h2>
               <p>Questions about privacy? Email us at <a href="mailto:andrew@tradeprotech.ai" className="text-blue-600 hover:underline">andrew@tradeprotech.ai</a>.</p>
             </section>
 
