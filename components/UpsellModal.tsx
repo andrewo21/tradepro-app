@@ -40,6 +40,7 @@ export default function UpsellModal({
     "All 9 templates — 5 standard + 4 premium",
     "Resume Builder included",
     "Cover Letter Generator included",
+    "Project Portfolio Builder included",
     "2 PDF downloads per tool",
     "Best value — save $",
   ];
