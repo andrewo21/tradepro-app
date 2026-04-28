@@ -60,18 +60,18 @@ export const useResumeStore = create<any>()(
           headers: { "Content-Type": "application/json" }, 
           body: JSON.stringify({ text }) 
         });
+        const data = await res.json();
         if (!res.ok) {
-          set({ summaryLoading: false, summaryError: `Server error: ${res.status}` });
+          set({ summaryLoading: false, summaryError: data.error || `Server error: ${res.status}` });
           return;
         }
-        const data = await res.json();
         const result = sanitize(data.suggestion);
         if (result) {
           set({ summaryLoading: false, summarySuggestion: result });
         } else {
           set({ summaryLoading: false, summaryError: "No suggestion returned. Please try again." });
         }
-      } catch (e) { set({ summaryLoading: false, summaryError: "AI rewrite failed. Check your connection and try again." }); }
+      } catch (e: any) { set({ summaryLoading: false, summaryError: e?.message || "AI rewrite failed. Check your connection and try again." }); }
     },
     
     acceptSummarySuggestion: () => set((state: any) => ({ 
@@ -109,10 +109,10 @@ export const useResumeStore = create<any>()(
         const data = await res.json();
         set((state: any) => { 
           const sk = [...state.skills]; 
-          sk[index] = { ...sk[index], loading: false, suggestion: sanitize(data.suggestion) }; 
+          sk[index] = { ...sk[index], loading: false, suggestion: res.ok ? sanitize(data.suggestion) : null, error: res.ok ? null : (data.error || "Rewrite failed") }; 
           return { skills: sk }; 
         });
-      } catch (e) { set((state: any) => { const sk = [...state.skills]; sk[index].loading = false; return { skills: sk }; }); }
+      } catch (e: any) { set((state: any) => { const sk = [...state.skills]; sk[index] = { ...sk[index], loading: false, error: e?.message || "Rewrite failed" }; return { skills: sk }; }); }
     },
     acceptSkillSuggestion: (index: number) => set((state: any) => { 
       const s = [...state.skills]; 
