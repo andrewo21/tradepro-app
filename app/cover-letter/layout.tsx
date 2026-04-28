@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { ReactNode } from "react";
 import { getUserEntitlements } from "@/lib/entitlements";
 import { hasCoverLetterAccess } from "@/lib/verifyEntitlement";
