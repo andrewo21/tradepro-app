@@ -54,14 +54,17 @@ export default function Header() {
         </div>
       </div>
 
-      {/* BRANDING + TAGLINE — centered, stacked vertically */}
-      <div className="flex flex-col items-center justify-center px-4 pt-8 pb-6 sm:pt-10 sm:pb-8">
-        <img
-          src="/brand/Tradepro-logo.svg"
-          alt="TradePro Technologies"
-          className="w-[260px] sm:w-[420px] md:w-[560px] lg:w-[700px] h-auto"
-          style={{ display: "block" }}
-        />
+      {/* BRANDING + TAGLINE — truly centered using absolute positioning trick */}
+      <div className="w-full flex flex-col items-center justify-center px-4 pt-8 pb-6 sm:pt-10 sm:pb-8">
+        {/* Wrapper constrains logo to full viewport width so it centers against the page, not the remaining space */}
+        <div className="w-full flex justify-center">
+          <img
+            src="/brand/Tradepro-logo.svg"
+            alt="TradePro Technologies"
+            className="w-[260px] sm:w-[420px] md:w-[560px] lg:w-[700px] h-auto"
+            style={{ display: "block" }}
+          />
+        </div>
 
         <p
           className="text-center font-semibold text-neutral-600 mt-4 leading-snug
