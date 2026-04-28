@@ -43,20 +43,24 @@ export default function BundleUpsell({
         <h3 className="text-xl font-semibold">Unlock More Tools</h3>
 
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <div className="flex-1 border rounded-lg bg-white p-4">
+          <div className="flex-1 border rounded-lg bg-white p-4 flex flex-col">
             <p className="font-medium mb-1">Add Cover Letter Builder</p>
             <p className="text-gray-600 text-sm mb-3">$8.99 one-time</p>
-            <CheckoutButton userId={userId} productId={ProductId.COVER_LETTER} />
+            <div className="mt-auto">
+              <CheckoutButton userId={userId} productId={ProductId.COVER_LETTER} />
+            </div>
           </div>
-          <div className="flex-1 border-2 border-blue-500 rounded-lg bg-white p-4">
+          <div className="flex-1 border-2 border-blue-500 rounded-lg bg-white p-4 flex flex-col">
             <p className="font-medium mb-1">Upgrade to Premium Bundle</p>
             <p className="text-gray-600 text-sm mb-1">{bundleUpgradePrice} <span className="line-through text-gray-400">$29.99</span></p>
             <p className="text-green-600 text-xs mb-3">You save $14.99 — resume credit applied</p>
-            <CheckoutButton
-              userId={userId}
-              productId={ProductId.BUNDLE}
-              label={`Upgrade — ${bundleUpgradePrice}`}
-            />
+            <div className="mt-auto">
+              <CheckoutButton
+                userId={userId}
+                productId={ProductId.BUNDLE}
+                label={`Upgrade — ${bundleUpgradePrice}`}
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -71,20 +75,24 @@ export default function BundleUpsell({
         <h3 className="text-xl font-semibold">Unlock More Tools</h3>
 
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <div className="flex-1 border rounded-lg bg-white p-4">
+          <div className="flex-1 border rounded-lg bg-white p-4 flex flex-col">
             <p className="font-medium mb-1">Add Resume Builder</p>
             <p className="text-gray-600 text-sm mb-3">$14.99 one-time</p>
-            <CheckoutButton userId={userId} productId={ProductId.RESUME} />
+            <div className="mt-auto">
+              <CheckoutButton userId={userId} productId={ProductId.RESUME} />
+            </div>
           </div>
-          <div className="flex-1 border-2 border-blue-500 rounded-lg bg-white p-4">
+          <div className="flex-1 border-2 border-blue-500 rounded-lg bg-white p-4 flex flex-col">
             <p className="font-medium mb-1">Upgrade to Premium Bundle</p>
             <p className="text-gray-600 text-sm mb-1">{bundleUpgradePrice} <span className="line-through text-gray-400">$29.99</span></p>
             <p className="text-green-600 text-xs mb-3">You save $8.99 — cover letter credit applied</p>
-            <CheckoutButton
-              userId={userId}
-              productId={ProductId.BUNDLE}
-              label={`Upgrade — ${bundleUpgradePrice}`}
-            />
+            <div className="mt-auto">
+              <CheckoutButton
+                userId={userId}
+                productId={ProductId.BUNDLE}
+                label={`Upgrade — ${bundleUpgradePrice}`}
+              />
+            </div>
           </div>
         </div>
       </div>

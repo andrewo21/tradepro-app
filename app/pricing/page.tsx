@@ -42,7 +42,7 @@ export default function PricingPage() {
           </p>
 
           {/* PRICING GRID */}
-          <div className="grid gap-8 md:grid-cols-3 items-stretch">
+          <div className="grid gap-8 md:grid-cols-3 items-stretch" style={{ alignItems: "stretch" }}>
 
             {/* STANDARD RESUME */}
             <div className="bg-white border border-neutral-300 rounded-lg shadow-sm p-6 sm:p-8 flex flex-col">
@@ -118,14 +118,14 @@ export default function PricingPage() {
             </div>
 
             {/* PREMIUM BUNDLE */}
-            <div className="relative mt-4 md:mt-0">
+            <div className="relative mt-4 md:mt-0 flex flex-col">
 
               {/* BADGE */}
               <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-amber-500 text-white text-xs font-semibold px-3 py-1 rounded-full shadow">
                 Most Popular
               </div>
 
-              <div className="bg-white border border-neutral-300 rounded-lg shadow-sm p-6 sm:p-8 flex flex-col h-full">
+              <div className="bg-white border border-neutral-300 rounded-lg shadow-sm p-6 sm:p-8 flex flex-col flex-1">
 
                 <h2 className="text-2xl font-semibold mb-2">Premium Resume Bundle</h2>
 
