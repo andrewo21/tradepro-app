@@ -10,8 +10,10 @@ export const overrides = {
   devMode: process.env.NEXT_PUBLIC_DEV_MODE === "true",
 
   // Master feature switches
-  access: true,        // Can the user access builders at all?
-  premium: true,       // Unlock all premium features?
+  // Set to true to bypass Stripe and unlock for all users (founder / dev mode).
+  // Set to false (or use OVERRIDE_ACCESS=false) to require a real purchase.
+  access: process.env.OVERRIDE_ACCESS !== "false",   // default true unless explicitly disabled
+  premium: process.env.OVERRIDE_PREMIUM !== "false", // default true unless explicitly disabled
   watermark: true,     // Show watermark on exports/previews?
 
   // Stripe behavior

@@ -5,8 +5,7 @@ import CheckoutButton from "@/components/CheckoutButton";
 import { ProductId } from "@/lib/pricing";
 import { useEffect, useState } from "react";
 import EntitlementBadge from "@/components/EntitlementBadge";
-
-// NEW imports
+import StripeTestPanel from "@/components/StripeTestPanel";
 
 import Footer from "@/components/Footer";
 
@@ -156,6 +155,10 @@ export default function PricingPage() {
           <p className="text-neutral-500 text-xs mt-10">
             One‑time purchase. Lifetime access to all features included in your tier.
           </p>
+
+          {process.env.NEXT_PUBLIC_STRIPE_TEST_MODE === "true" && (
+            <StripeTestPanel userId={userId} initial={entitlements} />
+          )}
         </div>
       </main>
 
