@@ -33,11 +33,22 @@ function getKVRestToken(): string | undefined {
 
 // ── ioredis helpers (REDIS_URL) ───────────────────────────────────────────────
 
-async function redisGet(userId: string): Promise<UserEntitlements> {
+function createRedisClient() {
   const Redis = require("ioredis");
-  const client = new Redis(getRedisUrl(), { lazyConnect: true, enableOfflineQueue: false, connectTimeout: 5000 });
+  const url = getRedisUrl()!;
+  // rediss:// requires TLS — reject unauthorized must be false for Upstash/Vercel Redis
+  const tls = url.startsWith("rediss://") ? { rejectUnauthorized: false } : undefined;
+  return new Redis(url, {
+    tls,
+    connectTimeout: 5000,
+    maxRetriesPerRequest: 1,
+    enableOfflineQueue: false,
+  });
+}
+
+async function redisGet(userId: string): Promise<UserEntitlements> {
+  const client = createRedisClient();
   try {
-    await client.connect().catch(() => {});
     const val = await client.get(KEY(userId));
     return val ? JSON.parse(val) : { ...EMPTY };
   } finally {
@@ -46,10 +57,8 @@ async function redisGet(userId: string): Promise<UserEntitlements> {
 }
 
 async function redisSet(userId: string, data: UserEntitlements): Promise<void> {
-  const Redis = require("ioredis");
-  const client = new Redis(getRedisUrl(), { lazyConnect: true, enableOfflineQueue: false, connectTimeout: 5000 });
+  const client = createRedisClient();
   try {
-    await client.connect().catch(() => {});
     await client.set(KEY(userId), JSON.stringify(data));
   } finally {
     client.disconnect();
@@ -57,10 +66,8 @@ async function redisSet(userId: string, data: UserEntitlements): Promise<void> {
 }
 
 async function redisDel(userId: string): Promise<void> {
-  const Redis = require("ioredis");
-  const client = new Redis(getRedisUrl(), { lazyConnect: true, enableOfflineQueue: false, connectTimeout: 5000 });
+  const client = createRedisClient();
   try {
-    await client.connect().catch(() => {});
     await client.del(KEY(userId));
   } finally {
     client.disconnect();
@@ -68,10 +75,8 @@ async function redisDel(userId: string): Promise<void> {
 }
 
 async function redisDelAll(): Promise<void> {
-  const Redis = require("ioredis");
-  const client = new Redis(getRedisUrl(), { lazyConnect: true, enableOfflineQueue: false, connectTimeout: 5000 });
+  const client = createRedisClient();
   try {
-    await client.connect().catch(() => {});
     const keys: string[] = await client.keys("entitlements:*");
     if (keys.length > 0) await client.del(...keys);
   } finally {
