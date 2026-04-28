@@ -39,6 +39,7 @@ export const useResumeStore = create<any>()(
     selectedTemplate: "sidebar-green",
     premiumUnlocked: false,
     showWatermark: true,
+    jobDescription: "",
 
     // --- SHARED ACTIONS ---
     setField: (field: string, value: any) => set({ [field]: value }),
@@ -208,6 +209,7 @@ export const useResumeStore = create<any>()(
       selectedTemplate: "sidebar-green",
       premiumUnlocked: false,
       showWatermark: true,
+      jobDescription: "",
     }),
   }), {
     name: "resume-storage",

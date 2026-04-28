@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useResumeStore } from "@/app/store/useResumeStore";
+import JobMatch from "@/components/JobMatch";
 
 export default function SummaryPage() {
   const summary = useResumeStore((s) => s.summary);
@@ -136,8 +137,13 @@ export default function SummaryPage() {
         </div>
       )}
 
+      {/* Job Match Optimizer */}
+      <div className="mt-8 mb-2">
+        <JobMatch />
+      </div>
+
       {/* Navigation */}
-      <div className="flex justify-between mt-10">
+      <div className="flex justify-between mt-8">
         <Link
           href="/resume/education"
           className="px-6 py-2 bg-neutral-200 text-neutral-900 rounded-md text-sm hover:bg-neutral-300"
