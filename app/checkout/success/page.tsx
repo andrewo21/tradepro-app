@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
+import { useResumeStore } from "@/app/store/useResumeStore";
 
 function CheckoutSuccessContent() {
   const router = useRouter();
@@ -11,11 +12,12 @@ function CheckoutSuccessContent() {
   const productId = searchParams.get("productId") || null;
   const sessionId = searchParams.get("session_id") || null;
 
+  const setField = useResumeStore((s: any) => s.setField);
   const [entitlements, setEntitlements] = useState<any>(null);
 
   useEffect(() => {
     async function load() {
-      // If we have productId from the URL, grant it via the server
+      // Grant entitlement on the server
       if (productId) {
         await fetch("/api/stripe/grant", {
           method: "POST",
@@ -28,6 +30,12 @@ function CheckoutSuccessContent() {
       const res = await fetch(`/api/debug/entitlements?userId=${userId}`);
       const data = await res.json();
       setEntitlements(data.entitlements);
+
+      // Remove watermark from the resume store now that they've paid
+      if (data.entitlements.resume || data.entitlements.bundle) {
+        setField("showWatermark", false);
+        setField("premiumUnlocked", !!data.entitlements.bundle);
+      }
 
       // Auto‑redirect based on what they unlocked
       setTimeout(() => {
@@ -44,7 +52,7 @@ function CheckoutSuccessContent() {
     }
 
     load();
-  }, [router, userId, productId, sessionId]);
+  }, [router, userId, productId, sessionId, setField]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">

@@ -3,6 +3,7 @@ import { getUserEntitlements } from "@/lib/entitlements";
 import { hasResumeAccess } from "@/lib/verifyEntitlement";
 import UpsellModal from "@/components/UpsellModal";
 import BundleUpsell from "@/components/BundleUpsell";
+import WatermarkSync from "@/components/WatermarkSync";
 import { ProductId } from "@/lib/pricing";
 import { overrides } from "@/config/overrides";
 
@@ -20,6 +21,10 @@ async function ResumeGate({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen bg-neutral-50 px-2 py-4 sm:p-6">
+      <WatermarkSync
+        hasResume={entitlements.resume || entitlements.bundle || devOverride}
+        hasBundle={entitlements.bundle || overrides.premium}
+      />
       {children}
       <BundleUpsell userId={userId} entitlements={entitlements} />
     </div>
