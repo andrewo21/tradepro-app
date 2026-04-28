@@ -145,7 +145,7 @@ export default function PricingPage() {
                   <li>• Edit until you're happy</li>
                   <li>• 2 PDF downloads per tool included</li>
                   <li>• Cover Letter Generator included</li>
-                  <li>• Project List Builder (Coming Soon)</li>
+                  <li>• Project Portfolio Builder included</li>
                 </ul>
 
                 <div className="mt-auto">

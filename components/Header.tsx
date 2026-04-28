@@ -40,12 +40,9 @@ export default function Header() {
               <Link href="/resume" className="block px-4 py-2 text-neutral-800 hover:bg-neutral-100 hover:text-neutral-900">Resume Builder</Link>
               <Link href="/cover-letter" className="block px-4 py-2 text-neutral-800 hover:bg-neutral-100 hover:text-neutral-900">Cover Letter Generator</Link>
 
-              <div className="px-4 py-2 text-neutral-400">
-                <div className="text-neutral-500">Project List Builder</div>
-                <div className="text-[10px] uppercase tracking-wide bg-neutral-200 text-neutral-500 px-1.5 py-0.5 rounded inline-block mt-1">
-                  Coming Soon
-                </div>
-              </div>
+              <Link href="/projects" className="block px-4 py-2 text-neutral-800 hover:bg-neutral-100 hover:text-neutral-900">
+                Project Portfolio Builder
+              </Link>
 
               <Link href="/pricing" className="block px-4 py-2 text-neutral-800 hover:bg-neutral-100 hover:text-neutral-900">Pricing</Link>
               <Link href="/about" className="block px-4 py-2 text-neutral-800 hover:bg-neutral-100 hover:text-neutral-900">About Us</Link>
