@@ -2,18 +2,24 @@
 
 import { useState, useEffect } from "react";
 import { useCoverLetterStore } from "@/app/store/useCoverLetterStore";
+import Link from "next/link";
+
+const USER_ID = "demo-user";
+const MAX_DOWNLOADS = 2;
 
 export default function CoverLetterPage() {
   const {
     applicantName, applicantAddress, applicantCityStateZip, applicantEmail, applicantPhone, date,
     hiringManager, companyName, companyAddress, companyCityStateZip,
-    jobTitle, experience, generatedLetter, setField, setGeneratedLetter, salutationStyle
+    jobTitle, experience, generatedLetter, setField, setGeneratedLetter, salutationStyle, clearAll
   } = useCoverLetterStore();
 
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [loadingSummary, setLoadingSummary] = useState(false);
   const [loadingLetter, setLoadingLetter] = useState(false);
   const [loadingPDF, setLoadingPDF] = useState(false);
+  const [downloadsUsed, setDownloadsUsed] = useState<number | null>(null);
+  const [revoked, setRevoked] = useState(false);
 
   const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -23,6 +29,19 @@ export default function CoverLetterPage() {
       setField("date", `${today.getMonth() + 1}/${today.getDate()}/${today.getFullYear()}`);
     }
   }, [date, setField]);
+
+  useEffect(() => {
+    fetch(`/api/debug/entitlements?userId=${USER_ID}`)
+      .then(r => r.json())
+      .then(data => {
+        const used = data.entitlements?.coverLetterDownloads ?? 0;
+        setDownloadsUsed(used);
+        if (!data.entitlements?.coverLetter && !data.entitlements?.bundle) {
+          setRevoked(true);
+        }
+      })
+      .catch(() => null);
+  }, []);
 
   const handleGenerateSummary = async () => {
     if (!resumeFile || !API_BASE) return alert("Please select a PDF file.");
@@ -55,7 +74,7 @@ export default function CoverLetterPage() {
   };
 
   const handleExportPDF = async () => {
-    if (!generatedLetter || !API_BASE) return;
+    if (!generatedLetter || !API_BASE || revoked) return;
     setLoadingPDF(true);
     try {
       const res = await fetch(`${API_BASE}/api/export/pdf`, {
@@ -82,12 +101,60 @@ export default function CoverLetterPage() {
       a.href = url;
       a.download = "Cover-Letter.pdf";
       a.click();
+
+      // Record the download server-side
+      const record = await fetch("/api/stripe/record-download", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: USER_ID, type: "coverLetter" }),
+      });
+      const data = await record.json();
+      if (data.success) {
+        setDownloadsUsed(data.downloadsUsed);
+        if (data.revoked) {
+          setRevoked(true);
+          clearAll();
+        }
+      }
     } catch (err) { alert("PDF Error."); } finally { setLoadingPDF(false); }
   };
 
+  const remaining = downloadsUsed !== null ? Math.max(0, MAX_DOWNLOADS - downloadsUsed) : null;
+
+  if (revoked) {
+    return (
+      <div className="max-w-2xl mx-auto py-20 px-6 text-center">
+        <div className="text-5xl mb-6">✓</div>
+        <h1 className="text-3xl font-bold mb-4">You're all set!</h1>
+        <p className="text-slate-600 mb-4">
+          You've used both of your included PDF downloads. Your cover letter has been delivered.
+        </p>
+        <p className="text-slate-600 mb-8">
+          Need to make changes? Purchase a new session to start fresh.
+        </p>
+        <Link href="/pricing" className="inline-block px-8 py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700">
+          Buy a New Session
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-7xl mx-auto py-10 px-6 space-y-10">
-      <h1 className="text-3xl font-bold border-b pb-4">Cover Letter Builder</h1>
+      <div className="border-b pb-4 flex flex-col gap-2">
+        <h1 className="text-3xl font-bold">Cover Letter Builder</h1>
+        {remaining !== null && (
+          <div className={`px-4 py-2 rounded-lg text-sm font-medium w-fit ${
+            remaining === 0 ? "bg-red-50 border border-red-200 text-red-700"
+            : remaining === 1 ? "bg-amber-50 border border-amber-200 text-amber-800"
+            : "bg-blue-50 border border-blue-200 text-blue-700"
+          }`}>
+            {remaining === MAX_DOWNLOADS && `${MAX_DOWNLOADS} PDF downloads included with your purchase.`}
+            {remaining === 1 && "⚠ Last download remaining — make sure your letter is perfect before downloading."}
+            {remaining === 0 && "You have used all included downloads. Purchase a new session to continue."}
+          </div>
+        )}
+      </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
         <div className="space-y-8">
           <section className="bg-slate-50 p-6 rounded-xl border space-y-4">
@@ -132,7 +199,15 @@ export default function CoverLetterPage() {
 
           <div className="flex gap-4">
             <button onClick={handleGenerateLetter} className="flex-1 bg-green-600 text-white py-4 rounded-xl font-bold">Generate Letter</button>
-            {generatedLetter && <button onClick={handleExportPDF} className="flex-1 bg-blue-800 text-white py-4 rounded-xl font-bold">Download PDF</button>}
+            {generatedLetter && (
+              <button
+                onClick={handleExportPDF}
+                disabled={loadingPDF || remaining === 0}
+                className="flex-1 bg-blue-800 text-white py-4 rounded-xl font-bold disabled:opacity-50"
+              >
+                {loadingPDF ? "Generating..." : "Download PDF"}
+              </button>
+            )}
           </div>
         </div>
 

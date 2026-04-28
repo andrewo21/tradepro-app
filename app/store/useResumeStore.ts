@@ -194,6 +194,21 @@ export const useResumeStore = create<any>()(
         ...e, achievements: e.achievements.map((a: any, i: number) => i === idx ? { ...a, text: a.suggestion!, suggestion: null, hasAcceptedSuggestion: true } : a) 
       } : e) 
     })),
+
+    // Clears all resume data from localStorage — called when downloads are exhausted
+    clearAll: () => set({
+      personalInfo: { firstName: "", lastName: "", tradeTitle: "", phone: "", email: "", city: "", state: "" },
+      summary: "",
+      summarySuggestion: null,
+      summaryLoading: false,
+      summaryError: null,
+      skills: [],
+      experience: [createExperienceItem()],
+      education: [{ school: "", degree: "", year: "", gpa: "" }],
+      selectedTemplate: "sidebar-green",
+      premiumUnlocked: false,
+      showWatermark: true,
+    }),
   }), {
     name: "resume-storage",
     version: 2,
