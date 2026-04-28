@@ -22,7 +22,7 @@ export default function CoverLetterPage() {
   const [downloadsUsed, setDownloadsUsed] = useState<number | null>(null);
   const [revoked, setRevoked] = useState(false);
 
-  const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+  const API_BASE = "";
 
   useEffect(() => {
     if (!date) {
@@ -45,7 +45,7 @@ export default function CoverLetterPage() {
   }, [userId]);
 
   const handleGenerateSummary = async () => {
-    if (!resumeFile || !API_BASE) return alert("Please select a PDF file.");
+    if (!resumeFile) return alert("Please select a PDF file.");
     setLoadingSummary(true);
     try {
       const formData = new FormData();
@@ -57,7 +57,6 @@ export default function CoverLetterPage() {
   };
 
   const handleGenerateLetter = async () => {
-    if (!API_BASE) return;
     setLoadingLetter(true);
     try {
       const res = await fetch(`${API_BASE}/api/ai/generate`, {
@@ -75,7 +74,7 @@ export default function CoverLetterPage() {
   };
 
   const handleExportPDF = async () => {
-    if (!generatedLetter || !API_BASE || revoked) return;
+    if (!generatedLetter || revoked) return;
     setLoadingPDF(true);
     try {
       const res = await fetch(`${API_BASE}/api/export/pdf`, {
