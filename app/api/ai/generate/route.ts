@@ -28,7 +28,8 @@ export async function POST(req: NextRequest) {
       text: completion.choices?.[0]?.message?.content || "",
     });
   } catch (err: any) {
-    console.error("generate error:", err?.message || err);
-    return NextResponse.json({ error: "Generation failed." }, { status: 500 });
+    const detail = err?.message || String(err);
+    console.error("generate error:", detail);
+    return NextResponse.json({ error: "Generation failed.", detail }, { status: 500 });
   }
 }

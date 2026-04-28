@@ -55,7 +55,8 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ suggestion });
   } catch (err: any) {
-    console.error("rewrite error:", err?.message || err);
-    return NextResponse.json({ error: "Rewrite failed." }, { status: 500 });
+    const detail = err?.message || String(err);
+    console.error("rewrite error:", detail);
+    return NextResponse.json({ error: "Rewrite failed.", detail }, { status: 500 });
   }
 }
