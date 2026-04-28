@@ -5,30 +5,67 @@ import { templateList } from "@/components/templates/templateList";
 import TemplateWrapper from "@/components/templates/TemplateWrapper";
 import PreviewPane from "./previewPane";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { getOrCreateUserId } from "@/lib/userId";
 
 export default function SelectPage() {
   const selectedTemplate = useResumeStore((s) => s.selectedTemplate);
   const setSelectedTemplate = useResumeStore((s) => s.setSelectedTemplate);
   const premiumUnlocked = useResumeStore((s) => s.premiumUnlocked);
   const [showPremiumNotice, setShowPremiumNotice] = useState(false);
+  const [hasAccess, setHasAccess] = useState<boolean | null>(null);
 
   const router = useRouter();
 
+  // Check entitlement so the CTA and Continue button reflect purchase status
+  useEffect(() => {
+    const uid = getOrCreateUserId();
+    fetch(`/api/debug/entitlements?userId=${uid}`)
+      .then(r => r.json())
+      .then(data => {
+        const e = data.entitlements;
+        setHasAccess(!!(e?.resume || e?.bundle));
+      })
+      .catch(() => setHasAccess(false));
+  }, []);
+
+  function handleContinue() {
+    if (hasAccess) {
+      router.push("/resume/personal");
+    } else {
+      router.push("/pricing");
+    }
+  }
+
   return (
     <div className="min-h-screen bg-neutral-100 px-4 py-8 sm:p-10">
-      <h1 className="text-2xl font-semibold mb-6">Choose Your Template</h1>
+
+      <div className="flex items-center justify-between mb-2">
+        <h1 className="text-2xl font-semibold">Choose Your Template</h1>
+        {!hasAccess && (
+          <Link
+            href="/pricing"
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition"
+          >
+            Unlock Builder — from $14.99
+          </Link>
+        )}
+      </div>
+
+      {!hasAccess && (
+        <p className="text-neutral-500 text-sm mb-6">
+          Browse all templates below. Purchase to start building your resume.
+        </p>
+      )}
 
       {/* Premium notice banner */}
       {showPremiumNotice && (
         <div className="mb-6 p-4 bg-amber-50 border border-amber-300 rounded-lg flex items-center justify-between gap-4">
           <div>
-            <p className="text-amber-800 font-semibold text-sm">
-              Premium Template Preview
-            </p>
+            <p className="text-amber-800 font-semibold text-sm">Premium Template</p>
             <p className="text-amber-700 text-sm">
-              You're previewing a premium template. Upgrade to unlock it for your final resume.
+              Upgrade to the Premium Bundle to unlock this template.
             </p>
           </div>
           <div className="flex gap-2 flex-shrink-0">
@@ -48,14 +85,9 @@ export default function SelectPage() {
         </div>
       )}
 
-      {/* 
-        FIXED TWO-COLUMN LAYOUT
-        LEFT: Template List
-        RIGHT: Live Preview
-      */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
 
-        {/* LEFT COLUMN — TEMPLATE LIST */}
+        {/* LEFT — TEMPLATE LIST */}
         <div className="space-y-4">
           {templateList.map((t) => (
             <TemplateWrapper
@@ -64,9 +96,7 @@ export default function SelectPage() {
               premium={t.premium}
               selected={selectedTemplate === t.key}
               onClick={() => {
-                // Always allow previewing any template (standard or premium)
                 setSelectedTemplate(t.key);
-                // Show upgrade notice when clicking a premium template without access
                 if (t.premium && !premiumUnlocked) {
                   setShowPremiumNotice(true);
                 } else {
@@ -77,9 +107,23 @@ export default function SelectPage() {
           ))}
         </div>
 
-        {/* RIGHT COLUMN — PREVIEW */}
+        {/* RIGHT — PREVIEW (always watermarked on this page) */}
         <div className="w-full">
           <PreviewPane />
+          {!hasAccess && (
+            <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg text-center">
+              <p className="text-blue-800 font-semibold mb-2">Ready to build your resume?</p>
+              <p className="text-blue-700 text-sm mb-3">
+                Purchase to remove the watermark and start filling in your details.
+              </p>
+              <Link
+                href="/pricing"
+                className="inline-block px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition"
+              >
+                Get Started — from $14.99
+              </Link>
+            </div>
+          )}
         </div>
 
       </div>
@@ -87,10 +131,10 @@ export default function SelectPage() {
       {/* Continue Button */}
       <div className="mt-10 flex justify-end">
         <button
-          onClick={() => router.push("/resume/personal")}
+          onClick={handleContinue}
           className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
         >
-          Continue to Step 2
+          {hasAccess ? "Continue to Step 2 →" : "Purchase to Continue →"}
         </button>
       </div>
     </div>

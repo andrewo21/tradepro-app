@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import EntitlementBadge from "@/components/EntitlementBadge";
 import StripeTestPanel from "@/components/StripeTestPanel";
 import { getOrCreateUserId } from "@/lib/userId";
+import { ModernBlueCoverLetter, TraditionalCoverLetter } from "@/components/CoverLetterTemplates";
 
 import Footer from "@/components/Footer";
 
@@ -169,6 +170,53 @@ export default function PricingPage() {
           <p className="text-neutral-500 text-xs mt-10">
             One‑time purchase per session. Edit freely — 2 PDF downloads included per tool.
           </p>
+
+          {/* COVER LETTER SAMPLE PREVIEW */}
+          <div className="mt-16 text-left">
+            <h2 className="text-2xl font-semibold text-center mb-2">See What You'll Get</h2>
+            <p className="text-neutral-500 text-center text-sm mb-8">
+              Two professional cover letter styles — pick the one that fits you.
+            </p>
+            <div className="grid gap-8 md:grid-cols-2">
+              <div>
+                <p className="text-sm font-semibold text-neutral-600 mb-3 text-center">Modern Blue</p>
+                <ModernBlueCoverLetter data={{
+                  applicantName: "James Martinez",
+                  applicantEmail: "james.martinez@email.com",
+                  applicantPhone: "(555) 867-5309",
+                  applicantAddress: "1428 Elm Street",
+                  applicantCityStateZip: "Houston, TX 77001",
+                  date: "April 28, 2025",
+                  hiringManager: "Mr. Dave Thompson",
+                  companyName: "Thompson Industrial LLC",
+                  companyAddress: "900 Commerce Blvd",
+                  companyCityStateZip: "Houston, TX 77002",
+                  jobTitle: "Lead Electrician",
+                  letter: `Dear Mr. Thompson,\n\nWith over 12 years of hands-on experience in commercial and industrial electrical systems, I am confident in my ability to contribute immediately as your Lead Electrician. Throughout my career I have overseen panel installations, conduit runs, and full fit-outs on projects ranging from $500K to $4M, consistently delivering on time and within budget.\n\nI hold a Master Electrician license and OSHA 30 certification, and I take pride in building crews that operate safely and efficiently. My most recent role at Gulf Coast Electric saw me supervise a team of eight journeymen across three concurrent job sites while maintaining zero lost-time incidents over 18 months.\n\nI would welcome the opportunity to discuss how my background aligns with your needs.\n\nSincerely,\n\nJames Martinez`,
+                }} />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-neutral-600 mb-3 text-center">Traditional Clean</p>
+                <TraditionalCoverLetter data={{
+                  applicantName: "Sarah Chen",
+                  applicantEmail: "sarah.chen@email.com",
+                  applicantPhone: "(555) 234-5678",
+                  applicantAddress: "742 Pinecrest Drive",
+                  applicantCityStateZip: "Phoenix, AZ 85001",
+                  date: "April 28, 2025",
+                  hiringManager: "Ms. Linda Ortega",
+                  companyName: "Southwest Construction Group",
+                  companyAddress: "2200 N. Central Ave",
+                  companyCityStateZip: "Phoenix, AZ 85004",
+                  jobTitle: "Site Superintendent",
+                  letter: `Dear Ms. Ortega,\n\nI am writing to express my strong interest in the Site Superintendent position at Southwest Construction Group. With eight years of progressive experience managing ground-up commercial builds from foundation to certificate of occupancy, I bring the organizational rigor and field leadership your team requires.\n\nIn my current role I coordinate subcontractors, manage RFI and submittal logs, and ensure daily GC reporting is accurate and timely. My background in concrete, steel, and MEP coordination has prepared me to anticipate conflicts before they impact the schedule.\n\nThank you for your consideration. I look forward to speaking with you.\n\nSincerely,\n\nSarah Chen`,
+                }} />
+              </div>
+            </div>
+            <div className="text-center mt-8">
+              <CheckoutButton userId={userId || "anonymous"} productId={ProductId.COVER_LETTER} label="Get Cover Letter Builder — $8.99" />
+            </div>
+          </div>
 
           {process.env.NEXT_PUBLIC_STRIPE_TEST_MODE === "true" && (
             <StripeTestPanel userId={userId} initial={entitlements} />
