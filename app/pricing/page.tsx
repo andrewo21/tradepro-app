@@ -70,10 +70,14 @@ export default function PricingPage() {
               <div className="mt-auto">
                 {entitlements && (
                   <div className="mb-4">
-                    <EntitlementBadge entitlements={entitlements} />
+                    <EntitlementBadge entitlements={entitlements} productId={ProductId.RESUME} />
                   </div>
                 )}
-                <CheckoutButton userId={userId} productId={ProductId.RESUME} />
+                {entitlements && (entitlements.resume || entitlements.bundle) ? (
+                  <button disabled className="w-full bg-green-600 text-white px-4 py-2 rounded opacity-75 cursor-default">Already Purchased</button>
+                ) : (
+                  <CheckoutButton userId={userId} productId={ProductId.RESUME} />
+                )}
               </div>
             </div>
 
@@ -102,10 +106,14 @@ export default function PricingPage() {
               <div className="mt-auto">
                 {entitlements && (
                   <div className="mb-4">
-                    <EntitlementBadge entitlements={entitlements} />
+                    <EntitlementBadge entitlements={entitlements} productId={ProductId.COVER_LETTER} />
                   </div>
                 )}
-                <CheckoutButton userId={userId} productId={ProductId.COVER_LETTER} />
+                {entitlements && (entitlements.coverLetter || entitlements.bundle) ? (
+                  <button disabled className="w-full bg-green-600 text-white px-4 py-2 rounded opacity-75 cursor-default">Already Purchased</button>
+                ) : (
+                  <CheckoutButton userId={userId} productId={ProductId.COVER_LETTER} />
+                )}
               </div>
             </div>
 
@@ -142,10 +150,14 @@ export default function PricingPage() {
                 <div className="mt-auto">
                   {entitlements && (
                     <div className="mb-4">
-                      <EntitlementBadge entitlements={entitlements} />
+                      <EntitlementBadge entitlements={entitlements} productId={ProductId.BUNDLE} />
                     </div>
                   )}
-                  <CheckoutButton userId={userId} productId={ProductId.BUNDLE} />
+                  {entitlements && entitlements.bundle ? (
+                    <button disabled className="w-full bg-green-600 text-white px-4 py-2 rounded opacity-75 cursor-default">Already Purchased</button>
+                  ) : (
+                    <CheckoutButton userId={userId} productId={ProductId.BUNDLE} />
+                  )}
                 </div>
               </div>
             </div>
