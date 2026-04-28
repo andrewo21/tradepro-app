@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import fs from "fs/promises";
 import path from "path";
 
-const ENTITLEMENTS_FILE = path.join(process.cwd(), "data", "entitlements.json");
+const ENTITLEMENTS_FILE = process.env.VERCEL
+  ? "/tmp/entitlements.json"
+  : path.join(process.cwd(), "data", "entitlements.json");
 
 // Only available when STRIPE_ENABLED is true (test mode) or NEXT_PUBLIC_DEV_MODE is true.
 // Resets one or all users' entitlements back to the unpurchased state.
