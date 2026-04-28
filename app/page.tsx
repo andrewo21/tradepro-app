@@ -139,7 +139,6 @@ export default function HomePage() {
       <section
         className="
           relative z-0 w-full flex items-center justify-center
-          px-4
           min-h-[600px] md:h-[80vh] lg:h-[90vh]
         "
       >
@@ -147,7 +146,7 @@ export default function HomePage() {
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, ease: 'easeOut' }}
-          className="relative w-full max-w-6xl rounded-md border border-neutral-500 shadow-[0_18px_60px_rgba(0,0,0,0.55)] overflow-hidden"
+          className="relative w-full h-full min-h-[600px] md:min-h-0 overflow-hidden"
         >
 
           {/* Base rugged texture */}
@@ -169,8 +168,8 @@ export default function HomePage() {
           <div className="absolute inset-0 opacity-40 pointer-events-none bg-[radial-gradient(circle_at_0_0,rgba(255,255,255,0.08)_0,transparent_50%),radial-gradient(circle_at_100%_0,rgba(0,0,0,0.25)_0,transparent_55%)]" />
           <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle,_transparent_50%,_rgba(0,0,0,0.65)_100%)]" />
 
-          {/* CONTENT */}
-          <div className="relative px-8 py-8 md:px-12 md:py-10 text-neutral-50">
+          {/* CONTENT — centered within full-width backdrop */}
+          <div className="relative px-8 py-10 md:px-16 md:py-16 text-neutral-50 flex flex-col items-center justify-center min-h-[600px] md:min-h-[80vh] lg:min-h-[90vh]">
 
             {/* NEW WELCOME LINE — no white shading */}
             <div className="text-center mb-8">

@@ -20,9 +20,10 @@ export default function Header() {
 
   return (
     <header className="w-full border-b bg-white relative z-50">
-      {/* MENU — top-right on all screen sizes */}
+
+      {/* MENU — absolutely positioned so it never affects the centering of the logo */}
       <div
-        className="menu-ui-only absolute right-4 top-4 sm:right-10 sm:top-10 z-10"
+        className="absolute right-4 top-4 sm:right-8 sm:top-8 z-20"
         ref={menuRef}
       >
         <div className="relative">
@@ -54,22 +55,16 @@ export default function Header() {
         </div>
       </div>
 
-      {/* BRANDING + TAGLINE — truly centered using absolute positioning trick */}
-      <div className="w-full flex flex-col items-center justify-center px-4 pt-8 pb-6 sm:pt-10 sm:pb-8">
-        {/* Wrapper constrains logo to full viewport width so it centers against the page, not the remaining space */}
-        <div className="w-full flex justify-center">
-          <img
-            src="/brand/Tradepro-logo.svg"
-            alt="TradePro Technologies"
-            className="w-[260px] sm:w-[420px] md:w-[560px] lg:w-[700px] h-auto"
-            style={{ display: "block" }}
-          />
-        </div>
-
+      {/* BRANDING — centered against the full page width, not affected by menu button */}
+      <div className="w-full text-center px-4 pt-8 pb-6 sm:pt-10 sm:pb-8">
+        <img
+          src="/brand/Tradepro-logo.svg"
+          alt="TradePro Technologies"
+          className="inline-block w-[220px] sm:w-[380px] md:w-[500px] lg:w-[620px] h-auto"
+        />
         <p
-          className="text-center font-semibold text-neutral-600 mt-4 leading-snug
-                     text-base sm:text-2xl md:text-3xl lg:text-4xl
-                     max-w-xs sm:max-w-xl md:max-w-2xl lg:max-w-4xl"
+          className="font-semibold text-neutral-600 mt-4 leading-snug
+                     text-base sm:text-2xl md:text-3xl lg:text-4xl"
         >
           Built for the trades. Engineered to get you hired.
         </p>
