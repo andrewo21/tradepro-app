@@ -3,7 +3,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+const API_BASE = "";
 const sanitize = (raw: string): string => (raw ?? "").replace(/^["'‘“`]+|["'’ ”`]+$/g, "").trim();
 
 const createBullet = () => ({ 
@@ -52,7 +52,7 @@ export const useResumeStore = create<any>()(
     
     rewriteSummary: async () => {
       const text = get().summary; 
-      if (!text.trim() || !API_BASE) return;
+      if (!text.trim()) return;
       set({ summaryLoading: true, summaryError: null, summarySuggestion: null });
       try {
         const res = await fetch(`${API_BASE}/api/ai/rewrite-summary`, { 
@@ -94,7 +94,7 @@ export const useResumeStore = create<any>()(
     removeSkill: (index: number) => set((state: any) => ({ skills: state.skills.filter((_: any, i: number) => i !== index) })),
     rewriteSkill: async (index: number) => {
       const s = get().skills[index]; 
-      if (!s || !s.text.trim() || !API_BASE) return;
+      if (!s || !s.text.trim()) return;
       set((state: any) => { 
         const sk = [...state.skills]; 
         sk[index].loading = true; 
@@ -145,7 +145,7 @@ export const useResumeStore = create<any>()(
     })),
     rewriteResponsibility: async (id: string, idx: number) => {
       const bullet = get().experience.find((e: any) => e.id === id)?.responsibilities[idx]; 
-      if (!bullet || !bullet.text.trim() || !API_BASE) return;
+      if (!bullet || !bullet.text.trim()) return;
       set((state: any) => ({ 
         experience: state.experience.map((e: any) => e.id === id ? { ...e, responsibilities: e.responsibilities.map((r: any, i: number) => i === idx ? { ...r, loading: true } : r) } : e) 
       }));
@@ -177,7 +177,7 @@ export const useResumeStore = create<any>()(
     })),
     rewriteAchievement: async (id: string, idx: number) => {
       const bullet = get().experience.find((e: any) => e.id === id)?.achievements[idx]; 
-      if (!bullet || !bullet.text.trim() || !API_BASE) return;
+      if (!bullet || !bullet.text.trim()) return;
       set((state: any) => ({ 
         experience: state.experience.map((e: any) => e.id === id ? { ...e, achievements: e.achievements.map((a: any, i: number) => i === idx ? { ...a, loading: true } : a) } : e) 
       }));
