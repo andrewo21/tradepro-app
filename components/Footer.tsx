@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 export default function Footer() {
   return (
     <footer className="w-full bg-neutral-900 text-neutral-400 text-xs border-t border-neutral-700">
@@ -10,7 +12,15 @@ export default function Footer() {
           className="w-[280px] sm:w-[360px] md:w-[400px] h-auto"
           style={{ display: "block" }}
         />
-        <span className="text-neutral-500 text-center">
+
+        <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-neutral-500">
+          <Link href="/legal/terms" className="hover:text-neutral-300 transition">Terms of Service</Link>
+          <Link href="/legal/privacy" className="hover:text-neutral-300 transition">Privacy Policy</Link>
+          <Link href="/legal/refunds" className="hover:text-neutral-300 transition">Refund Policy</Link>
+          <Link href="/contact" className="hover:text-neutral-300 transition">Contact Us</Link>
+        </div>
+
+        <span className="text-neutral-600 text-center">
           © {new Date().getFullYear()} TradePro Technologies. All rights reserved.
         </span>
       </div>
