@@ -55,6 +55,10 @@ export async function GET() {
       ? `✓ ${process.env.STRIPE_PRICE_ID_UPGRADE_COVER_LETTER_TO_BUNDLE.slice(0, 12)}...`
       : "⚠ not set (upgrade pricing unavailable)",
 
+    STRIPE_PRICE_ID_UPGRADE_BOTH_TO_BUNDLE: process.env.STRIPE_PRICE_ID_UPGRADE_BOTH_TO_BUNDLE
+      ? `✓ ${process.env.STRIPE_PRICE_ID_UPGRADE_BOTH_TO_BUNDLE.slice(0, 12)}...`
+      : "⚠ not set (upgrade pricing unavailable)",
+
     // Storage backend
     STORAGE_BACKEND: process.env.REDIS_URL || process.env.KV_URL
       ? "✓ redis (REDIS_URL)"

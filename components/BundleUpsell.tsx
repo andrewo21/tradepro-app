@@ -16,6 +16,25 @@ export default function BundleUpsell({
   // Already has everything → no upsell
   if (entitlements.bundle) return null;
 
+  // Has both resume and cover letter (but not bundle) → offer bundle upgrade only
+  if (hasResume && hasCoverLetter) {
+    const bundleUpgradePrice = PRODUCT_PRICES[resolveCheckoutProduct(ProductId.BUNDLE, entitlements)];
+    return (
+      <div className="mt-8 p-6 border rounded-lg bg-blue-50 text-center shadow">
+        <h3 className="text-xl font-semibold mb-2">Upgrade to Premium Bundle</h3>
+        <p className="text-gray-700 mb-1">
+          {bundleUpgradePrice} <span className="line-through text-gray-400 ml-1">$29.99</span>
+        </p>
+        <p className="text-green-600 text-sm mb-4">Your existing purchases are credited toward the bundle.</p>
+        <CheckoutButton
+          userId={userId}
+          productId={ProductId.BUNDLE}
+          label={`Upgrade — ${bundleUpgradePrice}`}
+        />
+      </div>
+    );
+  }
+
   // Resume only → upsell Cover Letter + Bundle upgrade
   if (hasResume && !hasCoverLetter) {
     const bundleUpgradePrice = PRODUCT_PRICES[resolveCheckoutProduct(ProductId.BUNDLE, entitlements)];
