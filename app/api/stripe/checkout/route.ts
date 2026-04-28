@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       line_items: [{ price: priceId, quantity: 1 }],
-      // Always grant the desiredProductId (bundle) on success, not the upgrade SKU
+      allow_promotion_codes: true,
       success_url: `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}&userId=${encodeURIComponent(userId)}&productId=${encodeURIComponent(desiredProductId)}`,
       cancel_url: `${origin}/checkout/cancel`,
       metadata: { userId, productId: desiredProductId, chargeProductId },
