@@ -85,6 +85,20 @@ export default function SelectPage() {
         </div>
       )}
 
+      {/* Upload Coming Soon banner */}
+      <div className="mb-6 p-4 bg-neutral-900 text-white rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <span className="text-2xl">📄</span>
+          <div>
+            <p className="font-semibold text-sm">Already have a resume? Upload it and we'll optimize it.</p>
+            <p className="text-neutral-400 text-xs mt-0.5">Drop in your existing PDF — AI will extract your info and rewrite it for ATS.</p>
+          </div>
+        </div>
+        <span className="flex-shrink-0 text-xs bg-amber-500 text-white font-bold px-3 py-1 rounded-full">
+          Coming Soon
+        </span>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
 
         {/* LEFT — TEMPLATE LIST */}
