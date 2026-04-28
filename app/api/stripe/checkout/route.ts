@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { NextRequest, NextResponse } from "next/server";
 import { grantEntitlement } from "@/lib/entitlements";
 import { ProductId, PRICE_IDS } from "@/lib/pricing";

@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { NextResponse } from "next/server";
 
 // Read-only diagnostics — never exposes actual key values, only shape checks.

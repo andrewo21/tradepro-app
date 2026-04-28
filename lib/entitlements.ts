@@ -51,6 +51,8 @@ async function redisGet(userId: string): Promise<UserEntitlements> {
   try {
     const val = await client.get(KEY(userId));
     return val ? JSON.parse(val) : { ...EMPTY };
+  } catch {
+    return { ...EMPTY };
   } finally {
     client.disconnect();
   }
