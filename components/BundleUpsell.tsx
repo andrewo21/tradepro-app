@@ -35,7 +35,7 @@ export default function BundleUpsell({
       <div className="mt-8 p-6 border rounded-lg bg-blue-50 text-center shadow">
         <h3 className="text-xl font-semibold mb-2">Unlock Resume Builder</h3>
         <p className="text-gray-700 mb-4">
-          Add the Resume Builder for just $8.99.
+          Add the Resume Builder for just $14.99.
         </p>
         <CheckoutButton userId={userId} productId={ProductId.RESUME} />
       </div>

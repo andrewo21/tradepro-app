@@ -45,7 +45,7 @@ export const useCoverLetterStore = create<CoverLetterState>((set) => ({
 
   jobTitle: "",
   tone: "Professional",
-  salutationStyle: "A",
+  salutationStyle: "Dear",
 
   extractedText: "",
   experience: "",

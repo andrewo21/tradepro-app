@@ -11,6 +11,7 @@ export default function CheckoutButton({ userId, productId }: { userId: string; 
 
     const res = await fetch("/api/stripe/checkout", {
       method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userId, productId }),
     });
 

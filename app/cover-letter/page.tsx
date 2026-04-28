@@ -2,8 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useCoverLetterStore } from "@/app/store/useCoverLetterStore";
-import { overrides } from "@/config/overrides";
-import Link from "next/link";
 
 export default function CoverLetterPage() {
   const {
@@ -87,9 +85,6 @@ export default function CoverLetterPage() {
     } catch (err) { alert("PDF Error."); } finally { setLoadingPDF(false); }
   };
 
-  const canAccess = overrides.devMode || overrides.access || overrides.premium;
-  if (!canAccess) return <div className="p-20 text-center"><Link href="/pricing" className="text-blue-600">Access Denied</Link></div>;
-
   return (
     <div className="max-w-7xl mx-auto py-10 px-6 space-y-10">
       <h1 className="text-3xl font-bold border-b pb-4">Cover Letter Builder</h1>
@@ -100,8 +95,9 @@ export default function CoverLetterPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <input className="border p-2 rounded" placeholder="Full Name" value={applicantName} onChange={(e) => setField("applicantName", e.target.value)} />
               <input className="border p-2 rounded" placeholder="Email" value={applicantEmail} onChange={(e) => setField("applicantEmail", e.target.value)} />
+              <input className="border p-2 rounded" placeholder="Phone" value={applicantPhone} onChange={(e) => setField("applicantPhone", e.target.value)} />
               <input className="border p-2 rounded" placeholder="Address" value={applicantAddress} onChange={(e) => setField("applicantAddress", e.target.value)} />
-              <input className="border p-2 rounded" placeholder="City, State ZIP" value={applicantCityStateZip} onChange={(e) => setField("applicantCityStateZip", e.target.value)} />
+              <input className="border p-2 rounded sm:col-span-2" placeholder="City, State ZIP" value={applicantCityStateZip} onChange={(e) => setField("applicantCityStateZip", e.target.value)} />
             </div>
           </section>
 

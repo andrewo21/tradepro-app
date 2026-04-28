@@ -17,9 +17,9 @@ export default function UpsellModal({
   };
 
   const descriptions = {
-    [ProductId.RESUME]: "Get instant access to the premium Resume Builder for only $8.99.",
+    [ProductId.RESUME]: "Get instant access to the premium Resume Builder for only $14.99.",
     [ProductId.COVER_LETTER]: "Get instant access to the premium Cover Letter Builder for only $8.99.",
-    [ProductId.BUNDLE]: "Unlock both Resume + Cover Letter Builders for only $14.99.",
+    [ProductId.BUNDLE]: "Unlock both Resume + Cover Letter Builders for only $29.99.",
   };
 
   return (
