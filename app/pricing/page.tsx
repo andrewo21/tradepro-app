@@ -47,9 +47,9 @@ export default function PricingPage() {
             {/* STANDARD RESUME */}
             <div className="bg-white border border-neutral-300 rounded-lg shadow-sm p-6 sm:p-8 flex flex-col">
 
-              <h2 className="text-2xl font-semibold mb-2">Standard Resume Builder</h2>
+              <h2 className="text-2xl font-semibold mb-2 min-h-[4rem] flex items-center justify-center text-center">Standard Resume Builder</h2>
 
-              <p className="text-neutral-600 mb-6 text-center">
+              <p className="text-neutral-600 mb-6 text-center min-h-[3rem]">
                 A clean, professional resume using our standard templates.
               </p>
 
@@ -84,9 +84,9 @@ export default function PricingPage() {
             {/* COVER LETTER ONLY */}
             <div className="bg-white border border-neutral-300 rounded-lg shadow-sm p-6 sm:p-8 flex flex-col">
 
-              <h2 className="text-2xl font-semibold mb-2">Cover Letter Builder</h2>
+              <h2 className="text-2xl font-semibold mb-2 min-h-[4rem] flex items-center justify-center text-center">Cover Letter Builder</h2>
 
-              <p className="text-neutral-600 mb-6 text-center">
+              <p className="text-neutral-600 mb-6 text-center min-h-[3rem]">
                 Honest, straightforward cover letters that sound like you.
               </p>
 
@@ -127,9 +127,9 @@ export default function PricingPage() {
 
               <div className="bg-white border border-neutral-300 rounded-lg shadow-sm p-6 sm:p-8 flex flex-col flex-1">
 
-                <h2 className="text-2xl font-semibold mb-2">Premium Resume Bundle</h2>
+                <h2 className="text-2xl font-semibold mb-2 min-h-[4rem] flex items-center justify-center text-center">Premium Resume Bundle</h2>
 
-                <p className="text-neutral-600 mb-6 text-center">
+                <p className="text-neutral-600 mb-6 text-center min-h-[3rem]">
                   Unlock everything — premium templates, cover letters, and upcoming tools.
                 </p>
 
