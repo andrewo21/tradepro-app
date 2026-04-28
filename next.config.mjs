@@ -6,6 +6,9 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  // These packages use Node.js internals that cannot be bundled by webpack.
+  // Mark them as external so Next.js loads them directly from node_modules.
+  serverExternalPackages: ["openai", "pdfkit", "pdf-parse-fixed", "ioredis"],
 };
 
 export default nextConfig;
