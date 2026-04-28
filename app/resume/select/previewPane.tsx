@@ -7,7 +7,8 @@ import type { TemplateKey } from "@/components/templates";
 export default function PreviewPane() {
   const selectedTemplate = useResumeStore((s) => s.selectedTemplate);
   const premiumUnlocked = useResumeStore((s) => s.premiumUnlocked);
-  const showWatermark = useResumeStore((s) => s.showWatermark); // ⭐ NEW
+  // Step 1 is a free preview — always show watermark here regardless of entitlement
+  const showWatermark = true;
 
   // ---------------------------------------
   // STEP 1 ALWAYS USES GENERIC PLACEHOLDER DATA

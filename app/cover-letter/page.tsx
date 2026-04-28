@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useCoverLetterStore } from "@/app/store/useCoverLetterStore";
 import Link from "next/link";
 import { getOrCreateUserId } from "@/lib/userId";
+import { coverLetterTemplates, type CoverLetterTemplateKey } from "@/components/CoverLetterTemplates";
 
 const MAX_DOWNLOADS = 2;
 
@@ -15,6 +16,7 @@ export default function CoverLetterPage() {
   } = useCoverLetterStore();
 
   const [userId] = useState(() => getOrCreateUserId());
+  const [selectedTemplate, setSelectedTemplate] = useState<CoverLetterTemplateKey>("modern-blue");
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [loadingSummary, setLoadingSummary] = useState(false);
   const [loadingLetter, setLoadingLetter] = useState(false);
@@ -211,8 +213,46 @@ export default function CoverLetterPage() {
           </div>
         </div>
 
-        <div className="bg-white border rounded-xl shadow-2xl p-8 flex flex-col min-h-[800px]">
-          <textarea className="flex-1 w-full border-none focus:ring-0 font-serif leading-relaxed text-slate-800 outline-none resize-none" value={generatedLetter} onChange={(e) => setGeneratedLetter(e.target.value)} />
+        <div className="flex flex-col gap-4">
+          {/* Template selector */}
+          <div className="flex gap-2">
+            {(Object.keys(coverLetterTemplates) as CoverLetterTemplateKey[]).map((key) => (
+              <button
+                key={key}
+                onClick={() => setSelectedTemplate(key)}
+                className={`px-4 py-2 rounded-lg text-sm font-medium border transition ${
+                  selectedTemplate === key
+                    ? "bg-blue-700 text-white border-blue-700"
+                    : "bg-white text-slate-700 border-slate-300 hover:border-blue-400"
+                }`}
+              >
+                {coverLetterTemplates[key].name}
+              </button>
+            ))}
+          </div>
+
+          {/* Live rendered preview using selected template */}
+          {(() => {
+            const TemplateComponent = coverLetterTemplates[selectedTemplate].component;
+            const previewData = {
+              applicantName, applicantEmail, applicantPhone,
+              applicantAddress, applicantCityStateZip, date,
+              hiringManager, companyName, companyAddress, companyCityStateZip,
+              jobTitle, letter: generatedLetter,
+            };
+            return <TemplateComponent data={previewData} />;
+          })()}
+
+          {/* Editable raw text fallback */}
+          <div className="bg-slate-50 rounded-xl border p-4">
+            <p className="text-xs text-slate-500 mb-2 font-medium">Edit letter text directly:</p>
+            <textarea
+              className="w-full border-none focus:ring-0 font-serif leading-relaxed text-slate-800 outline-none resize-none bg-transparent text-sm h-40"
+              value={generatedLetter}
+              onChange={(e) => setGeneratedLetter(e.target.value)}
+              placeholder="Generated letter will appear here..."
+            />
+          </div>
         </div>
       </div>
     </div>
