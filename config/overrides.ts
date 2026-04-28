@@ -12,7 +12,7 @@ export const overrides = {
   // Master feature switches
   access: true,        // Can the user access builders at all?
   premium: true,       // Unlock all premium features?
-  watermark: false,    // Show watermark on exports/previews?
+  watermark: true,     // Show watermark on exports/previews?
 
   // Stripe behavior
   stripeEnabled: process.env.STRIPE_ENABLED === "true",

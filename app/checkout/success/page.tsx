@@ -1,16 +1,30 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
-export default function CheckoutSuccessPage() {
+function CheckoutSuccessContent() {
   const router = useRouter();
-  const userId = "demo-user"; // TODO: replace with real auth user
+  const searchParams = useSearchParams();
+  const userId = searchParams.get("userId") || "demo-user";
+  const productId = searchParams.get("productId") || null;
+  const sessionId = searchParams.get("session_id") || null;
 
   const [entitlements, setEntitlements] = useState<any>(null);
 
   useEffect(() => {
     async function load() {
+      // If we have productId from the URL, grant it via the server
+      if (productId) {
+        await fetch("/api/stripe/grant", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId, productId, sessionId }),
+        });
+      }
+
+      // Fetch updated entitlements
       const res = await fetch(`/api/debug/entitlements?userId=${userId}`);
       const data = await res.json();
       setEntitlements(data.entitlements);
@@ -30,7 +44,7 @@ export default function CheckoutSuccessPage() {
     }
 
     load();
-  }, [router, userId]);
+  }, [router, userId, productId, sessionId]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
@@ -56,5 +70,17 @@ export default function CheckoutSuccessPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function CheckoutSuccessPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <p className="text-gray-500">Loading…</p>
+      </div>
+    }>
+      <CheckoutSuccessContent />
+    </Suspense>
   );
 }

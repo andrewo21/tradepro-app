@@ -65,9 +65,12 @@ export default function BasicTwoColumn({
             <h2 className="text-xs uppercase tracking-wide font-bold text-gray-700 mb-2">
               Skills
             </h2>
-            <ul className="text-sm space-y-1">
+            <ul className="text-sm space-y-1 list-none p-0 m-0">
               {skills.map((skill: string, i: number) => (
-                <li key={i}>• {skill}</li>
+                <li key={i} className="flex items-start gap-1.5">
+                  <span className="flex-shrink-0 mt-[5px] h-[4px] w-[4px] rounded-full bg-gray-600" />
+                  <span>{skill}</span>
+                </li>
               ))}
             </ul>
           </div>
@@ -79,9 +82,12 @@ export default function BasicTwoColumn({
             <h2 className="text-xs uppercase tracking-wide font-bold text-gray-700 mb-2">
               Certifications
             </h2>
-            <ul className="text-sm space-y-1">
+            <ul className="text-sm space-y-1 list-none p-0 m-0">
               {certifications.map((cert: string, i: number) => (
-                <li key={i}>• {cert}</li>
+                <li key={i} className="flex items-start gap-1.5">
+                  <span className="flex-shrink-0 mt-[5px] h-[4px] w-[4px] rounded-full bg-gray-600" />
+                  <span>{cert}</span>
+                </li>
               ))}
             </ul>
           </div>
@@ -120,9 +126,12 @@ export default function BasicTwoColumn({
 
                 {/* Responsibilities */}
                 {job.responsibilities.length > 0 && (
-                  <ul className="list-disc ml-5 mt-2 text-sm text-gray-700 space-y-1">
+                  <ul className="list-none p-0 m-0 mt-2 text-sm text-gray-700 space-y-1">
                     {job.responsibilities.map((b: string, j: number) => (
-                      <li key={j}>{b}</li>
+                      <li key={j} className="flex items-start gap-1.5">
+                        <span className="flex-shrink-0 mt-[5px] h-[4px] w-[4px] rounded-full bg-gray-600" />
+                        <span>{b}</span>
+                      </li>
                     ))}
                   </ul>
                 )}
@@ -133,9 +142,12 @@ export default function BasicTwoColumn({
                     <h3 className="text-gray-800 font-semibold text-xs tracking-wide uppercase mb-1">
                       Key Achievements
                     </h3>
-                    <ul className="list-disc ml-5 mt-1 text-sm text-gray-700 space-y-1">
+                    <ul className="list-none p-0 m-0 mt-1 text-sm text-gray-700 space-y-1">
                       {job.achievements.map((a: string, j: number) => (
-                        <li key={j}>{a}</li>
+                        <li key={j} className="flex items-start gap-1.5">
+                          <span className="flex-shrink-0 mt-[5px] h-[4px] w-[4px] rounded-full bg-gray-600" />
+                          <span>{a}</span>
+                        </li>
                       ))}
                     </ul>
                   </div>
