@@ -44,6 +44,21 @@ export async function GET() {
     STRIPE_PRICE_ID_BUNDLE: process.env.STRIPE_PRICE_ID_BUNDLE
       ? `✓ ${process.env.STRIPE_PRICE_ID_BUNDLE.slice(0, 12)}...`
       : "✗ MISSING",
+
+    // KV storage — check all possible prefixed var names Vercel may have created
+    KV_REST_API_URL: process.env.KV_REST_API_URL
+      ? "✓ present"
+      : process.env.TRADEPRO_KV_REST_API_URL
+      ? "✓ present (prefixed as TRADEPRO_KV)"
+      : process.env.KV_URL
+      ? "✓ present (KV_URL)"
+      : "✗ MISSING — KV not connected or env vars not injected",
+
+    KV_REST_API_TOKEN: process.env.KV_REST_API_TOKEN
+      ? "✓ present"
+      : process.env.TRADEPRO_KV_REST_API_TOKEN
+      ? "✓ present (prefixed as TRADEPRO_KV)"
+      : "✗ MISSING",
   };
 
   const problems = Object.entries(checks)

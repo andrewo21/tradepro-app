@@ -18,29 +18,58 @@ const EMPTY: UserEntitlements = { resume: false, coverLetter: false, bundle: fal
 // ── KV helpers ────────────────────────────────────────────────────────────────
 
 function useKV(): boolean {
-  return !!process.env.KV_REST_API_URL;
+  // Check all possible env var names — Vercel may use a prefix if one was set during setup
+  return !!(
+    process.env.KV_REST_API_URL ||
+    process.env.TRADEPRO_KV_REST_API_URL ||
+    process.env.KV_URL
+  );
+}
+
+function getKVUrl(): string | undefined {
+  return (
+    process.env.KV_REST_API_URL ||
+    process.env.TRADEPRO_KV_REST_API_URL ||
+    process.env.KV_URL
+  );
+}
+
+function getKVToken(): string | undefined {
+  return (
+    process.env.KV_REST_API_TOKEN ||
+    process.env.TRADEPRO_KV_REST_API_TOKEN ||
+    process.env.KV_REST_READ_ONLY_TOKEN
+  );
+}
+
+function getKVClient() {
+  const { createClient } = require("@vercel/kv");
+  return createClient({
+    url: getKVUrl(),
+    token: getKVToken(),
+  });
 }
 
 async function kvGet(userId: string): Promise<UserEntitlements> {
-  const { kv } = await import("@vercel/kv");
-  const val = await kv.get<UserEntitlements>(`entitlements:${userId}`);
+  const client = getKVClient();
+  const val = await client.get<UserEntitlements>(`entitlements:${userId}`);
   return val ?? { ...EMPTY };
 }
 
 async function kvSet(userId: string, data: UserEntitlements): Promise<void> {
-  const { kv } = await import("@vercel/kv");
-  await kv.set(`entitlements:${userId}`, data);
+  const client = getKVClient();
+  await client.set(`entitlements:${userId}`, data);
 }
 
 async function kvDel(userId: string): Promise<void> {
-  const { kv } = await import("@vercel/kv");
-  await kv.del(`entitlements:${userId}`);
+  const client = getKVClient();
+  await client.del(`entitlements:${userId}`);
 }
 
 async function kvDelAll(): Promise<void> {
-  const { kv } = await import("@vercel/kv");
-  const keys = await kv.keys("entitlements:*");
-  if (keys.length > 0) await Promise.all(keys.map((k) => kv.del(k)));
+  const client = getKVClient();
+  const keys = await client.keys("entitlements:*");
+  if (keys.length > 0) await Promise.all(keys.map((k: string) => client.del(k)));
 }
 
 // ── JSON file helpers (local dev) ─────────────────────────────────────────────

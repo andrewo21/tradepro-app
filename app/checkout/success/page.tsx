@@ -14,16 +14,21 @@ function CheckoutSuccessContent() {
 
   const setField = useResumeStore((s: any) => s.setField);
   const [entitlements, setEntitlements] = useState<any>(null);
+  const [grantError, setGrantError] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
       // Grant entitlement on the server
       if (productId) {
-        await fetch("/api/stripe/grant", {
+        const grantRes = await fetch("/api/stripe/grant", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ userId, productId, sessionId }),
         });
+        if (!grantRes.ok) {
+          const grantData = await grantRes.json().catch(() => ({}));
+          setGrantError(grantData.detail || grantData.error || `Grant failed (${grantRes.status})`);
+        }
       }
 
       // Fetch updated entitlements
@@ -71,6 +76,12 @@ function CheckoutSuccessContent() {
             {entitlements.resume && !entitlements.bundle && "Resume Builder Unlocked."}
             {entitlements.coverLetter && !entitlements.bundle && "Cover Letter Builder Unlocked."}
           </div>
+        )}
+
+        {grantError && (
+          <p className="text-red-600 text-sm mb-4 bg-red-50 border border-red-200 rounded p-3">
+            Storage error: {grantError}
+          </p>
         )}
 
         <p className="text-sm text-gray-500">

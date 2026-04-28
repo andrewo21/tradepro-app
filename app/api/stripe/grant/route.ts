@@ -36,7 +36,8 @@ export async function POST(req: NextRequest) {
     const entitlements = await grantEntitlement(userId, productId);
     return NextResponse.json({ success: true, entitlements });
   } catch (err: any) {
-    console.error("Grant entitlement error:", err?.message || err);
-    return NextResponse.json({ error: "Failed to grant entitlement." }, { status: 500 });
+    const detail = err?.message || String(err);
+    console.error("Grant entitlement error:", detail);
+    return NextResponse.json({ error: "Failed to grant entitlement.", detail }, { status: 500 });
   }
 }
