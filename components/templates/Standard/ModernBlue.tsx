@@ -69,9 +69,12 @@ export default function ModernBlue({
         {skills?.length > 0 && (
           <section className="mb-6">
             <h2 className="text-blue-700 font-semibold text-lg mb-2">Skills</h2>
-            <ul className="list-disc ml-5 space-y-1">
+            <ul className="space-y-1 list-none p-0 m-0">
               {skills.map((skill: string, idx: number) => (
-                <li key={idx}>{skill}</li>
+                <li key={idx} className="flex items-start gap-2">
+                  <span className="flex-shrink-0 mt-[6px] h-[5px] w-[5px] rounded-full bg-blue-700" />
+                  <span>{skill}</span>
+                </li>
               ))}
             </ul>
           </section>
@@ -92,17 +95,23 @@ export default function ModernBlue({
                   </p>
 
                   {job.responsibilities?.length > 0 && (
-                    <ul className="list-disc ml-5 space-y-1">
+                    <ul className="space-y-1 list-none p-0 m-0">
                       {job.responsibilities.map((r: string, i: number) => (
-                        <li key={i}>{r}</li>
+                        <li key={i} className="flex items-start gap-2">
+                          <span className="flex-shrink-0 mt-[6px] h-[5px] w-[5px] rounded-full bg-blue-700" />
+                          <span>{r}</span>
+                        </li>
                       ))}
                     </ul>
                   )}
 
                   {job.achievements?.length > 0 && (
-                    <ul className="list-disc ml-5 space-y-1 mt-2">
+                    <ul className="space-y-1 list-none p-0 m-0 mt-2">
                       {job.achievements.map((a: string, i: number) => (
-                        <li key={i}>{a}</li>
+                        <li key={i} className="flex items-start gap-2">
+                          <span className="flex-shrink-0 mt-[6px] h-[5px] w-[5px] rounded-full bg-blue-700" />
+                          <span>{a}</span>
+                        </li>
                       ))}
                     </ul>
                   )}
@@ -134,9 +143,12 @@ export default function ModernBlue({
             <h2 className="text-blue-700 font-semibold text-lg mb-2">
               Certifications
             </h2>
-            <ul className="list-disc ml-5 space-y-1">
+            <ul className="space-y-1 list-none p-0 m-0">
               {certifications.map((cert: string, idx: number) => (
-                <li key={idx}>{cert}</li>
+                <li key={idx} className="flex items-start gap-2">
+                  <span className="flex-shrink-0 mt-[6px] h-[5px] w-[5px] rounded-full bg-blue-700" />
+                  <span>{cert}</span>
+                </li>
               ))}
             </ul>
           </section>

@@ -38,7 +38,7 @@ export const useResumeStore = create<any>()(
     education: [{ school: "", degree: "", year: "", gpa: "" }], 
     selectedTemplate: "sidebar-green",
     premiumUnlocked: false,
-    showWatermark: false,
+    showWatermark: true,
 
     // --- SHARED ACTIONS ---
     setField: (field: string, value: any) => set({ [field]: value }),
@@ -194,5 +194,15 @@ export const useResumeStore = create<any>()(
         ...e, achievements: e.achievements.map((a: any, i: number) => i === idx ? { ...a, text: a.suggestion!, suggestion: null, hasAcceptedSuggestion: true } : a) 
       } : e) 
     })),
-  }), { name: "resume-storage" })
+  }), {
+    name: "resume-storage",
+    version: 2,
+    migrate: (persistedState: any, version: number) => {
+      if (version < 2) {
+        // Force watermark on for existing users
+        return { ...persistedState, showWatermark: true };
+      }
+      return persistedState;
+    },
+  })
 );
