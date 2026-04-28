@@ -44,7 +44,8 @@ Your job is to transform raw input — which may be written in any language (Eng
       suggestion: completion.choices?.[0]?.message?.content?.trim() || "",
     });
   } catch (err: any) {
-    console.error("rewrite-summary error:", err?.message || err);
-    return NextResponse.json({ error: "Summary rewrite failed." }, { status: 500 });
+    const detail = err?.message || String(err);
+    console.error("rewrite-summary error:", detail);
+    return NextResponse.json({ error: "Summary rewrite failed.", detail }, { status: 500 });
   }
 }
