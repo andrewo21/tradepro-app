@@ -28,7 +28,7 @@ async function ResumeGate({ children }: { children: ReactNode }) {
         hasBundle={entitlements.bundle || overrides.premium}
       />
       {children}
-      <BundleUpsell userId={userId} entitlements={entitlements} />
+      {!devOverride && <BundleUpsell userId={userId} entitlements={entitlements} />}
     </div>
   );
 }
