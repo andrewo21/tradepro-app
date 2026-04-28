@@ -36,13 +36,14 @@ function getKVRestToken(): string | undefined {
 function createRedisClient() {
   const Redis = require("ioredis");
   const url = getRedisUrl()!;
-  // rediss:// requires TLS — reject unauthorized must be false for Upstash/Vercel Redis
+  // rediss:// requires TLS — rejectUnauthorized: false for Upstash/Vercel Redis
   const tls = url.startsWith("rediss://") ? { rejectUnauthorized: false } : undefined;
   return new Redis(url, {
     tls,
     connectTimeout: 5000,
     maxRetriesPerRequest: 1,
-    enableOfflineQueue: false,
+    // enableOfflineQueue must stay true (default) so commands wait for the
+    // connection to be ready instead of throwing immediately
   });
 }
 
