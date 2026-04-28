@@ -4,9 +4,78 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-
-
 import Footer from "@/components/Footer";
+
+function NewsletterSignup() {
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/newsletter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      if (res.ok) {
+        setSubmitted(true);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error || "Something went wrong. Please try again.");
+      }
+    } catch {
+      setError("Network error. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <section className="w-full bg-neutral-900 border-t border-neutral-700 py-14 px-4">
+      <div className="max-w-xl mx-auto text-center">
+        <h2 className="text-2xl font-semibold text-white mb-2">
+          Stay in the loop
+        </h2>
+        <p className="text-neutral-400 text-sm mb-8">
+          New tools, templates, and updates — built for the trades. No spam, ever.
+        </p>
+
+        {submitted ? (
+          <div className="text-green-400 font-medium text-lg">
+            ✓ You're on the list. We'll be in touch.
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 justify-center">
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter your email"
+              className="flex-1 px-4 py-3 rounded-md text-sm text-neutral-900 bg-white border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-500"
+            />
+            <button
+              type="submit"
+              disabled={loading}
+              className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-md disabled:opacity-50 whitespace-nowrap"
+            >
+              {loading ? "Signing up…" : "Get Updates"}
+            </button>
+          </form>
+        )}
+
+        {error && (
+          <p className="text-red-400 text-sm mt-3">{error}</p>
+        )}
+      </div>
+    </section>
+  );
+}
 
 const TYPED_WORDS = [
   "Precision",
@@ -302,6 +371,9 @@ export default function HomePage() {
           </Link>
         </div>
       </section>
+
+      {/* EMAIL SIGNUP */}
+      <NewsletterSignup />
 
       {/* GLOBAL FOOTER */}
       <Footer />
