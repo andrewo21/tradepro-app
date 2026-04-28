@@ -3,6 +3,28 @@ export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import sgMail from "@sendgrid/mail";
 
+async function addToSendGridContacts(email: string): Promise<void> {
+  const apiKey = process.env.SENDGRID_API_KEY;
+  if (!apiKey) return;
+
+  // SendGrid Marketing Contacts API — upserts the contact into your All Contacts list
+  const res = await fetch("https://api.sendgrid.com/v3/marketing/contacts", {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      contacts: [{ email }],
+    }),
+  });
+
+  if (!res.ok) {
+    const body = await res.text();
+    console.error("SendGrid contacts upsert failed:", res.status, body);
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { email } = await req.json();
@@ -12,12 +34,16 @@ export async function POST(req: NextRequest) {
     }
 
     if (!process.env.SENDGRID_API_KEY) {
-      // Log signup if SendGrid not configured yet
       console.log(`Newsletter signup (no SendGrid): ${email}`);
       return NextResponse.json({ success: true });
     }
 
     sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+
+    // Save to SendGrid Contacts list (non-blocking — don't fail the signup if this errors)
+    addToSendGridContacts(email).catch((err) =>
+      console.error("SendGrid contacts error:", err?.message)
+    );
 
     // Notify you of the new signup
     await sgMail.send({
