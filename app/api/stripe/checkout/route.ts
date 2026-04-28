@@ -1,11 +1,10 @@
 export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from "next/server";
-import { grantEntitlement } from "@/lib/entitlements";
-import { ProductId, PRICE_IDS } from "@/lib/pricing";
+import { grantEntitlement, getUserEntitlements } from "@/lib/entitlements";
+import { ProductId, PRICE_IDS, resolveCheckoutProduct } from "@/lib/pricing";
 import { overrides } from "@/config/overrides";
 
-// Only import Stripe on the server when the key is present
 function getStripe() {
   const secretKey = process.env.STRIPE_SECRET_KEY;
   if (!secretKey) return null;
@@ -18,11 +17,11 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json().catch(() => ({}));
     const userId: string = body.userId || "demo-user";
-    const productId: ProductId = body.productId || ProductId.RESUME;
+    const desiredProductId: ProductId = body.productId || ProductId.RESUME;
 
-    // If Stripe is disabled or not configured, grant entitlement immediately (dev/founder mode)
+    // If Stripe is disabled or not configured, grant immediately (dev/founder mode)
     if (!overrides.stripeEnabled || !process.env.STRIPE_SECRET_KEY) {
-      const entitlements = await grantEntitlement(userId, productId);
+      const entitlements = await grantEntitlement(userId, desiredProductId);
       return NextResponse.json({
         success: true,
         entitlements,
@@ -30,16 +29,21 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Stripe is enabled — create a Checkout Session
+    // Look up what this user already owns to determine upgrade eligibility
+    const owned = await getUserEntitlements(userId);
+
+    // Resolve to the correct product/price (may be an upgrade product)
+    const chargeProductId = resolveCheckoutProduct(desiredProductId, owned);
+
     const stripe = getStripe();
     if (!stripe) {
       return NextResponse.json({ error: "Stripe not configured." }, { status: 500 });
     }
 
-    const priceId = PRICE_IDS[productId];
+    const priceId = PRICE_IDS[chargeProductId];
     if (!priceId) {
       return NextResponse.json(
-        { error: `No Stripe price ID configured for product: ${productId}` },
+        { error: `No Stripe price ID configured for product: ${chargeProductId}` },
         { status: 400 }
       );
     }
@@ -49,9 +53,10 @@ export async function POST(req: NextRequest) {
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}&userId=${encodeURIComponent(userId)}&productId=${encodeURIComponent(productId)}`,
+      // Always grant the desiredProductId (bundle) on success, not the upgrade SKU
+      success_url: `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}&userId=${encodeURIComponent(userId)}&productId=${encodeURIComponent(desiredProductId)}`,
       cancel_url: `${origin}/checkout/cancel`,
-      metadata: { userId, productId },
+      metadata: { userId, productId: desiredProductId, chargeProductId },
     });
 
     return NextResponse.json({ url: session.url });

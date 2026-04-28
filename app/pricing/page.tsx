@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import CheckoutButton from "@/components/CheckoutButton";
-import { ProductId } from "@/lib/pricing";
+import { ProductId, resolveCheckoutProduct, PRODUCT_PRICES } from "@/lib/pricing";
 import { useEffect, useState } from "react";
 import EntitlementBadge from "@/components/EntitlementBadge";
 import StripeTestPanel from "@/components/StripeTestPanel";
@@ -134,7 +134,18 @@ export default function PricingPage() {
                 </p>
 
                 <div className="flex items-center justify-center mb-6">
-                  <div className="text-5xl font-bold">$29.99</div>
+                  {entitlements && (entitlements.resume || entitlements.coverLetter) && !entitlements.bundle ? (
+                    <div className="text-center">
+                      <div className="text-5xl font-bold">
+                        {PRODUCT_PRICES[resolveCheckoutProduct(ProductId.BUNDLE, entitlements)]}
+                      </div>
+                      <div className="text-sm text-green-600 font-medium mt-1">
+                        Upgrade price — you save ${entitlements.resume ? "14.99" : "8.99"}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-5xl font-bold">$29.99</div>
+                  )}
                 </div>
 
                 <ul className="text-left text-neutral-700 space-y-3 mb-8">
@@ -156,7 +167,13 @@ export default function PricingPage() {
                   {entitlements && entitlements.bundle ? (
                     <button disabled className="w-full bg-green-600 text-white px-4 py-2 rounded opacity-75 cursor-default">Already Purchased</button>
                   ) : (
-                    <CheckoutButton userId={userId} productId={ProductId.BUNDLE} />
+                    <CheckoutButton
+                      userId={userId}
+                      productId={ProductId.BUNDLE}
+                      label={entitlements && (entitlements.resume || entitlements.coverLetter)
+                        ? `Upgrade — ${PRODUCT_PRICES[resolveCheckoutProduct(ProductId.BUNDLE, entitlements)]}`
+                        : "Buy Now"}
+                    />
                   )}
                 </div>
               </div>

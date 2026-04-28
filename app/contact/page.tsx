@@ -10,8 +10,7 @@ export default function ContactPage() {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
 
-  // Replace this with your company inbox
-  const COMPANY_EMAIL = "support@tradepro.com";
+  const COMPANY_EMAIL = "andrew@tradeprotech.ai";
 
   const generateMailtoLink = () => {
     const subject = encodeURIComponent("TradePro Support Request");
