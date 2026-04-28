@@ -6,8 +6,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { templates } from "@/components/templates";
 import type { TemplateKey } from "@/components/templates";
+import { getOrCreateUserId } from "@/lib/userId";
 
-const USER_ID = "demo-user";
 const MAX_DOWNLOADS = 2;
 
 export default function ResumePreviewPage() {
@@ -23,6 +23,7 @@ export default function ResumePreviewPage() {
     clearAll,
   } = useResumeStore();
   
+  const [userId] = useState(() => getOrCreateUserId());
   const [loading, setLoading] = useState(false);
   const [downloadsUsed, setDownloadsUsed] = useState<number | null>(null);
   const [revoked, setRevoked] = useState(false);
@@ -31,7 +32,7 @@ export default function ResumePreviewPage() {
 
   // Load current download count on mount
   useEffect(() => {
-    fetch(`/api/debug/entitlements?userId=${USER_ID}`)
+    fetch(`/api/debug/entitlements?userId=${userId}`)
       .then(r => r.json())
       .then(data => {
         const used = data.entitlements?.resumeDownloads ?? 0;
@@ -41,7 +42,7 @@ export default function ResumePreviewPage() {
         }
       })
       .catch(() => null);
-  }, []);
+  }, [userId]);
 
   const remaining = downloadsUsed !== null ? Math.max(0, MAX_DOWNLOADS - downloadsUsed) : null;
 
@@ -74,7 +75,7 @@ export default function ResumePreviewPage() {
       const res = await fetch("/api/stripe/record-download", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: USER_ID, type: "resume" }),
+        body: JSON.stringify({ userId, type: "resume" }),
       });
       const data = await res.json();
 

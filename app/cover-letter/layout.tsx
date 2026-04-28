@@ -7,9 +7,10 @@ import UpsellModal from "@/components/UpsellModal";
 import BundleUpsell from "@/components/BundleUpsell";
 import { ProductId } from "@/lib/pricing";
 import { overrides } from "@/config/overrides";
+import { getServerUserId } from "@/lib/userId";
 
 async function CoverLetterGate({ children }: { children: ReactNode }) {
-  const userId = "demo-user";
+  const userId = await getServerUserId();
   const entitlements = await getUserEntitlements(userId);
 
   const devOverride = overrides.devMode || overrides.access;

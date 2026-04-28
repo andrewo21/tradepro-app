@@ -8,10 +8,11 @@ import BundleUpsell from "@/components/BundleUpsell";
 import WatermarkSync from "@/components/WatermarkSync";
 import { ProductId } from "@/lib/pricing";
 import { overrides } from "@/config/overrides";
+import { getServerUserId } from "@/lib/userId";
 
 // Server wrapper for async logic
 async function ResumeGate({ children }: { children: ReactNode }) {
-  const userId = "demo-user";
+  const userId = await getServerUserId();
   const entitlements = await getUserEntitlements(userId);
 
   const devOverride = overrides.devMode || overrides.access;

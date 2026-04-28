@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import { useCoverLetterStore } from "@/app/store/useCoverLetterStore";
 import Link from "next/link";
+import { getOrCreateUserId } from "@/lib/userId";
 
-const USER_ID = "demo-user";
 const MAX_DOWNLOADS = 2;
 
 export default function CoverLetterPage() {
@@ -14,6 +14,7 @@ export default function CoverLetterPage() {
     jobTitle, experience, generatedLetter, setField, setGeneratedLetter, salutationStyle, clearAll
   } = useCoverLetterStore();
 
+  const [userId] = useState(() => getOrCreateUserId());
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [loadingSummary, setLoadingSummary] = useState(false);
   const [loadingLetter, setLoadingLetter] = useState(false);
@@ -31,7 +32,7 @@ export default function CoverLetterPage() {
   }, [date, setField]);
 
   useEffect(() => {
-    fetch(`/api/debug/entitlements?userId=${USER_ID}`)
+    fetch(`/api/debug/entitlements?userId=${userId}`)
       .then(r => r.json())
       .then(data => {
         const used = data.entitlements?.coverLetterDownloads ?? 0;
@@ -41,7 +42,7 @@ export default function CoverLetterPage() {
         }
       })
       .catch(() => null);
-  }, []);
+  }, [userId]);
 
   const handleGenerateSummary = async () => {
     if (!resumeFile || !API_BASE) return alert("Please select a PDF file.");
@@ -106,7 +107,7 @@ export default function CoverLetterPage() {
       const record = await fetch("/api/stripe/record-download", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: USER_ID, type: "coverLetter" }),
+        body: JSON.stringify({ userId, type: "coverLetter" }),
       });
       const data = await record.json();
       if (data.success) {
