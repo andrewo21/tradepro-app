@@ -10,6 +10,7 @@ export default function Footer() {
           src="/brand/Tradepro-logo.svg"
           alt="TradePro Technologies"
           className="inline-block w-[220px] sm:w-[300px] md:w-[360px] h-auto"
+          style={{ transform: "translateX(-12%)" }}
         />
 
         <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-neutral-500">
