@@ -8,13 +8,23 @@
 import { ProductId } from "./pricing";
 import { overrides } from "@/config/overrides";
 
+export const MAX_DOWNLOADS = 2;
+
 export type UserEntitlements = {
   resume: boolean;
   coverLetter: boolean;
   bundle: boolean;
+  resumeDownloads: number;       // how many resume PDFs downloaded so far
+  coverLetterDownloads: number;  // how many cover letter PDFs downloaded so far
 };
 
-const EMPTY: UserEntitlements = { resume: false, coverLetter: false, bundle: false };
+const EMPTY: UserEntitlements = {
+  resume: false,
+  coverLetter: false,
+  bundle: false,
+  resumeDownloads: 0,
+  coverLetterDownloads: 0,
+};
 const KEY = (userId: string) => `entitlements:${userId}`;
 
 // ── Storage detection ─────────────────────────────────────────────────────────
@@ -169,10 +179,66 @@ export async function grantEntitlement(userId: string, productId: ProductId): Pr
 
   let updated: UserEntitlements = { ...current };
   switch (productId) {
-    case ProductId.RESUME:       updated.resume = true; break;
-    case ProductId.COVER_LETTER: updated.coverLetter = true; break;
-    case ProductId.BUNDLE:       updated = { resume: true, coverLetter: true, bundle: true }; break;
+    case ProductId.RESUME:
+      updated.resume = true;
+      updated.resumeDownloads = 0; // fresh purchase resets counter
+      break;
+    case ProductId.COVER_LETTER:
+      updated.coverLetter = true;
+      updated.coverLetterDownloads = 0;
+      break;
+    case ProductId.BUNDLE:
+    case ProductId.UPGRADE_RESUME_TO_BUNDLE:
+    case ProductId.UPGRADE_COVER_LETTER_TO_BUNDLE:
+    case ProductId.UPGRADE_BOTH_TO_BUNDLE:
+      updated.resume = true;
+      updated.coverLetter = true;
+      updated.bundle = true;
+      updated.resumeDownloads = 0;
+      updated.coverLetterDownloads = 0;
+      break;
     default: throw new Error(`Unknown productId: ${productId}`);
+  }
+
+  if (backend === "redis") { await redisSet(userId, updated); }
+  else if (backend === "kv") { await kvSet(userId, updated); }
+  else { const s = await readStore(); s[userId] = updated; await writeStore(s); }
+
+  return updated;
+}
+
+/**
+ * Called after each PDF download.
+ * Increments the counter for the given type and revokes access when MAX_DOWNLOADS is reached.
+ * Returns the updated entitlements so the client can show the remaining count.
+ */
+export async function recordDownload(
+  userId: string,
+  type: "resume" | "coverLetter"
+): Promise<UserEntitlements> {
+  const backend = getBackend();
+  const current =
+    backend === "redis" ? await redisGet(userId) :
+    backend === "kv"    ? await kvGet(userId) :
+    (await readStore())[userId] ?? { ...EMPTY };
+
+  const updated: UserEntitlements = { ...current };
+
+  if (type === "resume") {
+    updated.resumeDownloads = (current.resumeDownloads ?? 0) + 1;
+    if (updated.resumeDownloads >= MAX_DOWNLOADS) {
+      updated.resume = false;
+    }
+  } else {
+    updated.coverLetterDownloads = (current.coverLetterDownloads ?? 0) + 1;
+    if (updated.coverLetterDownloads >= MAX_DOWNLOADS) {
+      updated.coverLetter = false;
+    }
+  }
+
+  // If bundle — revoke bundle when both limits hit
+  if (updated.bundle && !updated.resume && !updated.coverLetter) {
+    updated.bundle = false;
   }
 
   if (backend === "redis") { await redisSet(userId, updated); }

@@ -65,4 +65,25 @@ export const useCoverLetterStore = create<CoverLetterState>((set) => ({
     set(() => ({
       generatedLetter: value,
     })),
+
+  clearAll: () =>
+    set({
+      applicantName: "",
+      applicantAddress: "",
+      applicantCityStateZip: "",
+      applicantEmail: "",
+      applicantPhone: "",
+      applicantLinkedIn: "",
+      date: "",
+      hiringManager: "",
+      companyName: "",
+      companyAddress: "",
+      companyCityStateZip: "",
+      jobTitle: "",
+      tone: "Professional",
+      salutationStyle: "Dear",
+      extractedText: "",
+      experience: "",
+      generatedLetter: "",
+    }),
 }));

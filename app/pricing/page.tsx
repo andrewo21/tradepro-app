@@ -60,8 +60,8 @@ export default function PricingPage() {
               <ul className="text-left text-neutral-700 space-y-3 mb-8">
                 <li>• 8 Standard templates</li>
                 <li>• AI‑assisted writing and cleanup</li>
-                <li>• Unlimited edits</li>
-                <li>• PDF export included</li>
+                <li>• Edit until you're happy</li>
+                <li>• 2 PDF downloads included</li>
                 <li className="opacity-60">• Premium templates (not included)</li>
                 <li className="opacity-60">• Cover Letter Generator (not included)</li>
                 <li className="opacity-60">• Project List Builder (not included)</li>
@@ -96,8 +96,8 @@ export default function PricingPage() {
 
               <ul className="text-left text-neutral-700 space-y-3 mb-8">
                 <li>• AI‑assisted writing</li>
-                <li>• Unlimited edits</li>
-                <li>• PDF export included</li>
+                <li>• Edit until you're happy</li>
+                <li>• 2 PDF downloads included</li>
                 <li className="opacity-60">• Resume Builder (not included)</li>
                 <li className="opacity-60">• Premium templates (not included)</li>
                 <li className="opacity-60">• Project List Builder (not included)</li>
@@ -141,8 +141,8 @@ export default function PricingPage() {
                   <li>• 8 Standard templates</li>
                   <li>• 6 Premium templates</li>
                   <li>• AI‑assisted writing and cleanup</li>
-                  <li>• Unlimited edits</li>
-                  <li>• PDF export included</li>
+                  <li>• Edit until you're happy</li>
+                  <li>• 2 PDF downloads per tool included</li>
                   <li>• Cover Letter Generator included</li>
                   <li>• Project List Builder (Coming Soon)</li>
                 </ul>
@@ -165,7 +165,7 @@ export default function PricingPage() {
           </div>
 
           <p className="text-neutral-500 text-xs mt-10">
-            One‑time purchase. Lifetime access to all features included in your tier.
+            One‑time purchase per session. Edit freely — 2 PDF downloads included per tool.
           </p>
 
           {process.env.NEXT_PUBLIC_STRIPE_TEST_MODE === "true" && (
