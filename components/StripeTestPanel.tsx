@@ -1,11 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface Entitlements {
   resume: boolean;
   coverLetter: boolean;
   bundle: boolean;
+}
+
+interface ConfigChecks {
+  ok: boolean;
+  problems: string[];
+  checks: Record<string, string | boolean | undefined>;
 }
 
 export default function StripeTestPanel({
@@ -16,8 +22,16 @@ export default function StripeTestPanel({
   initial: Entitlements | null;
 }) {
   const [entitlements, setEntitlements] = useState<Entitlements | null>(initial);
+  const [config, setConfig] = useState<ConfigChecks | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/debug/stripe-config")
+      .then((r) => r.json())
+      .then(setConfig)
+      .catch(() => null);
+  }, []);
 
   async function refresh() {
     const res = await fetch(`/api/debug/entitlements?userId=${userId}`);
@@ -60,6 +74,20 @@ export default function StripeTestPanel({
           Debug panel — not visible in production
         </span>
       </div>
+
+      {/* Config health check */}
+      {config && (
+        <div className={`mb-5 p-3 rounded-lg text-sm border ${config.ok ? "bg-green-50 border-green-300" : "bg-red-50 border-red-300"}`}>
+          <p className={`font-bold mb-1 ${config.ok ? "text-green-700" : "text-red-700"}`}>
+            {config.ok ? "✓ Stripe config looks good" : "✗ Config problems detected"}
+          </p>
+          {Object.entries(config.checks).map(([k, v]) => (
+            <p key={k} className={`font-mono text-xs ${String(v).startsWith("✗") ? "text-red-600 font-bold" : "text-gray-600"}`}>
+              {k}: {String(v)}
+            </p>
+          ))}
+        </div>
+      )}
 
       <p className="text-sm text-amber-900 mb-4">
         User: <code className="bg-amber-100 px-1 rounded font-mono">{userId}</code>
