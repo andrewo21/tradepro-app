@@ -8,6 +8,7 @@ import BundleUpsell from "@/components/BundleUpsell";
 import { ProductId } from "@/lib/pricing";
 import { overrides } from "@/config/overrides";
 import { getServerUserId } from "@/lib/userId";
+import CoverLetterSamplePreview from "@/components/CoverLetterSamplePreview";
 
 async function CoverLetterGate({ children }: { children: ReactNode }) {
   const userId = await getServerUserId();
@@ -17,7 +18,12 @@ async function CoverLetterGate({ children }: { children: ReactNode }) {
   const allowed = devOverride || hasCoverLetterAccess(entitlements);
 
   if (!allowed) {
-    return <UpsellModal userId={userId} productId={ProductId.COVER_LETTER} />;
+    return (
+      <div className="min-h-screen bg-neutral-50">
+        <CoverLetterSamplePreview userId={userId} />
+        <UpsellModal userId={userId} productId={ProductId.COVER_LETTER} />
+      </div>
+    );
   }
 
   return (
