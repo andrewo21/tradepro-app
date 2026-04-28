@@ -24,7 +24,7 @@ export default function UpsellModal({
 
   const bullets = isResume
     ? [
-        "8 standard templates purpose-built for trades",
+        "5 standard templates purpose-built for trades",
         "AI-assisted writing in any language",
         "PDF export — clean, professional, ATS-ready",
         "2 PDF downloads included",
@@ -37,9 +37,9 @@ export default function UpsellModal({
       ];
 
   const bundleBullets = [
-    "Everything in Resume Builder",
-    "Everything in Cover Letter Builder",
-    "6 premium templates included",
+    "All 9 templates — 5 standard + 4 premium",
+    "Resume Builder included",
+    "Cover Letter Generator included",
     "2 PDF downloads per tool",
     "Best value — save $",
   ];

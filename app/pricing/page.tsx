@@ -60,7 +60,7 @@ export default function PricingPage() {
               </div>
 
               <ul className="text-left text-neutral-700 space-y-3 mb-8">
-                <li>• 8 Standard templates</li>
+                <li>• 5 Standard templates</li>
                 <li>• AI‑assisted writing and cleanup</li>
                 <li>• Edit until you're happy</li>
                 <li>• 2 PDF downloads included</li>
@@ -140,8 +140,7 @@ export default function PricingPage() {
                 </div>
 
                 <ul className="text-left text-neutral-700 space-y-3 mb-8">
-                  <li>• 8 Standard templates</li>
-                  <li>• 6 Premium templates</li>
+                  <li>• All 9 templates (5 standard + 4 premium)</li>
                   <li>• AI‑assisted writing and cleanup</li>
                   <li>• Edit until you're happy</li>
                   <li>• 2 PDF downloads per tool included</li>
