@@ -1,13 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import fs from "fs/promises";
-import path from "path";
+import { resetEntitlements } from "@/lib/entitlements";
 
-const ENTITLEMENTS_FILE = process.env.VERCEL
-  ? "/tmp/entitlements.json"
-  : path.join(process.cwd(), "data", "entitlements.json");
-
-// Only available when STRIPE_ENABLED is true (test mode) or NEXT_PUBLIC_DEV_MODE is true.
-// Resets one or all users' entitlements back to the unpurchased state.
+// Only available when STRIPE_ENABLED=true or NEXT_PUBLIC_DEV_MODE=true.
 export async function POST(req: NextRequest) {
   const isTest =
     process.env.STRIPE_ENABLED === "true" ||
@@ -24,26 +18,13 @@ export async function POST(req: NextRequest) {
     const body = await req.json().catch(() => ({}));
     const userId: string | undefined = body.userId;
 
-    const raw = await fs.readFile(ENTITLEMENTS_FILE, "utf-8").catch(() => "{}");
-    const store = JSON.parse(raw) as Record<string, unknown>;
-
-    if (userId) {
-      delete store[userId];
-    } else {
-      // Reset all users
-      for (const key of Object.keys(store)) {
-        delete store[key];
-      }
-    }
-
-    await fs.writeFile(ENTITLEMENTS_FILE, JSON.stringify(store, null, 2), "utf-8");
+    await resetEntitlements(userId);
 
     return NextResponse.json({
       success: true,
       message: userId
         ? `Entitlements reset for user: ${userId}`
         : "All entitlements reset.",
-      store,
     });
   } catch (err: any) {
     return NextResponse.json(
