@@ -13,7 +13,11 @@ export type UserEntitlements = {
 
 type EntitlementStore = Record<string, UserEntitlements>;
 
-const DATA_DIR = path.join(process.cwd(), "data");
+// Vercel serverless functions run in a read-only filesystem except for /tmp.
+// Use /tmp when running on Vercel, and the local data/ directory otherwise.
+const DATA_DIR = process.env.VERCEL
+  ? "/tmp"
+  : path.join(process.cwd(), "data");
 const ENTITLEMENTS_FILE = path.join(DATA_DIR, "entitlements.json");
 
 async function ensureStoreFile(): Promise<void> {
