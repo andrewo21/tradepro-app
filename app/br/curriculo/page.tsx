@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getOrCreateUserId } from "@/lib/userId";
 import Watermark from "@/components/Watermark";
+import BrResumeUpload from "@/components/BrResumeUpload";
 import BrModernoAzul from "@/components/templates/brazil/BrModernoAzul";
 import BrClasicoProfissional from "@/components/templates/brazil/BrClasicoProfissional";
 import BrVerdeTecnico from "@/components/templates/brazil/BrVerdeTecnico";
@@ -80,16 +81,16 @@ export default function BrCurriculoSelectPage() {
         <p className="text-neutral-500 text-sm mb-5">Veja os modelos abaixo. Adquira para criar seu currículo.</p>
       )}
 
-      {/* Upload coming soon */}
-      <div className="mb-6 p-4 bg-neutral-900 text-white rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <span className="text-2xl">📄</span>
+      {/* Resume Upload */}
+      <div className="mb-6 bg-white border border-neutral-200 rounded-xl p-5 shadow-sm">
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-lg">⚡</span>
           <div>
-            <p className="font-semibold text-sm">Já tem um currículo? Envie e nós otimizaremos.</p>
-            <p className="text-neutral-400 text-xs mt-0.5">Envie seu PDF — a IA extrai seus dados e reescreve profissionalmente.</p>
+            <p className="font-semibold text-sm text-neutral-900">Já tem um currículo? Envie e a IA preenche tudo automaticamente.</p>
+            <p className="text-xs text-neutral-500">Envie seu PDF — extraímos seus dados e você ajusta o que precisar.</p>
           </div>
         </div>
-        <span className="flex-shrink-0 text-xs bg-amber-500 text-white font-bold px-3 py-1 rounded-full">Em Breve</span>
+        <BrResumeUpload />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
