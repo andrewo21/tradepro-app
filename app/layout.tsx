@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import "./globals.css";
-import Header from "@/components/Header";
+import "./(us)/globals.css";
 import UserIdProvider from "@/components/UserIdProvider";
 import Script from "next/script";
 
@@ -66,9 +65,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="bg-neutral-50 text-neutral-900">
         <UserIdProvider />
-        <div suppressHydrationWarning>
-          <Header />
-        </div>
         {children}
       </body>
     </html>

@@ -133,7 +133,13 @@ export default function HomePage() {
   return (
     <div className="min-h-screen flex flex-col bg-neutral-200 text-neutral-900">
 
-      
+      {/* Brazil region banner */}
+      <div className="w-full bg-green-800 text-white text-xs py-2 px-4 text-center">
+        🇧🇷 Você é do Brasil?{" "}
+        <Link href="/br" className="underline font-semibold hover:text-green-200">
+          Clique aqui para a versão em português →
+        </Link>
+      </div>
 
       {/* HERO */}
       <section
