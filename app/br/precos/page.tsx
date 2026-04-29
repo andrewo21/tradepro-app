@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ptBR } from "@/lib/i18n/pt-BR";
 import { getOrCreateUserId } from "@/lib/userId";
-import { BrProductId } from "@/app/api/stripe/checkout-br/route";
+import { BrProductId } from "@/lib/brPricing";
 
 function BrCheckoutButton({ userId, productId, label }: { userId: string; productId: BrProductId; label?: string }) {
   const [loading, setLoading] = useState(false);

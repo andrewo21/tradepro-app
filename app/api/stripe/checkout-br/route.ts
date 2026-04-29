@@ -4,13 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { grantEntitlement, getUserEntitlements } from "@/lib/entitlements";
 import { getUserIdFromCookieHeader } from "@/lib/userId";
 import { overrides } from "@/config/overrides";
-
-// Brazilian product IDs
-export enum BrProductId {
-  RESUME       = "br_curriculo_padrao",
-  COVER_LETTER = "br_carta_apresentacao",
-  BUNDLE       = "br_pacote_premium",
-}
+import { BrProductId } from "@/lib/brPricing";
 
 // Maps to entitlement system
 const ENTITLEMENT_MAP: Record<BrProductId, "resume" | "coverLetter" | "bundle"> = {
