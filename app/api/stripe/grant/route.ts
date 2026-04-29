@@ -2,9 +2,10 @@ export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from "next/server";
 import { grantEntitlement, getUserEntitlements } from "@/lib/entitlements";
-import { ProductId } from "@/lib/pricing";
+import { ProductId, PRODUCT_LABELS } from "@/lib/pricing";
 import { overrides } from "@/config/overrides";
 import { getUserIdFromCookieHeader } from "@/lib/userId";
+import { schedulePostPurchaseEmails } from "@/lib/emailSequences";
 
 /**
  * POST /api/stripe/grant
@@ -38,6 +39,24 @@ export async function POST(req: NextRequest) {
 
     // Grant the entitlement
     const entitlements = await grantEntitlement(userId, productId);
+
+    // Trigger post-purchase email sequence if we have a customer email
+    try {
+      if (overrides.stripeEnabled && sessionId && process.env.STRIPE_SECRET_KEY) {
+        const Stripe = require("stripe");
+        const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: "2024-06-20" });
+        const session = await stripe.checkout.sessions.retrieve(sessionId, { expand: ["customer_details"] });
+        const customerEmail = session.customer_details?.email || session.customer_email || "";
+        if (customerEmail) {
+          const productName = PRODUCT_LABELS[productId] || productId;
+          schedulePostPurchaseEmails(customerEmail, productName, entitlements.coverLetter);
+        }
+      }
+    } catch (emailErr: any) {
+      // Never fail the grant because of email errors
+      console.error("Email sequence error:", emailErr?.message);
+    }
+
     return NextResponse.json({ success: true, entitlements });
   } catch (err: any) {
     const detail = err?.message || String(err);
