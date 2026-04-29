@@ -47,6 +47,9 @@ export default function Header() {
               <Link href="/pricing" className="block px-4 py-2 text-neutral-800 hover:bg-neutral-100 hover:text-neutral-900">Pricing</Link>
               <Link href="/about" className="block px-4 py-2 text-neutral-800 hover:bg-neutral-100 hover:text-neutral-900">About Us</Link>
               <Link href="/contact" className="block px-4 py-2 text-neutral-800 hover:bg-neutral-100 hover:text-neutral-900">Contact Us</Link>
+              <div className="border-t border-neutral-100 mt-1 pt-1">
+                <Link href="/br" className="block px-4 py-2 text-green-700 hover:bg-neutral-100 text-sm font-medium">🇧🇷 Portal Brasil</Link>
+              </div>
             </div>
           )}
         </div>
