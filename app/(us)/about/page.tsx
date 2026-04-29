@@ -88,9 +88,9 @@ export default function AboutPage() {
             <h2 className="text-2xl font-semibold mb-3">Our Roadmap</h2>
             <ul className="text-neutral-700 leading-relaxed space-y-3">
               <li>• Resume Builder — Available now</li>
-              <li>• Cover Letter Generator — Included at launch</li>
-              <li>• Project List Builder — Coming May 2026</li>
-              <li>• More tools designed for tradespeople — Coming soon</li>
+              <li>• Cover Letter Generator — Available now</li>
+              <li>• Project Portfolio Builder — Available now (Bundle)</li>
+              <li>• More tools designed for tradespeople — In development</li>
             </ul>
           </section>
 

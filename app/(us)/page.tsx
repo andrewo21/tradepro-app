@@ -325,20 +325,23 @@ export default function HomePage() {
               </p>
             </div>
 
-            <div className="border border-neutral-200 rounded-md p-4 bg-neutral-50 opacity-70">
+            <Link href="/projects" className="border border-neutral-200 rounded-md p-4 bg-neutral-50 hover:shadow-md transition">
               <h3 className="font-semibold mb-1 flex items-center justify-between">
-                <span>Project List Builder</span>
-                <span className="text-[10px] uppercase tracking-wide bg-neutral-200 px-1.5 py-0.5 rounded">
-                  Coming Soon
+                <span>Project Portfolio Builder</span>
+                <span className="text-[10px] uppercase tracking-wide bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">
+                  Bundle
                 </span>
               </h3>
               <p className="text-neutral-700">
                 Showcase the jobs that actually prove what you can do.
               </p>
-            </div>
+            </Link>
 
-            <div className="border border-neutral-200 rounded-md p-4 bg-neutral-50 opacity-70">
-              <h3 className="font-semibold mb-1">More Tools</h3>
+            <div className="border border-neutral-200 rounded-md p-4 bg-neutral-50 opacity-60">
+              <h3 className="font-semibold mb-1 flex items-center justify-between">
+                <span>More Tools</span>
+                <span className="text-[10px] uppercase tracking-wide bg-neutral-200 px-1.5 py-0.5 rounded">In Development</span>
+              </h3>
               <p className="text-neutral-700">
                 A growing toolkit built around how tradespeople actually work.
               </p>
