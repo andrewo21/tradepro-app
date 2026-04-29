@@ -253,13 +253,46 @@ export default function HomePage() {
       </section>
 
       {/* VIDEO SECTION */}
-      <section className="w-full bg-neutral-50 border-t border-neutral-200 py-12 px-4">
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-2xl font-semibold text-center mb-6">
-            See TradePro in action
+      <section className="w-full bg-neutral-50 border-t border-neutral-200 py-16 px-4">
+        <div className="max-w-5xl mx-auto text-center">
+          <h2 className="text-3xl font-semibold mb-3">
+            See TradePro Fix a Resume in 60 Seconds
           </h2>
-          <div className="max-w-3xl mx-auto aspect-video bg-neutral-200 border border-dashed border-neutral-400 rounded-md flex items-center justify-center text-neutral-600 text-sm">
-            Future video walkthrough placeholder
+          <p className="text-neutral-600 mb-8 max-w-2xl mx-auto">
+            Turn real work experience into a clean, professional resume — fast, simple, and stress‑free.
+          </p>
+          <div className="max-w-3xl mx-auto aspect-video bg-neutral-200 border border-dashed border-neutral-400 rounded-md flex items-center justify-center text-neutral-600 text-sm mb-8">
+            Video walkthrough coming soon
+          </div>
+          <Link
+            href="/resume"
+            className="inline-block px-8 py-3 rounded-md bg-neutral-900 text-neutral-50 text-sm font-semibold tracking-wide shadow-md hover:bg-neutral-800"
+          >
+            Try TradePro Now
+          </Link>
+          <p className="text-xs text-neutral-500 mt-2">One‑time purchase. No subscription.</p>
+        </div>
+      </section>
+
+      {/* BUILT FOR TRADES SECTION */}
+      <section className="w-full bg-white border-t border-neutral-200 py-14 px-4">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-2xl font-semibold mb-6">
+            Built for Trades, Students, and Real‑World Workers
+          </h2>
+          <div className="grid gap-4 sm:grid-cols-3 text-sm text-neutral-700">
+            <div className="bg-neutral-50 border border-neutral-200 rounded-xl p-5">
+              <div className="text-2xl mb-3">⚡</div>
+              <p>Perfect for electricians, HVAC, welders, mechanics, and more.</p>
+            </div>
+            <div className="bg-neutral-50 border border-neutral-200 rounded-xl p-5">
+              <div className="text-2xl mb-3">🎓</div>
+              <p>Great for students, career changers, and anyone who wants a clean, professional resume.</p>
+            </div>
+            <div className="bg-neutral-50 border border-neutral-200 rounded-xl p-5">
+              <div className="text-2xl mb-3">✓</div>
+              <p>One‑time purchase — no subscriptions, ever.</p>
+            </div>
           </div>
         </div>
       </section>
@@ -306,6 +339,23 @@ export default function HomePage() {
             </div>
 
           </div>
+        </div>
+      </section>
+
+      {/* TRUST STRIP */}
+      <section className="w-full bg-neutral-900 py-6 px-4">
+        <div className="max-w-4xl mx-auto flex flex-wrap justify-center gap-3">
+          {[
+            { icon: "✓", label: "One‑Time Purchase" },
+            { icon: "✕", label: "No Subscription" },
+            { icon: "🔒", label: "Secure Checkout" },
+            { icon: "⚡", label: "Instant Access" },
+          ].map((b) => (
+            <div key={b.label} className="flex items-center gap-2 bg-neutral-800 border border-neutral-700 rounded-full px-4 py-2 text-sm text-neutral-200 font-medium">
+              <span className="text-green-400">{b.icon}</span>
+              {b.label}
+            </div>
+          ))}
         </div>
       </section>
 

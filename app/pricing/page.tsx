@@ -173,6 +173,28 @@ export default function PricingPage() {
           {process.env.NEXT_PUBLIC_STRIPE_TEST_MODE === "true" && (
             <StripeTestPanel userId={userId} initial={entitlements} />
           )}
+
+          {/* FAQ */}
+          <div className="mt-16 max-w-2xl mx-auto text-left">
+            <h2 className="text-2xl font-semibold text-center mb-8">Frequently Asked Questions</h2>
+            <div className="space-y-4">
+              {[
+                { q: "Is this a subscription?", a: "No. TradePro is a one-time purchase. You pay once and get ongoing access to the tools included in your plan." },
+                { q: "Do I need to be good with computers to use this?", a: "No. If you can fill out a simple form, you can use TradePro. It's built for real-world workers, not just office careers." },
+                { q: "Will this work if my resume is a mess?", a: "Yes. TradePro is designed to take messy, outdated resumes and turn them into clean, professional documents that get callbacks." },
+                { q: "Can I use this if I've never had a resume before?", a: "Yes. You can start from scratch and TradePro will help you build a resume step by step." },
+                { q: "What if I don't like the result?", a: "You can regenerate sections, tweak the wording, and download as many times as you need until you're happy — within your 2 included downloads." },
+              ].map((item, i) => (
+                <details key={i} className="bg-white border border-neutral-200 rounded-xl group">
+                  <summary className="px-6 py-4 cursor-pointer font-medium text-neutral-900 list-none flex justify-between items-center hover:bg-neutral-50 rounded-xl">
+                    {item.q}
+                    <span className="text-neutral-400 group-open:rotate-180 transition-transform">▼</span>
+                  </summary>
+                  <div className="px-6 pb-4 text-sm text-neutral-600 leading-relaxed">{item.a}</div>
+                </details>
+              ))}
+            </div>
+          </div>
         </div>
       </main>
 
