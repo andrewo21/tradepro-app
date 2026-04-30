@@ -45,6 +45,21 @@ export const useResumeStore = create<any>()(
     setField: (field: string, value: any) => set({ [field]: value }),
     setSelectedTemplate: (val: string) => set({ selectedTemplate: val }),
 
+    // --- EDUCATION ACTIONS ---
+    addEducation: () => set((state: any) => ({
+      education: [...state.education, { school: "", degree: "", year: "", gpa: "" }],
+    })),
+    updateEducation: (index: number, field: string, value: string) =>
+      set((state: any) => {
+        const edu = [...state.education];
+        if (edu[index]) edu[index] = { ...edu[index], [field]: value };
+        return { education: edu };
+      }),
+    removeEducation: (index: number) =>
+      set((state: any) => ({
+        education: state.education.filter((_: any, i: number) => i !== index),
+      })),
+
     updatePersonalInfo: (field: any, value: any) => set((state: any) => ({ 
         personalInfo: { ...state.personalInfo, [field]: value } 
     })),
