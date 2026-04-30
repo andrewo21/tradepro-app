@@ -35,13 +35,12 @@ export default function SidebarGreen({
   const linkedin = contact?.linkedin || "";
 
   return (
-    <div className="relative w-full bg-white text-gray-900 text-[11px] leading-snug flex">
-      {/* ⭐ Watermark now uses showWatermark instead of premiumUnlocked */}
+    <div className="relative w-full bg-white text-gray-900 text-[11px] leading-snug flex flex-col sm:flex-row">
       <Watermark show={showWatermark} />
 
-      {/* SIDEBAR */}
+      {/* SIDEBAR — full width on mobile, 32% on sm+ */}
       <aside
-        className="w-[32%] min-h-full p-5 text-gray-900"
+        className="w-full sm:w-[32%] min-h-full p-5 text-gray-900"
         style={{ backgroundColor: "#E6F4EA" }}
       >
         <h1 className="text-[18px] font-semibold leading-tight">{fullName}</h1>
@@ -83,7 +82,7 @@ export default function SidebarGreen({
         )}
       </aside>
 
-      <main className="w-[68%] p-6 space-y-6">
+      <main className="w-full sm:w-[68%] p-6 space-y-6">
         {summary && summary.trim() && (
           <section>
             <MainHeader title="Professional Summary" />
