@@ -14,9 +14,18 @@ export default function ResumeUpload() {
 
   const store = useResumeStore();
 
+  const ACCEPTED_TYPES = [
+    "application/pdf",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  ];
+
   async function handleFile(file: File) {
-    if (!file || file.type !== "application/pdf") {
-      setError("Please upload a PDF file.");
+    const isAccepted = ACCEPTED_TYPES.includes(file.type) ||
+      file.name?.toLowerCase().endsWith(".pdf") ||
+      file.name?.toLowerCase().endsWith(".docx");
+
+    if (!file || !isAccepted) {
+      setError("Please upload a PDF or Word (.docx) file.");
       return;
     }
     if (file.size > 10 * 1024 * 1024) {
@@ -148,7 +157,7 @@ export default function ResumeUpload() {
         <input
           ref={inputRef}
           type="file"
-          accept=".pdf"
+          accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
           className="hidden"
           onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); }}
         />
@@ -165,7 +174,7 @@ export default function ResumeUpload() {
           <div className="space-y-2">
             <div className="text-4xl">📄</div>
             <p className="font-semibold text-neutral-800">Drop your resume here or click to upload</p>
-            <p className="text-sm text-neutral-500">PDF only · Max 10MB</p>
+            <p className="text-sm text-neutral-500">PDF or Word (.docx) · Max 10MB</p>
             <p className="text-xs text-neutral-400">AI will extract your info and pre-fill the builder</p>
           </div>
         )}

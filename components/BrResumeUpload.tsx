@@ -13,9 +13,18 @@ export default function BrResumeUpload() {
   const router = useRouter();
   const store = useBrResumeStore();
 
+  const ACCEPTED_TYPES = [
+    "application/pdf",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  ];
+
   async function handleFile(file: File) {
-    if (!file || file.type !== "application/pdf") {
-      setError("Por favor, envie um arquivo PDF.");
+    const isAccepted = ACCEPTED_TYPES.includes(file.type) ||
+      file.name?.toLowerCase().endsWith(".pdf") ||
+      file.name?.toLowerCase().endsWith(".docx");
+
+    if (!file || !isAccepted) {
+      setError("Por favor, envie um arquivo PDF ou Word (.docx).");
       return;
     }
     if (file.size > 10 * 1024 * 1024) {
@@ -117,7 +126,9 @@ export default function BrResumeUpload() {
           dragging ? "border-green-500 bg-green-50" : "border-neutral-300 bg-neutral-50 hover:border-green-400 hover:bg-green-50"
         }`}
       >
-        <input ref={inputRef} type="file" accept=".pdf" className="hidden"
+        <input ref={inputRef} type="file"
+          accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+          className="hidden"
           onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
 
         {loading ? (
@@ -132,7 +143,7 @@ export default function BrResumeUpload() {
           <div className="space-y-2">
             <div className="text-4xl">📄</div>
             <p className="font-semibold text-neutral-800">Arraste seu currículo aqui ou clique para enviar</p>
-            <p className="text-sm text-neutral-500">Somente PDF · Máximo 10MB</p>
+            <p className="text-sm text-neutral-500">PDF ou Word (.docx) · Máximo 10MB</p>
             <p className="text-xs text-neutral-400">A IA extrai suas informações e preenche o editor automaticamente</p>
           </div>
         )}

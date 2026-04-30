@@ -16,14 +16,30 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No file uploaded." }, { status: 400 });
     }
 
-    // Parse PDF text
     const buffer = Buffer.from(await file.arrayBuffer());
-    const pdfParse = (await import("pdf-parse-fixed")).default;
-    const parsed = await pdfParse(buffer);
-    const text = parsed.text?.trim();
+    const fileName = file.name?.toLowerCase() || "";
+    const isDocx = fileName.endsWith(".docx") ||
+      file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+
+    let text = "";
+
+    if (isDocx) {
+      const mammoth = await import("mammoth");
+      const result = await mammoth.extractRawText({ buffer });
+      text = result.value?.trim() || "";
+    } else {
+      // Default: treat as PDF
+      const pdfParse = (await import("pdf-parse-fixed")).default;
+      const parsed = await pdfParse(buffer);
+      text = parsed.text?.trim() || "";
+    }
 
     if (!text) {
-      return NextResponse.json({ error: "Could not extract text from PDF. Try a different file." }, { status: 400 });
+      return NextResponse.json({
+        error: isDocx
+          ? "Could not extract text from the Word document. Make sure it's a typed (not scanned) .docx file."
+          : "Could not extract text from PDF. Try a different file.",
+      }, { status: 400 });
     }
 
     const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
