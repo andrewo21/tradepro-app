@@ -267,8 +267,14 @@ export default function HomePage() {
           <p className="text-neutral-600 mb-8 max-w-2xl mx-auto">
             Turn real work experience into a clean, professional resume — fast, simple, and stress‑free.
           </p>
-          <div className="max-w-3xl mx-auto aspect-video bg-neutral-200 border border-dashed border-neutral-400 rounded-md flex items-center justify-center text-neutral-600 text-sm mb-8">
-            Video walkthrough coming soon
+          <div className="max-w-3xl mx-auto aspect-video mb-8 rounded-lg overflow-hidden shadow-lg">
+            <iframe
+              src="https://www.youtube.com/embed/a_ofNdxjRUo"
+              title="TradePro — See How It Works"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+              className="w-full h-full"
+            />
           </div>
           <Link
             href="/resume"
