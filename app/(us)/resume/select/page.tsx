@@ -120,8 +120,8 @@ export default function SelectPage() {
           ))}
         </div>
 
-        {/* RIGHT — PREVIEW (always watermarked on this page) */}
-        <div className="w-full">
+        {/* RIGHT — PREVIEW sticky so it follows the user as they scroll the template list */}
+        <div className="w-full lg:sticky lg:top-6 lg:self-start">
           <PreviewPane />
           {!hasAccess && (
             <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg text-center">
