@@ -262,7 +262,7 @@ export default function HomePage() {
       <section className="w-full bg-neutral-50 border-t border-neutral-200 py-16 px-4">
         <div className="max-w-5xl mx-auto text-center">
           <h2 className="text-3xl font-semibold mb-3">
-            See TradePro Fix a Resume in 60 Seconds
+            See TradePro Build a Resume That Gets You Hired
           </h2>
           <p className="text-neutral-600 mb-8 max-w-2xl mx-auto">
             Turn real work experience into a clean, professional resume — fast, simple, and stress‑free.
