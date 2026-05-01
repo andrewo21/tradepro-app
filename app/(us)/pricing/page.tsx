@@ -184,6 +184,7 @@ export default function PricingPage() {
                 { q: "Will this work if my resume is a mess?", a: "Yes. TradePro is designed to take messy, outdated resumes and turn them into clean, professional documents that get callbacks." },
                 { q: "Can I use this if I've never had a resume before?", a: "Yes. You can start from scratch and TradePro will help you build a resume step by step." },
                 { q: "What if I don't like the result?", a: "You can regenerate sections, tweak the wording, and download as many times as you need until you're happy — within your 2 included downloads." },
+                { q: "Is there an app?", a: "Yes — TradePro works as a full app on any phone. Visit tradeprotech.ai in your mobile browser and tap 'Add to Home Screen' to install it. No App Store, no download, no extra cost." },
               ].map((item, i) => (
                 <details key={i} className="bg-white border border-neutral-200 rounded-xl group">
                   <summary className="px-6 py-4 cursor-pointer font-medium text-neutral-900 list-none flex justify-between items-center hover:bg-neutral-50 rounded-xl">

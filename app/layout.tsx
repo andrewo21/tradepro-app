@@ -8,6 +8,15 @@ export const metadata: Metadata = {
     default: "TradePro — Resume Builder for the Trades (No Subscription)",
     template: "%s | TradePro",
   },
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "TradePro",
+  },
+  formatDetection: {
+    telephone: false,
+  },
   description:
     "TradePro is a resume builder made for tradespeople, students, and real‑world workers. One‑time purchase, no subscription, simple tools to turn real work experience into a clean, professional resume.",
   metadataBase: new URL("https://tradeprotech.ai"),
@@ -57,6 +66,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <head>
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="TradePro" />
+        <meta name="theme-color" content="#1a1a1a" />
+        <link rel="manifest" href="/manifest.json" />
         <Script
           id="org-schema"
           type="application/ld+json"

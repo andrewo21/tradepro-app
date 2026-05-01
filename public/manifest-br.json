@@ -1,0 +1,21 @@
+{
+  "name": "TradePro Brasil",
+  "short_name": "TradePro",
+  "description": "Criador de currículo para profissionais da construção civil e serviços.",
+  "start_url": "/br",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#166534",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/brand/Tradepro-logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["business", "productivity", "utilities"],
+  "lang": "pt-BR",
+  "scope": "/"
+}

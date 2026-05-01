@@ -28,6 +28,11 @@ export const metadata: Metadata = {
 export default function BrazilLayout({ children }: { children: ReactNode }) {
   return (
     <>
+      <head>
+        <meta name="theme-color" content="#166534" />
+        <link rel="manifest" href="/manifest-br.json" />
+        <meta name="apple-mobile-web-app-title" content="TradePro Brasil" />
+      </head>
       <HeaderBR />
       {children}
     </>

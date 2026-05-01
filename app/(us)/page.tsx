@@ -299,6 +299,10 @@ export default function HomePage() {
               <div className="text-2xl mb-3">✓</div>
               <p>One‑time purchase — no subscriptions, ever.</p>
             </div>
+            <div className="bg-neutral-50 border border-neutral-200 rounded-xl p-5 sm:col-span-3">
+              <div className="text-2xl mb-3">📱</div>
+              <p><strong>Works as an app.</strong> Visit on your phone and tap "Add to Home Screen" — TradePro installs like a native app. No App Store, no download required.</p>
+            </div>
           </div>
         </div>
       </section>

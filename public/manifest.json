@@ -1,0 +1,21 @@
+{
+  "name": "TradePro Technologies",
+  "short_name": "TradePro",
+  "description": "Resume builder for the trades. Built for real-world workers.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1a1a1a",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/brand/Tradepro-logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["business", "productivity", "utilities"],
+  "lang": "en-US",
+  "scope": "/"
+}
