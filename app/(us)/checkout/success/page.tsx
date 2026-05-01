@@ -62,14 +62,17 @@ function CheckoutSuccessContent() {
 
       setStatus("Redirecting you to your tools…");
 
+      // Detect Brazil purchase by productId prefix
+      const isBrazil = productId?.startsWith("br_");
+
       // Give them 3 seconds to see the success message before redirecting
       setTimeout(() => {
         if (data.entitlements.bundle) {
-          router.push("/resume");
+          router.push(isBrazil ? "/br/curriculo" : "/resume");
         } else if (data.entitlements.coverLetter) {
-          router.push("/cover-letter");
+          router.push(isBrazil ? "/br/carta" : "/cover-letter");
         } else if (data.entitlements.resume) {
-          router.push("/resume");
+          router.push(isBrazil ? "/br/curriculo" : "/resume");
         }
       }, 3000);
     }
