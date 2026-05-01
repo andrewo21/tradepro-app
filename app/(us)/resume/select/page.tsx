@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getOrCreateUserId } from "@/lib/userId";
 import ResumeUpload from "@/components/ResumeUpload";
+import InstallPrompt from "@/components/InstallPrompt";
 
 export default function SelectPage() {
   const selectedTemplate = useResumeStore((s) => s.selectedTemplate);
@@ -85,6 +86,8 @@ export default function SelectPage() {
           </div>
         </div>
       )}
+
+      <InstallPrompt />
 
       {/* Resume Upload — pre-fill builder from existing PDF */}
       <div className="mb-6 bg-white border border-neutral-200 rounded-xl p-5 shadow-sm">
