@@ -49,7 +49,15 @@ export async function POST(req: NextRequest) {
   if (event.type === "checkout.session.completed") {
     const session = event.data?.object;
     const userId: string = session?.metadata?.userId || "anonymous";
-    const productId: ProductId = session?.metadata?.productId as ProductId;
+    const rawProductId: string = session?.metadata?.productId || "";
+
+    // Map Brazilian product IDs to US entitlement equivalents
+    const BR_PRODUCT_MAP: Record<string, ProductId> = {
+      "br_curriculo_padrao":   ProductId.RESUME,
+      "br_carta_apresentacao": ProductId.COVER_LETTER,
+      "br_pacote_premium":     ProductId.BUNDLE,
+    };
+    const productId: ProductId = (BR_PRODUCT_MAP[rawProductId] || rawProductId) as ProductId;
 
     if (userId && productId) {
       try {

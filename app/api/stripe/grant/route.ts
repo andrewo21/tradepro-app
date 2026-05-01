@@ -39,11 +39,18 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Grant the entitlement
-    if (!Object.values(ProductId).includes(productId)) {
+    // Map Brazilian product IDs to their US entitlement equivalents
+    const BR_PRODUCT_MAP: Record<string, ProductId> = {
+      "br_curriculo_padrao":    ProductId.RESUME,
+      "br_carta_apresentacao":  ProductId.COVER_LETTER,
+      "br_pacote_premium":      ProductId.BUNDLE,
+    };
+    const resolvedProductId: ProductId = BR_PRODUCT_MAP[productId] || productId as ProductId;
+
+    if (!Object.values(ProductId).includes(resolvedProductId)) {
       return NextResponse.json({ error: `Unknown productId: ${productId}` }, { status: 400 });
     }
-    const entitlements = await grantEntitlement(userId, productId);
+    const entitlements = await grantEntitlement(userId, resolvedProductId);
 
     // Trigger post-purchase email sequence if we have a customer email
     try {
