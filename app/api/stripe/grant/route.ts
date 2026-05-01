@@ -40,6 +40,9 @@ export async function POST(req: NextRequest) {
     }
 
     // Grant the entitlement
+    if (!Object.values(ProductId).includes(productId)) {
+      return NextResponse.json({ error: `Unknown productId: ${productId}` }, { status: 400 });
+    }
     const entitlements = await grantEntitlement(userId, productId);
 
     // Trigger post-purchase email sequence if we have a customer email
