@@ -50,8 +50,9 @@ function createRedisClient() {
   const tls = url.startsWith("rediss://") ? { rejectUnauthorized: false } : undefined;
   return new Redis(url, {
     tls,
-    connectTimeout: 5000,
-    maxRetriesPerRequest: 1,
+    connectTimeout: 10000,
+    commandTimeout: 8000,
+    maxRetriesPerRequest: 2,
     // enableOfflineQueue must stay true (default) so commands wait for the
     // connection to be ready instead of throwing immediately
   });
@@ -73,6 +74,9 @@ async function redisSet(userId: string, data: UserEntitlements): Promise<void> {
   const client = createRedisClient();
   try {
     await client.set(KEY(userId), JSON.stringify(data));
+  } catch (err: any) {
+    console.error("redisSet error:", err?.message);
+    throw err;
   } finally {
     client.disconnect();
   }
