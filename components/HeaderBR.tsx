@@ -21,12 +21,13 @@ export default function HeaderBR() {
   const nav = ptBR.nav;
 
   return (
-    <header className="w-full border-b bg-white relative z-50">
+    <header className="w-full relative z-50" style={{ backgroundColor: "#166534" }}>
+      {/* Menu button — white on green */}
       <div className="absolute right-4 top-4 sm:right-8 sm:top-8 z-20" ref={menuRef}>
         <div className="relative">
           <button
             onClick={() => setOpen(!open)}
-            className="px-4 py-2 border rounded-md bg-neutral-100 hover:bg-neutral-200 text-sm font-medium"
+            className="px-4 py-2 border border-green-400 rounded-md bg-green-700 hover:bg-green-600 text-white text-sm font-medium"
           >
             Menu ▾
           </button>
@@ -35,7 +36,6 @@ export default function HeaderBR() {
               <Link href="/br" className="block px-4 py-2 text-neutral-800 hover:bg-neutral-100">{nav.home}</Link>
               <Link href="/br/curriculo" className="block px-4 py-2 text-neutral-800 hover:bg-neutral-100">{nav.resume}</Link>
               <Link href="/br/carta" className="block px-4 py-2 text-neutral-800 hover:bg-neutral-100">{nav.coverLetter}</Link>
-              <Link href="/br/contato" className="block px-4 py-2 text-neutral-800 hover:bg-neutral-100">{nav.contact}</Link>
               <Link href="/br/precos" className="block px-4 py-2 text-neutral-800 hover:bg-neutral-100">{nav.pricing}</Link>
               <Link href="/br/contato" className="block px-4 py-2 text-neutral-800 hover:bg-neutral-100">{nav.contact}</Link>
               <div className="border-t border-neutral-100 mt-1 pt-1">
@@ -46,20 +46,20 @@ export default function HeaderBR() {
         </div>
       </div>
 
+      {/* Logo — white filter on green background */}
       <div className="w-full text-center px-4 pt-8 pb-6 sm:pt-10 sm:pb-8">
         <img
           src="/brand/Tradepro-logo.svg"
           alt="TradePro Technologies"
           className="inline-block w-[220px] sm:w-[380px] md:w-[500px] lg:w-[620px] h-auto"
-          style={{ transform: "translateX(-12%)" }}
+          style={{ transform: "translateX(-12%)", filter: "brightness(0) invert(1)" }}
         />
-        {/* Green accent for Brazil */}
         <div className="flex justify-center mt-2 mb-1">
-          <span className="text-xs bg-green-100 text-green-700 font-semibold px-3 py-0.5 rounded-full border border-green-200">
+          <span className="text-xs bg-green-900 text-green-200 font-semibold px-3 py-0.5 rounded-full border border-green-700">
             🇧🇷 Portal Brasil
           </span>
         </div>
-        <p className="font-semibold text-neutral-600 mt-2 leading-snug text-base sm:text-2xl md:text-3xl lg:text-4xl">
+        <p className="font-semibold text-green-100 mt-2 leading-snug text-base sm:text-2xl md:text-3xl lg:text-4xl">
           {ptBR.landing.tagline}
         </p>
       </div>
