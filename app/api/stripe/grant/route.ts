@@ -32,7 +32,9 @@ export async function POST(req: NextRequest) {
 
       const session = await stripe.checkout.sessions.retrieve(sessionId);
 
-      if (session.payment_status !== "paid") {
+      // Accept "paid" (normal purchase) and "no_payment_required" (100% coupon applied)
+      const validStatuses = ["paid", "no_payment_required"];
+      if (!validStatuses.includes(session.payment_status)) {
         return NextResponse.json({ error: "Payment not completed." }, { status: 402 });
       }
     }
