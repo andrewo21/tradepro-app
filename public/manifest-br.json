@@ -9,7 +9,7 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/brand/Tradepro-logo.svg",
+      "src": "/brand/icon-br.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"

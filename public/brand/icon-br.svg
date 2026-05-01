@@ -1,0 +1,18 @@
+<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Green background -->
+  <rect width="512" height="512" rx="80" fill="#166534"/>
+
+  <!-- T-mark centered and scaled up, white -->
+  <!-- Original T-mark paths from translate(170,20) scale(0.78) on 600x250 viewbox -->
+  <!-- Recentered: scale up and center on 512x512 -->
+  <g transform="translate(256,256) scale(2.2) translate(-87,-100)">
+    <!-- Top bar of T -->
+    <path d="M62 20 H213 Q233 20 213 44 H62 Z" fill="white"/>
+    <!-- Left vertical -->
+    <rect x="80" y="54" width="32" height="126" fill="white"/>
+    <!-- Center vertical -->
+    <rect x="128" y="20" width="28" height="150" fill="white"/>
+    <!-- Bottom bar -->
+    <rect x="62" y="180" width="109" height="24" fill="white"/>
+  </g>
+</svg>
