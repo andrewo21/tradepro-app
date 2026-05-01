@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
       line_items: [{ price: priceId, quantity: 1 }],
       allow_promotion_codes: true,
       payment_method_types: ["card", "pix"],
-      success_url: `${origin}/br/checkout/sucesso?session_id={CHECKOUT_SESSION_ID}&userId=${encodeURIComponent(userId)}&productId=${encodeURIComponent(productId)}`,
+      success_url: `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}&userId=${encodeURIComponent(userId)}&productId=${encodeURIComponent(productId)}`,
       cancel_url: `${origin}/br/precos`,
       metadata: { userId, productId, locale: "pt-BR" },
       locale: "pt-BR",
