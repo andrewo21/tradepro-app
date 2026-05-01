@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
+import { checkRateLimit, getIP } from "@/lib/rateLimit";
 
 const systemPrompts: Record<string, string> = {
   summary: `You are an elite bilingual resume strategist specializing in skilled trades, construction, and blue-collar industries. 
@@ -27,6 +28,15 @@ Return ONLY the rewritten achievement — no dash, no bullet symbol, no explanat
 
 export async function POST(req: NextRequest) {
   try {
+    // Rate limit: 20 AI rewrites per IP per minute
+    const { allowed, retryAfter } = await checkRateLimit(`ai:${getIP(req)}`, 20, 60);
+    if (!allowed) {
+      return NextResponse.json(
+        { error: "Too many requests. Please slow down and try again." },
+        { status: 429, headers: { "Retry-After": String(retryAfter) } }
+      );
+    }
+
     if (!process.env.OPENAI_API_KEY) {
       return NextResponse.json({ error: "OpenAI not configured." }, { status: 500 });
     }
