@@ -33,7 +33,7 @@ export default function TermsPage() {
 
             <section>
               <h2 className="text-lg font-semibold text-neutral-900 mb-2">4. Refund Policy</h2>
-              <p>Please see our <Link href="/legal/refunds" className="text-blue-600 hover:underline">Refund Policy</Link> for full details. Because our tools deliver digital content that is generated and downloaded immediately, refunds are handled on a case-by-case basis. Contact <a href="mailto:andrew@tradeprotech.ai" className="text-blue-600 hover:underline">andrew@tradeprotech.ai</a> within 48 hours of purchase if you experience a technical issue.</p>
+              <p>Please see our <Link href="/legal/refunds" className="text-blue-600 hover:underline">Refund Policy</Link> for full details. Because our tools deliver digital content that is generated and downloaded immediately, refunds are handled on a case-by-case basis. Contact <a href="mailto:support@tradepro.tools" className="text-blue-600 hover:underline">support@tradepro.tools</a> within 48 hours of purchase if you experience a technical issue.</p>
             </section>
 
             <section>
@@ -78,7 +78,7 @@ export default function TermsPage() {
 
             <section>
               <h2 className="text-lg font-semibold text-neutral-900 mb-2">13. Contact</h2>
-              <p>For questions about these terms, contact us at <a href="mailto:andrew@tradeprotech.ai" className="text-blue-600 hover:underline">andrew@tradeprotech.ai</a>.</p>
+              <p>For questions about these terms, contact us at <a href="mailto:support@tradepro.tools" className="text-blue-600 hover:underline">support@tradepro.tools</a>.</p>
             </section>
 
           </div>
