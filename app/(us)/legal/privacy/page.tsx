@@ -66,7 +66,7 @@ export default function PrivacyPage() {
 
             <section>
               <h2 className="text-lg font-semibold text-neutral-900 mb-2">7. Your Rights</h2>
-              <p>You may request deletion of any personal data we hold about you at any time by emailing <a href="mailto:andrew@tradeprotech.ai" className="text-blue-600 hover:underline">andrew@tradeprotech.ai</a>. We will respond within 30 days.</p>
+              <p>You may request deletion of any personal data we hold about you at any time by emailing <a href="mailto:support@tradepro.tools" className="text-blue-600 hover:underline">support@tradepro.tools</a>. We will respond within 30 days.</p>
             </section>
 
             <section>
@@ -76,7 +76,7 @@ export default function PrivacyPage() {
 
             <section>
               <h2 className="text-lg font-semibold text-neutral-900 mb-2">9. Contact</h2>
-              <p>Questions about privacy? Email us at <a href="mailto:andrew@tradeprotech.ai" className="text-blue-600 hover:underline">andrew@tradeprotech.ai</a>.</p>
+              <p>Questions about privacy? Email us at <a href="mailto:support@tradepro.tools" className="text-blue-600 hover:underline">support@tradepro.tools</a>.</p>
             </section>
 
           </div>
