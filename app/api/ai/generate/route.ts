@@ -2,9 +2,18 @@ export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
+import { checkRateLimit, getIP } from "@/lib/rateLimit";
 
 export async function POST(req: NextRequest) {
   try {
+    const { allowed, retryAfter } = await checkRateLimit(`ai:${getIP(req)}`, 20, 60);
+    if (!allowed) {
+      return NextResponse.json(
+        { error: "Too many requests. Please slow down and try again." },
+        { status: 429, headers: { "Retry-After": String(retryAfter) } }
+      );
+    }
+
     if (!process.env.OPENAI_API_KEY) {
       return NextResponse.json({ error: "OpenAI not configured." }, { status: 500 });
     }

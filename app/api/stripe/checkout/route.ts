@@ -5,6 +5,7 @@ import { grantEntitlement, getUserEntitlements } from "@/lib/entitlements";
 import { ProductId, PRICE_IDS, resolveCheckoutProduct } from "@/lib/pricing";
 import { overrides } from "@/config/overrides";
 import { getUserIdFromCookieHeader } from "@/lib/userId";
+import { checkRateLimit, getIP } from "@/lib/rateLimit";
 
 function getStripe() {
   const secretKey = process.env.STRIPE_SECRET_KEY;
@@ -16,6 +17,15 @@ function getStripe() {
 
 export async function POST(req: NextRequest) {
   try {
+    // Rate limit: 10 checkout attempts per IP per minute
+    const { allowed, retryAfter } = await checkRateLimit(`checkout:${getIP(req)}`, 10, 60);
+    if (!allowed) {
+      return NextResponse.json(
+        { error: "Too many requests. Please wait a moment and try again." },
+        { status: 429, headers: { "Retry-After": String(retryAfter) } }
+      );
+    }
+
     const body = await req.json().catch(() => ({}));
     const cookieUserId = getUserIdFromCookieHeader(req.headers.get("cookie"));
     const userId: string = body.userId || cookieUserId;
