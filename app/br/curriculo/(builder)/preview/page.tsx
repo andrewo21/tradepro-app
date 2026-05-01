@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useBrResumeStore } from "@/app/store/useBrResumeStore";
 import Link from "next/link";
 import { getOrCreateUserId } from "@/lib/userId";
@@ -22,6 +22,7 @@ export default function BrPreviewPage() {
   const [userId] = useState(() => getOrCreateUserId());
   const [downloadsUsed, setDownloadsUsed] = useState<number | null>(null);
   const [revoked, setRevoked] = useState(false);
+  const previewRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetch(`/api/debug/entitlements?userId=${userId}`)
@@ -45,32 +46,41 @@ export default function BrPreviewPage() {
   };
 
   async function handleDownload() {
+    if (!previewRef.current || revoked) return;
     setLoading(true);
     try {
-      const res = await fetch("/api/export/pdf", {
+      // Screenshot the rendered template — same method as US builder
+      const html2canvas = (await import("html2canvas")).default;
+      const { jsPDF } = await import("jspdf");
+
+      const canvas = await html2canvas(previewRef.current, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+      });
+
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF({ orientation: "portrait", unit: "pt", format: "letter" });
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const ratio = Math.min(pageWidth / canvas.width, pageHeight / canvas.height);
+      const imgX = (pageWidth - canvas.width * ratio) / 2;
+
+      pdf.addImage(imgData, "PNG", imgX, 0, canvas.width * ratio, canvas.height * ratio);
+      pdf.save("Curriculo.pdf");
+
+      // Record download server-side
+      const record = await fetch("/api/stripe/record-download", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "resume", selectedTemplate: store.selectedTemplate, ...resumeData,
-          applicantName: `${store.personalInfo.nome} ${store.personalInfo.sobrenome}`,
-          tradeTitle: store.personalInfo.tituloProfissional,
-          contact: { phone: store.personalInfo.telefone, email: store.personalInfo.email, location: `${store.personalInfo.cidade}/${store.personalInfo.estado}` },
-          summary: store.resumoProfissional,
-          skills: store.habilidades,
-          experience: store.experiencia.map((e: any) => ({ jobTitle: e.cargo, company: e.empresa, startDate: e.dataInicio, endDate: e.dataFim, responsibilities: e.responsabilidades })),
-          education: store.formacao.map((f: any) => ({ school: f.instituicao, degree: f.curso, year: f.anoConclusao })),
-        }),
-      });
-      const blob = await res.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a"); a.href = url; a.download = "Curriculo.pdf"; a.click();
-
-      const record = await fetch("/api/stripe/record-download", {
-        method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId, type: "resume" }),
       });
       const data = await record.json();
-      if (data.success) { setDownloadsUsed(data.downloadsUsed); if (data.revoked) { setRevoked(true); store.clearAll(); } }
-    } catch { alert("Erro ao gerar PDF."); }
+      if (data.success) {
+        setDownloadsUsed(data.downloadsUsed);
+        if (data.revoked) { setRevoked(true); store.clearAll(); }
+      }
+    } catch { alert("Erro ao gerar PDF. Tente novamente."); }
     finally { setLoading(false); }
   }
 
@@ -96,8 +106,11 @@ export default function BrPreviewPage() {
         </div>
         <div className="flex gap-3">
           <Link href="/br/curriculo/resumo" className="px-4 py-2 border rounded-lg text-sm hover:bg-neutral-50">Editar</Link>
-          <button onClick={handleDownload} disabled={loading || remaining === 0}
-            className="px-6 py-2 bg-green-700 text-white rounded-lg font-semibold hover:bg-green-800 disabled:opacity-50">
+          <button
+            onClick={handleDownload}
+            disabled={loading || remaining === 0}
+            className="px-6 py-2 bg-green-700 text-white rounded-lg font-semibold hover:bg-green-800 disabled:opacity-50"
+          >
             {loading ? "Gerando..." : "Baixar Currículo PDF"}
           </button>
         </div>
@@ -115,7 +128,8 @@ export default function BrPreviewPage() {
         </div>
       )}
 
-      <div className="bg-white border rounded-xl shadow-xl overflow-hidden">
+      {/* Template rendered here — this is what gets screenshotted */}
+      <div ref={previewRef} className="bg-white border rounded-xl shadow-xl overflow-hidden">
         <TemplateComponent data={resumeData} showWatermark={false} />
       </div>
     </div>
