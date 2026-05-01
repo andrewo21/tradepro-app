@@ -12,8 +12,9 @@ function getStripe() {
   return new Stripe(secretKey, { apiVersion: "2024-06-20" });
 }
 
-// Tell Next.js not to parse the body — Stripe needs the raw bytes for signature verification
-export const config = { api: { bodyParser: false } };
+// App Router reads body via req.text() below — no config needed here.
+// The old Pages Router "export const config = { api: { bodyParser: false } }"
+// does nothing in App Router and was causing signature verification to fail.
 
 export async function POST(req: NextRequest) {
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
