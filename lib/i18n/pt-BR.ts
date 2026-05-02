@@ -90,7 +90,8 @@ export const ptBR = {
     bundle: {
       name: "Pacote Premium Completo",
       desc: "Libere tudo — 9 modelos premium, carta de apresentação e portfólio profissional.",
-      price: "R$ 149",
+      price: "R$ 99",
+      originalPrice: "R$ 149",
       badge: "Mais Popular",
       features: [
         "Todos os 9 modelos (4 padrão + 5 premium)",
