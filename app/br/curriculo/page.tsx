@@ -10,11 +10,26 @@ import BrResumeUpload from "@/components/BrResumeUpload";
 import BrModernoAzul from "@/components/templates/brazil/BrModernoAzul";
 import BrClasicoProfissional from "@/components/templates/brazil/BrClasicoProfissional";
 import BrVerdeTecnico from "@/components/templates/brazil/BrVerdeTecnico";
+import BrSimplesDirecto from "@/components/templates/brazil/BrSimplesDirecto";
+import BrExecutivoVerde from "@/components/templates/brazil/BrExecutivoVerde";
+import BrConstrucaoBold from "@/components/templates/brazil/BrConstrucaoBold";
+import BrTecnicoModerno from "@/components/templates/brazil/BrTecnicoModerno";
+import BrPremiumDourado from "@/components/templates/brazil/BrPremiumDourado";
+import BrMinimalistaBR from "@/components/templates/brazil/BrMinimalistaBR";
 
+// 4 standard + 5 premium = 9 total
 const TEMPLATES = [
-  { key: "br-moderno-azul", name: "Moderno Azul", component: BrModernoAzul },
-  { key: "br-clasico-profissional", name: "Clássico Profissional", component: BrClasicoProfissional },
-  { key: "br-verde-tecnico", name: "Verde Técnico", component: BrVerdeTecnico },
+  // STANDARD (included with R$79)
+  { key: "br-moderno-azul", name: "Moderno Azul", premium: false, component: BrModernoAzul },
+  { key: "br-clasico-profissional", name: "Clássico Profissional", premium: false, component: BrClasicoProfissional },
+  { key: "br-verde-tecnico", name: "Verde Técnico", premium: false, component: BrVerdeTecnico },
+  { key: "br-simples-direto", name: "Simples & Direto", premium: false, component: BrSimplesDirecto },
+  // PREMIUM (bundle only — R$149)
+  { key: "br-executivo-verde", name: "Executivo Verde", premium: true, component: BrExecutivoVerde },
+  { key: "br-construcao-bold", name: "Construção Bold", premium: true, component: BrConstrucaoBold },
+  { key: "br-tecnico-moderno", name: "Técnico Moderno", premium: true, component: BrTecnicoModerno },
+  { key: "br-premium-dourado", name: "Premium Dourado", premium: true, component: BrPremiumDourado },
+  { key: "br-minimalista-br", name: "Minimalista BR", premium: true, component: BrMinimalistaBR },
 ];
 
 const SAMPLE_DATA = {
@@ -102,16 +117,26 @@ export default function BrCurriculoSelectPage() {
               key={t.key}
               onClick={() => setField("selectedTemplate", t.key)}
               className={`w-full p-5 rounded-xl border text-left transition ${
-                selectedTemplate === t.key ? "border-green-600 shadow-lg bg-green-50" : "border-neutral-300 bg-white hover:border-green-400"
+                selectedTemplate === t.key
+                  ? "border-green-600 shadow-lg bg-green-50"
+                  : t.premium
+                  ? "border-neutral-300 bg-yellow-50 hover:border-yellow-500"
+                  : "border-neutral-300 bg-white hover:border-green-400"
               }`}
             >
               <div className="flex justify-between items-center">
                 <h3 className="text-base font-semibold text-neutral-900">{t.name}</h3>
-                <span className="text-xs bg-green-100 text-green-700 font-semibold px-2 py-1 rounded">Padrão</span>
+                {t.premium ? (
+                  <span className="text-xs bg-yellow-100 text-yellow-700 font-semibold px-2 py-1 rounded">Premium</span>
+                ) : (
+                  <span className="text-xs bg-green-100 text-green-700 font-semibold px-2 py-1 rounded">Padrão</span>
+                )}
               </div>
               <div className="flex justify-between mt-1">
                 <p className="text-neutral-500 text-sm">Clique para visualizar</p>
-                <p className="text-sm font-semibold text-green-700">Desbloquear — R$ 79</p>
+                <p className={`text-sm font-semibold ${t.premium ? "text-yellow-700" : "text-green-700"}`}>
+                  {t.premium ? "Pacote Premium — R$ 149" : "Desbloquear — R$ 79"}
+                </p>
               </div>
             </button>
           ))}

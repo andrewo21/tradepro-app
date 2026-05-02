@@ -7,6 +7,12 @@ import { getOrCreateUserId } from "@/lib/userId";
 import BrModernoAzul from "@/components/templates/brazil/BrModernoAzul";
 import BrClasicoProfissional from "@/components/templates/brazil/BrClasicoProfissional";
 import BrVerdeTecnico from "@/components/templates/brazil/BrVerdeTecnico";
+import BrSimplesDirecto from "@/components/templates/brazil/BrSimplesDirecto";
+import BrExecutivoVerde from "@/components/templates/brazil/BrExecutivoVerde";
+import BrConstrucaoBold from "@/components/templates/brazil/BrConstrucaoBold";
+import BrTecnicoModerno from "@/components/templates/brazil/BrTecnicoModerno";
+import BrPremiumDourado from "@/components/templates/brazil/BrPremiumDourado";
+import BrMinimalistaBR from "@/components/templates/brazil/BrMinimalistaBR";
 
 const MAX_DOWNLOADS = 2;
 
@@ -14,6 +20,12 @@ const TEMPLATES: Record<string, any> = {
   "br-moderno-azul": BrModernoAzul,
   "br-clasico-profissional": BrClasicoProfissional,
   "br-verde-tecnico": BrVerdeTecnico,
+  "br-simples-direto": BrSimplesDirecto,
+  "br-executivo-verde": BrExecutivoVerde,
+  "br-construcao-bold": BrConstrucaoBold,
+  "br-tecnico-moderno": BrTecnicoModerno,
+  "br-premium-dourado": BrPremiumDourado,
+  "br-minimalista-br": BrMinimalistaBR,
 };
 
 export default function BrPreviewPage() {
