@@ -103,12 +103,22 @@ export default function BrazilPricingPage() {
               <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-green-600 text-white text-xs font-semibold px-3 py-1 rounded-full shadow">
                 {t.popular}
               </div>
-              <div className="bg-white border border-neutral-300 rounded-lg shadow-sm p-6 sm:p-8 flex flex-col flex-1">
+              <div className="bg-white border-2 border-green-500 rounded-lg shadow-sm p-6 sm:p-8 flex flex-col flex-1">
                 <h2 className="text-2xl font-semibold mb-2 min-h-[4rem] flex items-center justify-center text-center">{t.bundle.name}</h2>
-                <p className="text-neutral-600 mb-6 text-center min-h-[3rem]">{t.bundle.desc}</p>
-                <div className="flex items-center justify-center mb-6">
-                  <div className="text-5xl font-bold">{t.bundle.price}</div>
+                <p className="text-neutral-600 mb-3 text-center min-h-[3rem]">{t.bundle.desc}</p>
+                <div className="flex justify-center mb-3">
+                  <span className="bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full">
+                    🔥 Oferta por tempo limitado
+                  </span>
                 </div>
+                <div className="flex items-center justify-center gap-3 mb-1">
+                  <div className="text-5xl font-bold text-green-700">R$ 99</div>
+                  <div className="text-center">
+                    <div className="text-xl font-semibold text-neutral-400 line-through">R$ 149</div>
+                    <div className="text-xs text-red-600 font-bold">Economize R$ 50</div>
+                  </div>
+                </div>
+                <p className="text-center text-xs text-neutral-500 mb-4">Pagamento único · Sem mensalidade</p>
                 <ul className="text-left text-neutral-700 space-y-3 mb-8 flex-1">
                   {t.bundle.features.map((f, i) => <li key={i}>• {f}</li>)}
                 </ul>

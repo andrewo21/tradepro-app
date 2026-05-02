@@ -132,6 +132,14 @@ export default function BrazilHomePage() {
         </motion.div>
       </section>
 
+      {/* SALE BANNER */}
+      <div className="w-full bg-red-600 text-white py-3 px-4 text-center">
+        <p className="text-sm font-semibold">
+          🔥 <strong>Oferta por tempo limitado:</strong> Pacote Premium por apenas <strong>R$ 99</strong> (de R$ 149) — economize R$ 50!{" "}
+          <a href="/br/precos" className="underline font-bold hover:text-red-100">Ver planos →</a>
+        </p>
+      </div>
+
       {/* TESTIMONIALS */}
       <section className="w-full bg-neutral-100 border-t border-neutral-300 pt-20 pb-12 px-4">
         <div className="max-w-5xl mx-auto">
