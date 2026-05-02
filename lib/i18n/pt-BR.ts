@@ -16,8 +16,8 @@ export const ptBR = {
 
   // Landing page
   landing: {
-    tagline: "Feito para a construção. Criado para te contratar.",
-    mission: "A missão da TradePro é construir currículos que transmitam confiança, orgulho e profissionalismo.",
+    tagline: "Para quem trabalha de verdade — de qualquer área.",
+    mission: "A TradePro transforma sua experiência real em um currículo profissional que abre portas — para eletricistas, técnicos, motoristas, cozinheiros, enfermeiros e muito mais.",
     hero: "Bem-vindo à TradePro Technologies",
     cta: "Criar Meu Currículo",
     ctaPricing: "Ver Planos",
@@ -58,11 +58,11 @@ export const ptBR = {
     subtitle: "Sem assinatura. Sem taxas escondidas. Sem pegadinhas. Escolha o plano que se encaixa nas suas necessidades.",
     resume: {
       name: "Criador de Currículo Padrão",
-      desc: "Um currículo limpo e profissional com nossos modelos padrão.",
+      desc: "Um currículo limpo e profissional para qualquer área de atuação.",
       price: "R$ 79",
       features: [
-        "5 modelos padrão para a construção",
-        "Escrita assistida por IA",
+        "4 modelos profissionais incluídos",
+        "Escrita assistida por IA em português",
         "Edite até ficar satisfeito",
         "2 downloads em PDF incluídos",
       ],
@@ -89,12 +89,12 @@ export const ptBR = {
     },
     bundle: {
       name: "Pacote Premium Completo",
-      desc: "Libere tudo — modelos premium, carta de apresentação e portfólio de obras.",
+      desc: "Libere tudo — 9 modelos premium, carta de apresentação e portfólio profissional.",
       price: "R$ 149",
       badge: "Mais Popular",
       features: [
-        "Todos os 9 modelos (5 padrão + 4 premium)",
-        "Escrita assistida por IA",
+        "Todos os 9 modelos (4 padrão + 5 premium)",
+        "Escrita assistida por IA em português",
         "Edite até ficar satisfeito",
         "2 downloads em PDF por ferramenta",
         "Carta de Apresentação incluída",

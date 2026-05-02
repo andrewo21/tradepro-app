@@ -59,7 +59,10 @@ export default function BrazilPricingPage() {
           <Link href="/br" className="text-sm text-green-600 hover:underline mb-8 inline-block">← {ptBR.common.backHome}</Link>
 
           <h1 className="text-3xl font-semibold mb-4">{ptBR.pricing.title}</h1>
-          <p className="text-neutral-700 mb-12 max-w-xl mx-auto">{ptBR.pricing.subtitle}</p>
+          <p className="text-neutral-700 mb-4 max-w-xl mx-auto">{ptBR.pricing.subtitle}</p>
+          <p className="text-sm text-green-700 font-medium mb-12 max-w-xl mx-auto">
+            Para eletricistas, encanadores, técnicos, motoristas, cozinheiros, seguranças, enfermeiros e qualquer profissional que trabalha de verdade.
+          </p>
 
           <div className="grid gap-8 md:grid-cols-3 items-stretch">
 
