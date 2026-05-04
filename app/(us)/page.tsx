@@ -269,7 +269,7 @@ export default function HomePage() {
           </p>
           <div className="max-w-3xl mx-auto aspect-video mb-8 rounded-lg overflow-hidden shadow-lg">
             <iframe
-              src="https://www.youtube.com/embed/I7j_Xhz5tUA"
+              src="https://www.youtube.com/embed/I7j_Xhz5tUA?start=0"
               title="TradePro — See How It Works"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               allowFullScreen
