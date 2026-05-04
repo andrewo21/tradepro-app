@@ -2,9 +2,18 @@ export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
+import { checkRateLimit, getIP } from "@/lib/rateLimit";
 
 export async function POST(req: NextRequest) {
   try {
+    const { allowed, retryAfter } = await checkRateLimit(`ai:${getIP(req)}`, 20, 60);
+    if (!allowed) {
+      return NextResponse.json(
+        { error: "Too many requests. Please slow down and try again." },
+        { status: 429, headers: { "Retry-After": String(retryAfter) } }
+      );
+    }
+
     if (!process.env.OPENAI_API_KEY) {
       return NextResponse.json({ error: "OpenAI not configured." }, { status: 500 });
     }
@@ -34,23 +43,26 @@ export async function POST(req: NextRequest) {
           role: "system",
           content: `You are an expert ATS (Applicant Tracking System) optimization specialist for skilled trades and construction industries.
 
-Your job is to analyze a job description against a candidate's current resume content and provide:
-1. A list of HIGH-PRIORITY keywords from the job description that are MISSING from the resume
-2. A list of keywords that are already PRESENT in the resume (good matches)
-3. A fully rewritten professional summary that naturally incorporates the most critical missing keywords while staying true to the candidate's real experience
-4. 2-3 specific bullet point suggestions they should add or strengthen
+Analyze a job description against a candidate's resume and provide:
+1. HIGH-PRIORITY keywords from the job description that are MISSING from the resume
+2. Keywords already PRESENT in the resume
+3. A fully rewritten professional summary incorporating the most critical missing keywords — staying true to the candidate's real experience
+4. 2-3 specific bullet point suggestions to add or strengthen
+5. A list of SMART SKILL ADDITIONS — keywords from the missing list that are genuinely supported by the candidate's actual experience. These must be skills the candidate demonstrably has based on their work history. Format as clean ATS skill phrases (e.g. "Project Cost Management", "OSHA 30 Compliance"). Maximum 6 skills.
 
 Rules:
-- Only suggest keywords that are genuinely relevant to the candidate's real experience — never fabricate experience
+- NEVER fabricate experience or suggest skills the candidate doesn't have
+- Smart skill additions must be directly evidenced by their job history or implied by their trade/role
 - Write in professional English, no first-person pronouns
 - ATS keywords should feel natural, not keyword-stuffed
 - Focus on construction/trades industry terminology
-- Return ONLY valid JSON in this exact format with no other text:
+- Return ONLY valid JSON in this exact format:
 {
-  "missingKeywords": ["keyword1", "keyword2", ...],
-  "presentKeywords": ["keyword1", "keyword2", ...],
+  "missingKeywords": ["keyword1", "keyword2"],
+  "presentKeywords": ["keyword1", "keyword2"],
   "optimizedSummary": "...",
-  "bulletSuggestions": ["suggestion1", "suggestion2", "suggestion3"]
+  "bulletSuggestions": ["suggestion1", "suggestion2"],
+  "smartSkillAdditions": ["Skill Phrase 1", "Skill Phrase 2"]
 }`,
         },
         {
@@ -70,6 +82,7 @@ Rules:
       presentKeywords: result.presentKeywords || [],
       optimizedSummary: result.optimizedSummary || "",
       bulletSuggestions: result.bulletSuggestions || [],
+      smartSkillAdditions: result.smartSkillAdditions || [],
     });
   } catch (err: any) {
     const detail = err?.message || String(err);
