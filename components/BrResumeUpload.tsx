@@ -38,11 +38,11 @@ export default function BrResumeUpload() {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      const res = await fetch("/api/ai/parse-resume", { method: "POST", body: formData });
+      const res = await fetch("/api/ai/br/parse-resume", { method: "POST", body: formData });
       const json = await res.json();
 
       if (!res.ok || !json.data) {
-        setError(json.detail || json.error || "Não foi possível ler seu currículo. Tente outro arquivo.");
+        setError(json.error || json.detail || "Não foi possível ler seu currículo. Tente outro arquivo.");
         return;
       }
 
