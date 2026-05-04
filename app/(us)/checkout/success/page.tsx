@@ -19,13 +19,14 @@ function CheckoutSuccessContent() {
   const setField = useResumeStore((s: any) => s.setField);
   const [entitlements, setEntitlements] = useState<any>(null);
   const [grantError, setGrantError] = useState<string | null>(null);
-  const [status, setStatus] = useState("Processing your payment…");
+  const isBrazil = productId?.startsWith("br_");
+  const [status, setStatus] = useState(isBrazil ? "Processando seu pagamento…" : "Processing your payment…");
 
   useEffect(() => {
     async function load() {
       // Grant entitlement on the server
       if (productId) {
-        setStatus("Activating your purchase…");
+        setStatus(isBrazil ? "Ativando sua compra…" : "Activating your purchase…");
         const grantRes = await fetch("/api/stripe/grant", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -42,7 +43,7 @@ function CheckoutSuccessContent() {
       }
 
       // Fetch updated entitlements
-      setStatus("Loading your account…");
+      setStatus(isBrazil ? "Carregando sua conta…" : "Loading your account…");
       const res = await fetch(`/api/debug/entitlements?userId=${userId}`);
       const data = await res.json();
       setEntitlements(data.entitlements);
@@ -55,12 +56,14 @@ function CheckoutSuccessContent() {
 
       const hasAny = data.entitlements.resume || data.entitlements.coverLetter || data.entitlements.bundle;
       if (!hasAny) {
-        setGrantError("Purchase processed but entitlement not found. Please contact support.");
-        setStatus("Activation issue detected.");
+        setGrantError(isBrazil
+          ? "Pagamento processado mas acesso não encontrado. Entre em contato com o suporte."
+          : "Purchase processed but entitlement not found. Please contact support.");
+        setStatus(isBrazil ? "Problema de ativação detectado." : "Activation issue detected.");
         return;
       }
 
-      setStatus("Redirecting you to your tools…");
+      setStatus(isBrazil ? "Redirecionando para suas ferramentas…" : "Redirecting you to your tools…");
 
       // Detect Brazil purchase by productId prefix
       const isBrazil = productId?.startsWith("br_");
@@ -80,34 +83,46 @@ function CheckoutSuccessContent() {
     load();
   }, [router, userId, productId, sessionId, setField]);
 
+  // Text in Portuguese for Brazil, English for US
+  const t = {
+    successTitle: isBrazil ? "Pagamento Confirmado!" : "Payment Successful!",
+    activationProblem: isBrazil ? "Problema na Ativação" : "Activation Problem",
+    thankYou: isBrazil
+      ? "Obrigado pela sua compra. Sua conta está sendo atualizada agora."
+      : "Thank you for your purchase. Your account is being upgraded now.",
+    allFeatures: isBrazil ? "✓ Você agora tem acesso a TODOS os recursos premium." : "✓ You now have access to ALL premium features.",
+    resumeUnlocked: isBrazil ? "✓ Criador de Currículo Desbloqueado." : "✓ Resume Builder Unlocked.",
+    coverLetterUnlocked: isBrazil ? "✓ Carta de Apresentação Desbloqueada." : "✓ Cover Letter Builder Unlocked.",
+    errorDetail: isBrazil ? "Detalhe do erro:" : "Error detail:",
+    errorContact: isBrazil
+      ? "Seu pagamento foi recebido pelo Stripe. Por favor, tire um print deste erro e entre em contato com o suporte."
+      : "Your payment was received by Stripe. Please screenshot this error and contact support.",
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-      <div className="bg-white shadow-lg rounded-xl p-10 border border-gray-200 max-w-lg text-center">
-        <h1 className={`text-3xl font-bold mb-4 ${grantError ? "text-red-600" : "text-green-700"}`}>
-          {grantError ? "Activation Problem" : "Payment Successful!"}
+      <div className={`bg-white shadow-lg rounded-xl p-10 border max-w-lg text-center ${isBrazil ? "border-green-200" : "border-gray-200"}`}>
+        <h1 className={`text-3xl font-bold mb-4 ${grantError ? "text-red-600" : isBrazil ? "text-green-700" : "text-green-700"}`}>
+          {grantError ? t.activationProblem : t.successTitle}
         </h1>
 
         {!grantError && (
-          <p className="text-gray-700 text-lg mb-6">
-            Thank you for your purchase. Your account is being upgraded now.
-          </p>
+          <p className="text-gray-700 text-lg mb-6">{t.thankYou}</p>
         )}
 
         {entitlements && !grantError && (
           <div className="text-gray-800 font-medium mb-6">
-            {entitlements.bundle && "✓ You now have access to ALL premium features."}
-            {entitlements.resume && !entitlements.bundle && "✓ Resume Builder Unlocked."}
-            {entitlements.coverLetter && !entitlements.bundle && "✓ Cover Letter Builder Unlocked."}
+            {entitlements.bundle && t.allFeatures}
+            {entitlements.resume && !entitlements.bundle && t.resumeUnlocked}
+            {entitlements.coverLetter && !entitlements.bundle && t.coverLetterUnlocked}
           </div>
         )}
 
         {grantError && (
           <div className="text-red-600 text-sm mb-6 bg-red-50 border border-red-200 rounded p-4 text-left">
-            <p className="font-bold mb-2">Error detail:</p>
+            <p className="font-bold mb-2">{t.errorDetail}</p>
             <p className="font-mono break-all">{grantError}</p>
-            <p className="mt-3 text-gray-600 text-xs">
-              Your payment was received by Stripe. Please screenshot this error and contact support.
-            </p>
+            <p className="mt-3 text-gray-600 text-xs">{t.errorContact}</p>
           </div>
         )}
 
