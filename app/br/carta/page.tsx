@@ -50,7 +50,7 @@ export default function BrCartaPage() {
     try {
       const formData = new FormData();
       formData.append("file", resumeFile);
-      const res = await fetch("/api/ai/extract-summary", { method: "POST", body: formData });
+      const res = await fetch("/api/ai/br/extract-summary", { method: "POST", body: formData });
       const d = await res.json();
       if (d.summary) setField("experiencia", d.summary);
     } catch { alert("Erro ao extrair dados. Tente novamente."); }
