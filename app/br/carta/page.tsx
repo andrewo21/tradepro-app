@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useBrCoverLetterStore } from "@/app/store/useBrCoverLetterStore";
 import { getOrCreateUserId } from "@/lib/userId";
 import Link from "next/link";
@@ -21,6 +21,7 @@ export default function BrCartaPage() {
 
   const [userId] = useState(() => getOrCreateUserId());
   const [selectedTemplate, setSelectedTemplate] = useState<CoverLetterTemplateKey>("modern-blue");
+  const previewRef = useRef<HTMLDivElement>(null);
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [loadingExtract, setLoadingExtract] = useState(false);
   const [loadingCarta, setLoadingCarta] = useState(false);
@@ -79,30 +80,27 @@ export default function BrCartaPage() {
   }
 
   async function handleDownloadPDF() {
-    if (!cartaGerada || revoked) return;
+    if (!cartaGerada || !previewRef.current || revoked) return;
     setLoadingPDF(true);
     try {
-      const res = await fetch("/api/export/pdf", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          type: "cover-letter",
-          applicantName: candidatoNome,
-          applicantEmail: candidatoEmail,
-          applicantPhone: candidatoTelefone || candidatoWhatsapp,
-          applicantAddress: candidatoEndereco,
-          applicantCityStateZip: candidatoCidadeEstado,
-          date: data,
-          hiringManager: nomeContratante,
-          companyName: nomeEmpresa,
-          companyAddress: enderecoEmpresa,
-          companyCityStateZip: cidadeEstadoEmpresa,
-          letter: cartaGerada,
-        }),
+      // Screenshot the rendered template — matches exactly what the user sees
+      const html2canvas = (await import("html2canvas")).default;
+      const { jsPDF } = await import("jspdf");
+
+      const canvas = await html2canvas(previewRef.current, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
       });
-      const blob = await res.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a"); a.href = url; a.download = "Carta-de-Apresentacao.pdf"; a.click();
+
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF({ orientation: "portrait", unit: "pt", format: "letter" });
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const ratio = Math.min(pageWidth / canvas.width, pageHeight / canvas.height);
+      const imgX = (pageWidth - canvas.width * ratio) / 2;
+      pdf.addImage(imgData, "PNG", imgX, 0, canvas.width * ratio, canvas.height * ratio);
+      pdf.save("Carta-de-Apresentacao.pdf");
 
       const record = await fetch("/api/stripe/record-download", {
         method: "POST", headers: { "Content-Type": "application/json" },
@@ -225,10 +223,13 @@ export default function BrCartaPage() {
             ))}
           </div>
 
-          {(() => {
-            const TemplateComponent = coverLetterTemplates[selectedTemplate].component;
-            return <TemplateComponent data={previewData} />;
-          })()}
+          {/* Preview div — screenshotted for PDF */}
+          <div ref={previewRef}>
+            {(() => {
+              const TemplateComponent = coverLetterTemplates[selectedTemplate].component;
+              return <TemplateComponent data={previewData} />;
+            })()}
+          </div>
 
           <div className="bg-slate-50 rounded-xl border p-4">
             <p className="text-xs text-slate-500 mb-2 font-medium">Editar texto da carta:</p>
