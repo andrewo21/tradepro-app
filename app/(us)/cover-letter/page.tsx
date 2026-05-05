@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useCoverLetterStore } from "@/app/store/useCoverLetterStore";
 import Link from "next/link";
 import { getOrCreateUserId } from "@/lib/userId";
@@ -17,6 +17,7 @@ export default function CoverLetterPage() {
 
   const [userId] = useState(() => getOrCreateUserId());
   const [selectedTemplate, setSelectedTemplate] = useState<CoverLetterTemplateKey>("modern-blue");
+  const previewRef = useRef<HTMLDivElement>(null);
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [loadingSummary, setLoadingSummary] = useState(false);
   const [loadingLetter, setLoadingLetter] = useState(false);
@@ -76,33 +77,27 @@ export default function CoverLetterPage() {
   };
 
   const handleExportPDF = async () => {
-    if (!generatedLetter || revoked) return;
+    if (!generatedLetter || !previewRef.current || revoked) return;
     setLoadingPDF(true);
     try {
-      const res = await fetch(`${API_BASE}/api/export/pdf`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          type: "cover-letter",
-          applicantName,
-          applicantEmail,
-          applicantPhone, 
-          applicantAddress,
-          applicantCityStateZip,
-          date,
-          hiringManager,
-          companyName,
-          companyAddress,
-          companyCityStateZip,
-          letter: generatedLetter 
-        }),
+      // Screenshot the rendered template — matches exactly what the user sees
+      const html2canvas = (await import("html2canvas")).default;
+      const { jsPDF } = await import("jspdf");
+
+      const canvas = await html2canvas(previewRef.current, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
       });
-      const blob = await res.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "Cover-Letter.pdf";
-      a.click();
+
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF({ orientation: "portrait", unit: "pt", format: "letter" });
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const ratio = Math.min(pageWidth / canvas.width, pageHeight / canvas.height);
+      const imgX = (pageWidth - canvas.width * ratio) / 2;
+      pdf.addImage(imgData, "PNG", imgX, 0, canvas.width * ratio, canvas.height * ratio);
+      pdf.save("Cover-Letter.pdf");
 
       // Record the download server-side
       const record = await fetch("/api/stripe/record-download", {
@@ -231,17 +226,19 @@ export default function CoverLetterPage() {
             ))}
           </div>
 
-          {/* Live rendered preview using selected template */}
-          {(() => {
-            const TemplateComponent = coverLetterTemplates[selectedTemplate].component;
-            const previewData = {
-              applicantName, applicantEmail, applicantPhone,
-              applicantAddress, applicantCityStateZip, date,
-              hiringManager, companyName, companyAddress, companyCityStateZip,
-              jobTitle, letter: generatedLetter,
-            };
-            return <TemplateComponent data={previewData} />;
-          })()}
+          {/* Live rendered preview — this div is screenshotted for PDF */}
+          <div ref={previewRef}>
+            {(() => {
+              const TemplateComponent = coverLetterTemplates[selectedTemplate].component;
+              const previewData = {
+                applicantName, applicantEmail, applicantPhone,
+                applicantAddress, applicantCityStateZip, date,
+                hiringManager, companyName, companyAddress, companyCityStateZip,
+                jobTitle, letter: generatedLetter,
+              };
+              return <TemplateComponent data={previewData} />;
+            })()}
+          </div>
 
           {/* Editable raw text fallback */}
           <div className="bg-slate-50 rounded-xl border p-4">
