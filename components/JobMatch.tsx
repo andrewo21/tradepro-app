@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useResumeStore } from "@/app/store/useResumeStore";
 
 interface MatchResult {
@@ -18,6 +18,26 @@ export default function JobMatch() {
   const [error, setError] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [applied, setApplied] = useState<{ summary: boolean; skills: boolean }>({ summary: false, skills: false });
+  const [liveScore, setLiveScore] = useState<number | null>(null);
+  const [addedSkills, setAddedSkills] = useState<string[]>([]);
+
+  // Recalculate live score whenever applied state or addedSkills change
+  useEffect(() => {
+    if (!result) return;
+    const total = result.missingKeywords.length + result.presentKeywords.length;
+    if (total === 0) return;
+
+    // Count how many missing keywords are now covered by added skills
+    const newlyCovered = result.missingKeywords.filter(kw =>
+      addedSkills.some(s => s.toLowerCase().includes(kw.toLowerCase().split(" ")[0]) ||
+        kw.toLowerCase().includes(s.toLowerCase().split(" ")[0]))
+    ).length;
+
+    const newScore = Math.min(100, Math.round(
+      ((result.presentKeywords.length + newlyCovered) / total) * 100
+    ));
+    setLiveScore(newScore);
+  }, [addedSkills, result]);
 
   async function handleAnalyze() {
     if (!jobDescription.trim()) return;
@@ -25,6 +45,8 @@ export default function JobMatch() {
     setError(null);
     setResult(null);
     setApplied({ summary: false, skills: false });
+    setLiveScore(null);
+    setAddedSkills([]);
     try {
       const res = await fetch("/api/ai/match-job", {
         method: "POST",
@@ -49,13 +71,17 @@ export default function JobMatch() {
 
   function applySkills() {
     if (!result?.smartSkillAdditions?.length) return;
+    const actuallyAdded: string[] = [];
     result.smartSkillAdditions.forEach(skill => {
-      // Only add if not already in skills list
       const alreadyExists = skills.some((s: any) =>
         (s.text || s).toLowerCase().includes(skill.toLowerCase().split(" ")[0])
       );
-      if (!alreadyExists) addSkill(skill);
+      if (!alreadyExists) {
+        addSkill(skill);
+        actuallyAdded.push(skill);
+      }
     });
+    setAddedSkills(actuallyAdded);
     setApplied(prev => ({ ...prev, skills: true }));
   }
 
@@ -65,15 +91,18 @@ export default function JobMatch() {
   }
 
   const total = (result?.missingKeywords.length || 0) + (result?.presentKeywords.length || 0);
-  const score = total > 0 ? Math.round(((result?.presentKeywords.length || 0) / total) * 100) : 0;
+  const baseScore = total > 0 ? Math.round(((result?.presentKeywords.length || 0) / total) * 100) : 0;
   const projectedScore = total > 0
-    ? Math.min(100, Math.round(((( result?.presentKeywords.length || 0) + (result?.smartSkillAdditions?.length || 0)) / total) * 100))
+    ? Math.min(100, Math.round((((result?.presentKeywords.length || 0) + (result?.smartSkillAdditions?.length || 0)) / total) * 100))
     : 0;
+
+  // Show live score after applying, projected before, base before any interaction
+  const displayScore = liveScore !== null ? liveScore : baseScore;
+  const scoreImproved = liveScore !== null && liveScore > baseScore;
 
   return (
     <div className="border border-blue-200 rounded-xl bg-blue-50 overflow-hidden">
 
-      {/* Header toggle */}
       <button onClick={() => setOpen(!open)}
         className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-blue-100 transition">
         <div className="flex items-center gap-3">
@@ -89,7 +118,6 @@ export default function JobMatch() {
       {open && (
         <div className="px-5 pb-5 space-y-4">
 
-          {/* Job description input */}
           <div>
             <label className="block text-sm font-semibold text-blue-900 mb-1">Paste the Job Description</label>
             <textarea
@@ -110,17 +138,33 @@ export default function JobMatch() {
           {result && (
             <div className="space-y-4">
 
-              {/* Keyword chips */}
+              {/* Keyword chips — missing ones turn green after skills applied */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {result.missingKeywords.length > 0 && (
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                    <p className="text-xs font-bold text-red-700 uppercase tracking-wide mb-2">
-                      ⚠ Missing Keywords ({result.missingKeywords.length})
+                  <div className={`border rounded-lg p-4 transition-colors ${
+                    applied.skills ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200"
+                  }`}>
+                    <p className={`text-xs font-bold uppercase tracking-wide mb-2 ${
+                      applied.skills ? "text-green-700" : "text-red-700"
+                    }`}>
+                      {applied.skills ? "✓ Keywords Added" : `⚠ Missing Keywords (${result.missingKeywords.length})`}
                     </p>
                     <div className="flex flex-wrap gap-1.5">
-                      {result.missingKeywords.map((kw, i) => (
-                        <span key={i} className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">{kw}</span>
-                      ))}
+                      {result.missingKeywords.map((kw, i) => {
+                        const wasAdded = addedSkills.some(s =>
+                          s.toLowerCase().includes(kw.toLowerCase().split(" ")[0]) ||
+                          kw.toLowerCase().includes(s.toLowerCase().split(" ")[0])
+                        );
+                        return (
+                          <span key={i} className={`text-xs px-2 py-0.5 rounded-full font-medium transition-colors ${
+                            wasAdded
+                              ? "bg-green-100 text-green-700"
+                              : "bg-red-100 text-red-700"
+                          }`}>
+                            {wasAdded ? "✓" : ""} {kw}
+                          </span>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -138,25 +182,41 @@ export default function JobMatch() {
                 )}
               </div>
 
-              {/* ATS score bar */}
+              {/* Live ATS score bar */}
               {total > 0 && (
                 <div>
                   <div className="flex justify-between text-xs text-neutral-600 mb-1">
                     <span>ATS Match Score</span>
                     <span className="font-bold">
-                      {score}% now
-                      {projectedScore > score && (
-                        <span className="text-green-600"> → {projectedScore}% after applying</span>
+                      {scoreImproved ? (
+                        <span className="text-green-600 font-bold">{displayScore}% ✓ Improved!</span>
+                      ) : (
+                        <>
+                          {baseScore}%
+                          {projectedScore > baseScore && !applied.skills && (
+                            <span className="text-blue-600"> → {projectedScore}% after applying</span>
+                          )}
+                        </>
                       )}
                     </span>
                   </div>
-                  <div className="h-2 bg-neutral-200 rounded-full overflow-hidden">
-                    <div className="h-full bg-blue-600 rounded-full transition-all" style={{ width: `${score}%` }} />
+                  <div className="h-3 bg-neutral-200 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all duration-700 ease-out ${
+                        scoreImproved ? "bg-green-500" : "bg-blue-600"
+                      }`}
+                      style={{ width: `${displayScore}%` }}
+                    />
                   </div>
+                  {scoreImproved && (
+                    <p className="text-xs text-green-600 font-medium mt-1 text-right">
+                      +{displayScore - baseScore} points added to your score
+                    </p>
+                  )}
                 </div>
               )}
 
-              {/* ── APPLY IMPROVEMENTS SECTION ── */}
+              {/* Apply Improvements */}
               {(result.optimizedSummary || result.smartSkillAdditions?.length > 0) && (
                 <div className="bg-white border-2 border-blue-300 rounded-xl p-4 space-y-4">
                   <div className="flex items-center gap-2">
@@ -164,23 +224,19 @@ export default function JobMatch() {
                     <p className="font-bold text-blue-900 text-sm">Apply Improvements to Your Resume</p>
                   </div>
 
-                  {/* Optimized summary preview */}
                   {result.optimizedSummary && (
                     <div className="bg-blue-50 rounded-lg p-3">
                       <p className="text-xs font-bold text-blue-800 uppercase tracking-wide mb-1">Optimized Summary</p>
                       <p className="text-xs text-neutral-700 leading-relaxed mb-3 line-clamp-3">{result.optimizedSummary}</p>
                       <button onClick={applySummary} disabled={applied.summary}
                         className={`w-full py-2 rounded-lg text-sm font-semibold transition ${
-                          applied.summary
-                            ? "bg-green-100 text-green-700 cursor-default"
-                            : "bg-blue-600 hover:bg-blue-700 text-white"
+                          applied.summary ? "bg-green-100 text-green-700 cursor-default" : "bg-blue-600 hover:bg-blue-700 text-white"
                         }`}>
                         {applied.summary ? "✓ Summary Applied" : "Apply Optimized Summary"}
                       </button>
                     </div>
                   )}
 
-                  {/* Smart skill additions */}
                   {result.smartSkillAdditions?.length > 0 && (
                     <div className="bg-blue-50 rounded-lg p-3">
                       <p className="text-xs font-bold text-blue-800 uppercase tracking-wide mb-1">
@@ -188,23 +244,24 @@ export default function JobMatch() {
                       </p>
                       <div className="flex flex-wrap gap-1.5 mb-3">
                         {result.smartSkillAdditions.map((skill, i) => (
-                          <span key={i} className="text-xs bg-blue-100 text-blue-800 border border-blue-300 px-2 py-0.5 rounded-full font-medium">
-                            + {skill}
+                          <span key={i} className={`text-xs px-2 py-0.5 rounded-full font-medium border transition-colors ${
+                            applied.skills
+                              ? "bg-green-100 text-green-700 border-green-300"
+                              : "bg-blue-100 text-blue-800 border-blue-300"
+                          }`}>
+                            {applied.skills ? "✓" : "+"} {skill}
                           </span>
                         ))}
                       </div>
                       <button onClick={applySkills} disabled={applied.skills}
                         className={`w-full py-2 rounded-lg text-sm font-semibold transition ${
-                          applied.skills
-                            ? "bg-green-100 text-green-700 cursor-default"
-                            : "bg-blue-600 hover:bg-blue-700 text-white"
+                          applied.skills ? "bg-green-100 text-green-700 cursor-default" : "bg-blue-600 hover:bg-blue-700 text-white"
                         }`}>
                         {applied.skills ? "✓ Skills Added" : "Add Skills to Resume"}
                       </button>
                     </div>
                   )}
 
-                  {/* Apply All button */}
                   {result.optimizedSummary && result.smartSkillAdditions?.length > 0 && (
                     <button
                       onClick={applyAll}
@@ -223,13 +280,12 @@ export default function JobMatch() {
 
                   {(applied.summary || applied.skills) && (
                     <p className="text-xs text-center text-green-700 font-medium">
-                      Changes applied to your resume. Review the Skills and Summary sections, then download.
+                      Changes applied. Review Skills and Summary sections, then download your resume.
                     </p>
                   )}
                 </div>
               )}
 
-              {/* Bullet suggestions */}
               {result.bulletSuggestions?.length > 0 && (
                 <div className="bg-white border border-blue-200 rounded-lg p-4">
                   <p className="text-xs font-bold text-blue-900 uppercase tracking-wide mb-2">
