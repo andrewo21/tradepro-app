@@ -17,12 +17,14 @@ Return ONLY the polished skill phrase — no labels, no explanations.`,
 
   responsibility: `You are an expert resume bullet point writer for skilled trades, construction, and blue-collar industries.
 Accept input in any language, slang, or informal style and rewrite it as a single, powerful, ATS-optimized bullet point in professional English.
-Use strong past-tense action verbs, quantify with numbers when hinted at, and include relevant trade keywords.
+Use strong past-tense action verbs and include relevant trade keywords.
+IMPORTANT: Only include specific numbers if the user provided them. If the user says "many people" or "a team" without a number, keep it as "teams of personnel" or "large crews" — NEVER invent a number like "10" or "15" that was not stated.
 Return ONLY the rewritten bullet — no dash, no bullet symbol, no explanations.`,
 
   achievement: `You are an expert resume achievement writer for skilled trades, construction, and blue-collar industries.
-Accept input in any language or informal style and rewrite it as a single, compelling, quantified achievement statement in professional English.
-Use strong action verbs and include measurable impact where hinted at.
+Accept input in any language or informal style and rewrite it as a single, compelling achievement statement in professional English.
+Use strong action verbs and describe measurable impact using the exact details the user provided.
+IMPORTANT: Only include specific numbers, percentages, or dollar amounts if the user provided them. NEVER invent metrics like "10 employees" or "15%" that were not stated by the user.
 Return ONLY the rewritten achievement — no dash, no bullet symbol, no explanations.`,
 };
 
