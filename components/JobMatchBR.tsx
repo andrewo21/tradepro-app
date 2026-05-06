@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useBrResumeStore } from "@/app/store/useBrResumeStore";
 
 interface ResultadoAnalise {
@@ -19,6 +19,21 @@ export default function JobMatchBR() {
   const [erro, setErro] = useState<string | null>(null);
   const [aberto, setAberto] = useState(false);
   const [aplicado, setAplicado] = useState<{ resumo: boolean; habilidades: boolean }>({ resumo: false, habilidades: false });
+  const [pontuacaoAoVivo, setPontuacaoAoVivo] = useState<number | null>(null);
+  const [habilidadesAdicionadas, setHabilidadesAdicionadas] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!resultado) return;
+    const total = resultado.palavrasAusentes.length + resultado.palavrasPresentes.length;
+    if (total === 0) return;
+    const novasCoberturas = resultado.palavrasAusentes.filter(kw =>
+      habilidadesAdicionadas.some(h =>
+        h.toLowerCase().includes(kw.toLowerCase().split(" ")[0]) ||
+        kw.toLowerCase().includes(h.toLowerCase().split(" ")[0])
+      )
+    ).length;
+    setPontuacaoAoVivo(Math.min(100, Math.round(((resultado.palavrasPresentes.length + novasCoberturas) / total) * 100)));
+  }, [habilidadesAdicionadas, resultado]);
 
   async function handleAnalisar() {
     if (!descricaoVaga.trim()) return;
@@ -26,6 +41,8 @@ export default function JobMatchBR() {
     setErro(null);
     setResultado(null);
     setAplicado({ resumo: false, habilidades: false });
+    setPontuacaoAoVivo(null);
+    setHabilidadesAdicionadas([]);
     try {
       const res = await fetch("/api/ai/br/match-job", {
         method: "POST",
@@ -50,12 +67,14 @@ export default function JobMatchBR() {
 
   function aplicarHabilidades() {
     if (!resultado?.habilidadesParaAdicionar?.length) return;
+    const recentementeAdicionadas: string[] = [];
     resultado.habilidadesParaAdicionar.forEach(habilidade => {
       const jaExiste = habilidades.some((h: any) =>
         (h.text || h).toLowerCase().includes(habilidade.toLowerCase().split(" ")[0])
       );
-      if (!jaExiste) addHabilidade(habilidade);
+      if (!jaExiste) { addHabilidade(habilidade); recentementeAdicionadas.push(habilidade); }
     });
+    setHabilidadesAdicionadas(recentementeAdicionadas);
     setAplicado(prev => ({ ...prev, habilidades: true }));
   }
 
@@ -65,10 +84,12 @@ export default function JobMatchBR() {
   }
 
   const total = (resultado?.palavrasAusentes.length || 0) + (resultado?.palavrasPresentes.length || 0);
-  const pontuacao = total > 0 ? Math.round(((resultado?.palavrasPresentes.length || 0) / total) * 100) : 0;
+  const pontuacaoBase = total > 0 ? Math.round(((resultado?.palavrasPresentes.length || 0) / total) * 100) : 0;
   const pontuacaoProjetada = total > 0
     ? Math.min(100, Math.round((((resultado?.palavrasPresentes.length || 0) + (resultado?.habilidadesParaAdicionar?.length || 0)) / total) * 100))
     : 0;
+  const pontuacaoExibida = pontuacaoAoVivo !== null ? pontuacaoAoVivo : pontuacaoBase;
+  const melhorou = pontuacaoAoVivo !== null && pontuacaoAoVivo > pontuacaoBase;
 
   return (
     <div className="border border-green-200 rounded-xl bg-green-50 overflow-hidden">
@@ -112,14 +133,28 @@ export default function JobMatchBR() {
               {/* Chips de palavras-chave */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {resultado.palavrasAusentes.length > 0 && (
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                    <p className="text-xs font-bold text-red-700 uppercase tracking-wide mb-2">
-                      ⚠ Palavras Ausentes ({resultado.palavrasAusentes.length})
+                  <div className={`border rounded-lg p-4 transition-colors ${
+                    aplicado.habilidades ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200"
+                  }`}>
+                    <p className={`text-xs font-bold uppercase tracking-wide mb-2 ${
+                      aplicado.habilidades ? "text-green-700" : "text-red-700"
+                    }`}>
+                      {aplicado.habilidades ? "✓ Palavras Adicionadas" : `⚠ Palavras Ausentes (${resultado.palavrasAusentes.length})`}
                     </p>
                     <div className="flex flex-wrap gap-1.5">
-                      {resultado.palavrasAusentes.map((kw, i) => (
-                        <span key={i} className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">{kw}</span>
-                      ))}
+                      {resultado.palavrasAusentes.map((kw, i) => {
+                        const foiAdicionada = habilidadesAdicionadas.some(h =>
+                          h.toLowerCase().includes(kw.toLowerCase().split(" ")[0]) ||
+                          kw.toLowerCase().includes(h.toLowerCase().split(" ")[0])
+                        );
+                        return (
+                          <span key={i} className={`text-xs px-2 py-0.5 rounded-full font-medium transition-colors ${
+                            foiAdicionada ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                          }`}>
+                            {foiAdicionada ? "✓" : ""} {kw}
+                          </span>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -137,21 +172,37 @@ export default function JobMatchBR() {
                 )}
               </div>
 
-              {/* Barra de compatibilidade */}
+              {/* Barra de compatibilidade — atualiza ao vivo */}
               {total > 0 && (
                 <div>
                   <div className="flex justify-between text-xs text-neutral-600 mb-1">
                     <span>Compatibilidade com a vaga</span>
                     <span className="font-bold">
-                      {pontuacao}% agora
-                      {pontuacaoProjetada > pontuacao && (
-                        <span className="text-green-600"> → {pontuacaoProjetada}% após aplicar</span>
+                      {melhorou ? (
+                        <span className="text-green-600 font-bold">{pontuacaoExibida}% ✓ Melhorou!</span>
+                      ) : (
+                        <>
+                          {pontuacaoBase}%
+                          {pontuacaoProjetada > pontuacaoBase && !aplicado.habilidades && (
+                            <span className="text-green-600"> → {pontuacaoProjetada}% após aplicar</span>
+                          )}
+                        </>
                       )}
                     </span>
                   </div>
-                  <div className="h-2 bg-neutral-200 rounded-full overflow-hidden">
-                    <div className="h-full bg-green-600 rounded-full transition-all" style={{ width: `${pontuacao}%` }} />
+                  <div className="h-3 bg-neutral-200 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all duration-700 ease-out ${
+                        melhorou ? "bg-green-500" : "bg-green-600"
+                      }`}
+                      style={{ width: `${pontuacaoExibida}%` }}
+                    />
                   </div>
+                  {melhorou && (
+                    <p className="text-xs text-green-600 font-medium mt-1 text-right">
+                      +{pontuacaoExibida - pontuacaoBase} pontos adicionados à sua pontuação
+                    </p>
+                  )}
                 </div>
               )}
 
