@@ -211,6 +211,20 @@ export const useResumeStore = create<any>()(
       } : e) 
     })),
 
+    // Discard suggestion without accepting — responsibility
+    discardResponsibilitySuggestion: (id: string, idx: number) => set((state: any) => ({
+      experience: state.experience.map((e: any) => e.id === id ? {
+        ...e, responsibilities: e.responsibilities.map((r: any, i: number) => i === idx ? { ...r, suggestion: null } : r)
+      } : e)
+    })),
+
+    // Discard suggestion without accepting — achievement
+    discardAchievementSuggestion: (id: string, idx: number) => set((state: any) => ({
+      experience: state.experience.map((e: any) => e.id === id ? {
+        ...e, achievements: e.achievements.map((a: any, i: number) => i === idx ? { ...a, suggestion: null } : a)
+      } : e)
+    })),
+
     // Clears all resume data from localStorage — called when downloads are exhausted
     clearAll: () => set({
       personalInfo: { firstName: "", lastName: "", tradeTitle: "", phone: "", email: "", city: "", state: "" },
