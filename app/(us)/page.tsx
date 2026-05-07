@@ -220,6 +220,22 @@ export default function HomePage() {
 
       {/* REST OF PAGE (unchanged) */}
 
+      {/* BRAND VIDEO — emotional/mission */}
+      <section className="w-full bg-neutral-900 py-16 px-4">
+        <div className="max-w-4xl mx-auto text-center">
+          <p className="text-neutral-400 text-xs uppercase tracking-widest mb-6 font-medium">Our Mission</p>
+          <div className="aspect-video rounded-xl overflow-hidden shadow-2xl">
+            <iframe
+              src="https://player.vimeo.com/video/1190159148?badge=0&autopause=0&player_id=0&app_id=58479"
+              title="TradePro — Built for the people who build everything else"
+              allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media"
+              allowFullScreen
+              className="w-full h-full"
+            />
+          </div>
+        </div>
+      </section>
+
       {/* TESTIMONIALS */}
       <section className="w-full bg-neutral-100 border-t border-neutral-300 pt-20 pb-12 px-4">
         <div className="max-w-5xl mx-auto">
