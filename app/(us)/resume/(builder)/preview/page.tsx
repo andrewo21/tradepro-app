@@ -54,12 +54,12 @@ export default function ResumePreviewPage() {
       const { jsPDF } = await import("jspdf");
 
       const canvas = await html2canvas(previewRef.current, {
-        scale: 2,
+        scale: 1.5,
         useCORS: true,
         logging: false,
       });
 
-      const imgData = canvas.toDataURL("image/png");
+      const imgData = canvas.toDataURL("image/jpeg", 0.85);
       const pdf = new jsPDF({ orientation: "portrait", unit: "pt", format: "letter" });
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
@@ -68,7 +68,7 @@ export default function ResumePreviewPage() {
       const ratio = Math.min(pageWidth / imgWidth, pageHeight / imgHeight);
       const imgX = (pageWidth - imgWidth * ratio) / 2;
 
-      pdf.addImage(imgData, "PNG", imgX, 0, imgWidth * ratio, imgHeight * ratio);
+      pdf.addImage(imgData, "JPEG", imgX, 0, imgWidth * ratio, imgHeight * ratio);
       pdf.save("Resume.pdf");
 
       // Record the download server-side

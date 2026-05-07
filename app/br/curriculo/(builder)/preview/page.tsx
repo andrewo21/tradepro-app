@@ -66,19 +66,19 @@ export default function BrPreviewPage() {
       const { jsPDF } = await import("jspdf");
 
       const canvas = await html2canvas(previewRef.current, {
-        scale: 2,
+        scale: 1.5,
         useCORS: true,
         logging: false,
       });
 
-      const imgData = canvas.toDataURL("image/png");
+      const imgData = canvas.toDataURL("image/jpeg", 0.85);
       const pdf = new jsPDF({ orientation: "portrait", unit: "pt", format: "letter" });
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
       const ratio = Math.min(pageWidth / canvas.width, pageHeight / canvas.height);
       const imgX = (pageWidth - canvas.width * ratio) / 2;
 
-      pdf.addImage(imgData, "PNG", imgX, 0, canvas.width * ratio, canvas.height * ratio);
+      pdf.addImage(imgData, "JPEG", imgX, 0, canvas.width * ratio, canvas.height * ratio);
       pdf.save("Curriculo.pdf");
 
       // Record download server-side
