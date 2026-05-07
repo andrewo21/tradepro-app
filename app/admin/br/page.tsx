@@ -173,13 +173,13 @@ export default function OperadorBR() {
     try {
       const html2canvas = (await import("html2canvas")).default;
       const { jsPDF } = await import("jspdf");
-      const canvas = await html2canvas(previewRef.current, { scale: 2, useCORS: true, logging: false });
-      const imgData = canvas.toDataURL("image/png");
+      const canvas = await html2canvas(previewRef.current, { scale: 1.5, useCORS: true, logging: false });
+      const imgData = canvas.toDataURL("image/jpeg", 0.85);
       const pdf = new jsPDF({ orientation: "portrait", unit: "pt", format: "letter" });
       const W = pdf.internal.pageSize.getWidth();
       const H = pdf.internal.pageSize.getHeight();
       const ratio = Math.min(W / canvas.width, H / canvas.height);
-      pdf.addImage(imgData, "PNG", (W - canvas.width * ratio) / 2, 0, canvas.width * ratio, canvas.height * ratio);
+      pdf.addImage(imgData, "JPEG", (W - canvas.width * ratio) / 2, 0, canvas.width * ratio, canvas.height * ratio);
       pdf.save(`Curriculo-${nome}-${sobrenome}.pdf`);
     } catch { alert("Erro ao baixar PDF."); }
     finally { setDownloading(false); }
