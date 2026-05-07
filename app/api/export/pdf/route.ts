@@ -259,14 +259,48 @@ export async function POST(req: NextRequest) {
         const draw = vectorDraw || legacyDraw;
         draw(doc, data);
       } else {
-        // Cover letter
-        doc.rect(0, 0, doc.page.width, 130).fill("#1F4E79");
-        doc.fillColor("white").font("Helvetica-Bold").fontSize(26).text(data.applicantName || "", 50, 40);
-        doc.font("Helvetica").fontSize(10).text(`${data.applicantEmail || ""} | ${data.applicantPhone || ""}`, 50, 75);
-        doc.text(data.applicantAddress || "", 50, 90);
-        doc.text(data.applicantCityStateZip || "", 50, 103);
-        doc.fillColor("black").font("Helvetica").fontSize(11).text(data.date || "", 50, 150);
-        doc.moveDown(2).fontSize(12).text(data.letter || "", { width: 500, lineGap: 3 });
+        // Cover letter — choose style based on template param
+        const clTemplate = data.coverLetterTemplate || "modern-blue";
+        if (clTemplate === "traditional-clean") {
+          // Traditional Clean — no color header, serif block letter
+          const L2 = 60; const W2 = doc.page.width - 120;
+          doc.font("Helvetica-Bold").fontSize(13).fillColor("#111827")
+            .text(data.applicantName || "", L2, 50);
+          doc.font("Helvetica").fontSize(9).fillColor("#374151");
+          [data.applicantAddress, data.applicantCityStateZip, data.applicantPhone, data.applicantEmail]
+            .filter(Boolean).forEach(line => {
+              doc.text(line, L2, doc.y + 2);
+            });
+          doc.moveDown(0.8);
+          doc.font("Helvetica").fontSize(10).fillColor("#374151").text(data.date || "", L2, doc.y);
+          doc.moveDown(0.8);
+          if (data.hiringManager || data.companyName) {
+            [data.hiringManager, data.companyName, data.companyAddress, data.companyCityStateZip]
+              .filter(Boolean).forEach(line => doc.font("Helvetica").fontSize(10).fillColor("#374151").text(line, L2, doc.y + 2));
+            doc.moveDown(0.8);
+          }
+          doc.font("Helvetica").fontSize(10.5).fillColor("#1f2937")
+            .text(data.letter || "", L2, doc.y, { width: W2, lineGap: 4 });
+        } else {
+          // Modern Blue — blue header
+          doc.rect(0, 0, doc.page.width, 110).fill("#1F4E79");
+          doc.fillColor("white").font("Helvetica-Bold").fontSize(22)
+            .text(data.applicantName || "", 50, 30);
+          doc.font("Helvetica").fontSize(9).fillColor("#bfdbfe")
+            .text([data.applicantEmail, data.applicantPhone].filter(Boolean).join("  |  "), 50, doc.y + 4);
+          [data.applicantAddress, data.applicantCityStateZip].filter(Boolean)
+            .forEach(line => doc.text(line, 50, doc.y + 2));
+          doc.fillColor("#111827").font("Helvetica").fontSize(10)
+            .text(data.date || "", 50, 125);
+          if (data.hiringManager || data.companyName) {
+            doc.moveDown(0.5);
+            [data.hiringManager, data.companyName, data.companyAddress, data.companyCityStateZip]
+              .filter(Boolean).forEach(line => doc.font("Helvetica").fontSize(10).fillColor("#374151").text(line, 50, doc.y + 2));
+          }
+          doc.moveDown(1);
+          doc.font("Helvetica").fontSize(10.5).fillColor("#1f2937")
+            .text(data.letter || "", 50, doc.y, { width: 512, lineGap: 4 });
+        }
       }
 
       doc.end();

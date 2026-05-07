@@ -80,27 +80,36 @@ export default function BrCartaPage() {
   }
 
   async function handleDownloadPDF() {
-    if (!cartaGerada || !previewRef.current || revoked) return;
+    if (!cartaGerada || revoked) return;
     setLoadingPDF(true);
     try {
-      // Screenshot the rendered template — matches exactly what the user sees
-      const html2canvas = (await import("html2canvas")).default;
-      const { jsPDF } = await import("jspdf");
-
-      const canvas = await html2canvas(previewRef.current, {
-        scale: 1.5,
-        useCORS: true,
-        logging: false,
+      const pdfRes = await fetch("/api/export/pdf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "cover-letter",
+          coverLetterTemplate: selectedTemplate,
+          applicantName: candidatoNome,
+          applicantEmail: candidatoEmail,
+          applicantPhone: candidatoTelefone || candidatoWhatsapp,
+          applicantAddress: candidatoEndereco,
+          applicantCityStateZip: candidatoCidadeEstado,
+          date: data,
+          hiringManager: nomeContratante,
+          companyName: nomeEmpresa,
+          companyAddress: enderecoEmpresa,
+          companyCityStateZip: cidadeEstadoEmpresa,
+          letter: cartaGerada,
+        }),
       });
-
-      const imgData = canvas.toDataURL("image/jpeg", 0.85);
-      const pdf = new jsPDF({ orientation: "portrait", unit: "pt", format: "letter" });
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      const ratio = Math.min(pageWidth / canvas.width, pageHeight / canvas.height);
-      const imgX = (pageWidth - canvas.width * ratio) / 2;
-      pdf.addImage(imgData, "JPEG", imgX, 0, canvas.width * ratio, canvas.height * ratio);
-      pdf.save("Carta-de-Apresentacao.pdf");
+      if (!pdfRes.ok) throw new Error("Falha ao gerar PDF");
+      const blob = await pdfRes.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "Carta-de-Apresentacao.pdf";
+      a.click();
+      window.URL.revokeObjectURL(url);
 
       const record = await fetch("/api/stripe/record-download", {
         method: "POST", headers: { "Content-Type": "application/json" },

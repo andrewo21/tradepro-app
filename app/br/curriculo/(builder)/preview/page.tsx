@@ -58,28 +58,61 @@ export default function BrPreviewPage() {
   };
 
   async function handleDownload() {
-    if (!previewRef.current || revoked) return;
+    if (revoked) return;
     setLoading(true);
     try {
-      // Screenshot the rendered template — same method as US builder
-      const html2canvas = (await import("html2canvas")).default;
-      const { jsPDF } = await import("jspdf");
+      // Map BR store fields to US PDF renderer format, use vector PDF
+      const pdfPayload = {
+        type: "resume",
+        selectedTemplate: store.selectedTemplate.replace("br-moderno-azul", "modern-blue")
+          .replace("br-clasico-profissional", "standard-classic")
+          .replace("br-verde-tecnico", "sidebar-green")
+          .replace("br-simples-direto", "standard-contemporary")
+          .replace("br-executivo-verde", "executive-classic")
+          .replace("br-construcao-bold", "modern-elite")
+          .replace("br-tecnico-moderno", "basic-two-column")
+          .replace("br-premium-dourado", "executive-luxe")
+          .replace("br-minimalista-br", "modern-professional"),
+        name: `${store.personalInfo.nome || ""} ${store.personalInfo.sobrenome || ""}`.trim(),
+        title: store.personalInfo.tituloProfissional || "",
+        contact: {
+          phone: store.personalInfo.telefone || store.personalInfo.whatsapp || "",
+          email: store.personalInfo.email || "",
+          location: `${store.personalInfo.cidade || ""}${store.personalInfo.cidade && store.personalInfo.estado ? ", " : ""}${store.personalInfo.estado || ""}`,
+        },
+        summary: store.resumoProfissional || "",
+        skills: (store.habilidades || []).map((h: any) => h.text || h).filter(Boolean),
+        experience: (store.experiencia || []).map((exp: any) => ({
+          jobTitle: exp.cargo || "",
+          company: exp.empresa || "",
+          startDate: exp.dataInicio || "",
+          endDate: exp.dataFim || "",
+          responsibilities: (exp.responsabilidades || []).map((r: any) => r.text || r).filter(Boolean),
+          achievements: [],
+        })),
+        education: (store.formacao || []).map((f: any) => ({
+          school: f.instituicao || "",
+          degree: f.curso || "",
+          year: f.anoConclusao || "",
+        })),
+        certifications: (store.cursosCertificacoes || []).filter((c: any) => c.nome).map((c: any) => c.nome),
+      };
 
-      const canvas = await html2canvas(previewRef.current, {
-        scale: 1.5,
-        useCORS: true,
-        logging: false,
+      const pdfRes = await fetch("/api/export/pdf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(pdfPayload),
       });
 
-      const imgData = canvas.toDataURL("image/jpeg", 0.85);
-      const pdf = new jsPDF({ orientation: "portrait", unit: "pt", format: "letter" });
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      const ratio = Math.min(pageWidth / canvas.width, pageHeight / canvas.height);
-      const imgX = (pageWidth - canvas.width * ratio) / 2;
+      if (!pdfRes.ok) throw new Error("Falha ao gerar PDF");
 
-      pdf.addImage(imgData, "JPEG", imgX, 0, canvas.width * ratio, canvas.height * ratio);
-      pdf.save("Curriculo.pdf");
+      const blob = await pdfRes.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "Curriculo.pdf";
+      a.click();
+      window.URL.revokeObjectURL(url);
 
       // Record download server-side
       const record = await fetch("/api/stripe/record-download", {
