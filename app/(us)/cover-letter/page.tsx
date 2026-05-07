@@ -77,27 +77,36 @@ export default function CoverLetterPage() {
   };
 
   const handleExportPDF = async () => {
-    if (!generatedLetter || !previewRef.current || revoked) return;
+    if (!generatedLetter || revoked) return;
     setLoadingPDF(true);
     try {
-      // Screenshot the rendered template — matches exactly what the user sees
-      const html2canvas = (await import("html2canvas")).default;
-      const { jsPDF } = await import("jspdf");
-
-      const canvas = await html2canvas(previewRef.current, {
-        scale: 1.5,
-        useCORS: true,
-        logging: false,
+      const pdfRes = await fetch("/api/export/pdf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "cover-letter",
+          coverLetterTemplate: selectedTemplate,
+          applicantName,
+          applicantEmail,
+          applicantPhone,
+          applicantAddress,
+          applicantCityStateZip,
+          date,
+          hiringManager,
+          companyName,
+          companyAddress,
+          companyCityStateZip,
+          letter: generatedLetter,
+        }),
       });
-
-      const imgData = canvas.toDataURL("image/jpeg", 0.85);
-      const pdf = new jsPDF({ orientation: "portrait", unit: "pt", format: "letter" });
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      const ratio = Math.min(pageWidth / canvas.width, pageHeight / canvas.height);
-      const imgX = (pageWidth - canvas.width * ratio) / 2;
-      pdf.addImage(imgData, "JPEG", imgX, 0, canvas.width * ratio, canvas.height * ratio);
-      pdf.save("Cover-Letter.pdf");
+      if (!pdfRes.ok) throw new Error("PDF generation failed");
+      const blob = await pdfRes.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "Cover-Letter.pdf";
+      a.click();
+      window.URL.revokeObjectURL(url);
 
       // Record the download server-side
       const record = await fetch("/api/stripe/record-download", {

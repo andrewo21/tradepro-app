@@ -168,20 +168,56 @@ export default function OperadorBR() {
   }
 
   async function handleDownload() {
-    if (!previewRef.current) return;
+    if (!resumeData) return;
     setDownloading(true);
     try {
-      const html2canvas = (await import("html2canvas")).default;
-      const { jsPDF } = await import("jspdf");
-      const canvas = await html2canvas(previewRef.current, { scale: 1.5, useCORS: true, logging: false });
-      const imgData = canvas.toDataURL("image/jpeg", 0.85);
-      const pdf = new jsPDF({ orientation: "portrait", unit: "pt", format: "letter" });
-      const W = pdf.internal.pageSize.getWidth();
-      const H = pdf.internal.pageSize.getHeight();
-      const ratio = Math.min(W / canvas.width, H / canvas.height);
-      pdf.addImage(imgData, "JPEG", (W - canvas.width * ratio) / 2, 0, canvas.width * ratio, canvas.height * ratio);
-      pdf.save(`Curriculo-${nome}-${sobrenome}.pdf`);
-    } catch { alert("Erro ao baixar PDF."); }
+      const templateMap: Record<string, string> = {
+        "br-moderno-azul": "modern-blue",
+        "br-clasico-profissional": "standard-classic",
+        "br-verde-tecnico": "sidebar-green",
+        "br-simples-direto": "standard-contemporary",
+        "br-executivo-verde": "executive-classic",
+        "br-construcao-bold": "modern-elite",
+        "br-tecnico-moderno": "basic-two-column",
+        "br-premium-dourado": "executive-luxe",
+        "br-minimalista-br": "modern-professional",
+      };
+      const pdfPayload = {
+        type: "resume",
+        selectedTemplate: templateMap[selectedTemplate] || "standard-contemporary",
+        name: `${nome} ${sobrenome}`.trim(),
+        title: resumeData.personalInfo?.tituloProfissional || "",
+        contact: {
+          phone: telefone || whatsapp || "",
+          email: email || "",
+          location: `${cidade || ""}${cidade && estado ? ", " : ""}${estado || ""}`,
+        },
+        summary: resumeData.resumoProfissional || "",
+        skills: (resumeData.habilidades || []).map((h: any) => h.text || h).filter(Boolean),
+        experience: (resumeData.experiencia || []).map((exp: any) => ({
+          jobTitle: exp.cargo || "",
+          company: exp.empresa || "",
+          startDate: exp.dataInicio || "",
+          endDate: exp.dataFim || "",
+          responsibilities: (exp.responsabilidades || []).map((r: any) => r.text || r).filter(Boolean),
+          achievements: [],
+        })),
+        education: (resumeData.formacao || []).map((f: any) => ({
+          school: f.instituicao || "", degree: f.curso || "", year: f.anoConclusao || "",
+        })),
+        certifications: (resumeData.cursosCertificacoes || []).filter((c: any) => c.nome).map((c: any) => c.nome),
+      };
+      const pdfRes = await fetch("/api/export/pdf", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(pdfPayload),
+      });
+      if (!pdfRes.ok) throw new Error("Falha ao gerar PDF");
+      const blob = await pdfRes.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a"); a.href = url;
+      a.download = `Curriculo-${nome}-${sobrenome}.pdf`; a.click();
+      window.URL.revokeObjectURL(url);
+    } catch { alert("Erro ao baixar PDF. Tente novamente."); }
     finally { setDownloading(false); }
   }
 

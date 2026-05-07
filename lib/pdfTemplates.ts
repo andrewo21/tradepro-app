@@ -637,6 +637,39 @@ export function drawModernProfessionalPDF(doc: any, data: any) {
   }
 }
 
+// ── Brazil field mapper — converts BR store fields to US renderer fields ──────
+
+export function mapBrDataToUsFormat(brData: any): any {
+  const p = brData.personalInfo || {};
+  return {
+    name: `${p.nome || ""} ${p.sobrenome || ""}`.trim(),
+    title: p.tituloProfissional || "",
+    contact: {
+      phone: p.telefone || p.whatsapp || "",
+      email: p.email || "",
+      location: `${p.cidade || ""}${p.cidade && p.estado ? ", " : ""}${p.estado || ""}`,
+    },
+    summary: brData.resumoProfissional || "",
+    skills: (brData.habilidades || []).map((h: any) => h.text || h).filter(Boolean),
+    experience: (brData.experiencia || []).map((exp: any) => ({
+      jobTitle: exp.cargo || exp.jobTitle || "",
+      company: exp.empresa || exp.company || "",
+      startDate: exp.dataInicio || exp.startDate || "",
+      endDate: exp.dataFim || exp.endDate || "",
+      responsibilities: (exp.responsabilidades || exp.responsibilities || [])
+        .map((r: any) => r.text || r).filter(Boolean),
+      achievements: [],
+    })),
+    education: (brData.formacao || []).map((f: any) => ({
+      school: f.instituicao || f.school || "",
+      degree: f.curso || f.degree || "",
+      year: f.anoConclusao || f.year || "",
+    })),
+    certifications: (brData.cursosCertificacoes || [])
+      .filter((c: any) => c.nome).map((c: any) => c.nome),
+  };
+}
+
 // ── Template registry ─────────────────────────────────────────────────────────
 
 export const PDF_TEMPLATE_REGISTRY: Record<string, (doc: any, data: any) => void> = {
