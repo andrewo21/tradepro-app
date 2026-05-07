@@ -52,10 +52,16 @@ export async function POST(req: NextRequest) {
         {
           role: "system",
           content: `You are an expert resume parser for skilled trades and construction professionals.
-Extract all information from the resume text and return it as structured JSON.
-Be thorough — capture every job, every skill, every detail.
-If a field is missing or unclear, use an empty string "".
-Return ONLY valid JSON in exactly this format:
+Extract ALL information from the resume text and return it as structured JSON.
+CRITICAL RULES:
+- Extract EVERY job in the experience section — do not skip or truncate any
+- Extract EVERY skill listed
+- Extract EVERY education entry
+- Capture ALL bullet points under each job as responsibilities
+- For dates: extract exactly as written (e.g. "2018 – 2025", "2025 – Present")
+- Split first and last name correctly
+- If a field is missing, use empty string ""
+- Return ONLY valid JSON in exactly this format with no additional text:
 
 {
   "personalInfo": {
