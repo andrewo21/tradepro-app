@@ -8,7 +8,7 @@
 import { ProductId } from "./pricing";
 import { overrides } from "@/config/overrides";
 
-export const MAX_DOWNLOADS = 2;
+export const MAX_DOWNLOADS = 3;
 
 export type UserEntitlements = {
   resume: boolean;

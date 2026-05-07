@@ -20,20 +20,20 @@ export default function UpsellModal({
 
   const subline = isResume
     ? "Browse all templates below. Purchase once and start building — no subscription, no gimmicks."
-    : "Honest, professional cover letters powered by AI. One-time purchase, 2 downloads included.";
+    : "Honest, professional cover letters powered by AI. One-time purchase, 3 downloads included.";
 
   const bullets = isResume
     ? [
         "5 standard templates purpose-built for trades",
         "AI-assisted writing in any language",
         "PDF export — clean, professional, ATS-ready",
-        "2 PDF downloads included",
+        "3 PDF downloads included",
       ]
     : [
         "AI-powered generation from your resume or a short description",
         "Two styles — Modern Blue or Traditional Clean",
         "PDF export ready to send",
-        "2 PDF downloads included",
+        "3 PDF downloads included",
       ];
 
   const bundleBullets = [
@@ -41,7 +41,7 @@ export default function UpsellModal({
     "Resume Builder included",
     "Cover Letter Generator included",
     "Project Portfolio Builder included",
-    "2 PDF downloads per tool",
+    "3 PDF downloads per tool",
     "Best value — save $",
   ];
 
@@ -64,7 +64,7 @@ export default function UpsellModal({
           <div className="flex-1 bg-white rounded-2xl px-8 py-7 text-neutral-900 shadow-xl flex flex-col">
             <p className="text-xs text-neutral-500 uppercase tracking-wide mb-1">{individualLabel}</p>
             <p className="text-5xl font-bold mb-1">{individualPrice}</p>
-            <p className="text-xs text-neutral-400 mb-5">No subscription · 2 downloads</p>
+            <p className="text-xs text-neutral-400 mb-5">No subscription · 3 downloads</p>
             <ul className="text-left text-sm text-neutral-600 space-y-2 mb-6 flex-1">
               {bullets.map((b, i) => (
                 <li key={i} className="flex items-start gap-2">

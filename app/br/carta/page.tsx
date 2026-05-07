@@ -7,7 +7,7 @@ import Link from "next/link";
 import { ModernBlueCoverLetter, TraditionalCoverLetter, type CoverLetterTemplateKey } from "@/components/CoverLetterTemplates";
 import { coverLetterTemplates } from "@/components/CoverLetterTemplates";
 
-const MAX_DOWNLOADS = 2;
+const MAX_DOWNLOADS = 3;
 
 export default function BrCartaPage() {
   const store = useBrCoverLetterStore();

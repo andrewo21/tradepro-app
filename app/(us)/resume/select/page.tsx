@@ -10,6 +10,7 @@ import Link from "next/link";
 import { getOrCreateUserId } from "@/lib/userId";
 import ResumeUpload from "@/components/ResumeUpload";
 import InstallPrompt from "@/components/InstallPrompt";
+import TargetedResumeBuilder from "@/components/TargetedResumeBuilder";
 
 export default function SelectPage() {
   const selectedTemplate = useResumeStore((s) => s.selectedTemplate);
@@ -89,16 +90,35 @@ export default function SelectPage() {
 
       <InstallPrompt />
 
-      {/* Resume Upload — pre-fill builder from existing PDF */}
-      <div className="mb-6 bg-white border border-neutral-200 rounded-xl p-5 shadow-sm">
-        <div className="flex items-center gap-2 mb-3">
-          <span className="text-lg">⚡</span>
-          <div>
-            <p className="font-semibold text-sm text-neutral-900">Already have a resume? Upload it and we'll pre-fill everything.</p>
-            <p className="text-xs text-neutral-500">AI extracts your info and drops you straight into the builder — review and edit from there.</p>
+      {/* Two upload options */}
+      <div className="mb-6 space-y-4">
+
+        {/* Option A — Targeted (new, primary) */}
+        <div className="bg-white border-2 border-blue-200 rounded-xl p-5 shadow-sm">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-base">🎯</span>
+            <p className="font-bold text-sm text-blue-900">Build a Resume for a Specific Job</p>
+            <span className="ml-auto text-xs bg-blue-600 text-white px-2 py-0.5 rounded-full font-semibold">Recommended</span>
           </div>
+          <p className="text-xs text-neutral-500 mb-4">Upload your resume + paste a job posting. AI builds a fully optimized resume tailored to that exact role.</p>
+          <TargetedResumeBuilder />
         </div>
-        <ResumeUpload />
+
+        {/* Option B — Simple upload */}
+        <details className="bg-white border border-neutral-200 rounded-xl shadow-sm group">
+          <summary className="p-5 cursor-pointer list-none flex items-center gap-2 hover:bg-neutral-50 rounded-xl">
+            <span className="text-base">📄</span>
+            <div className="flex-1">
+              <p className="font-semibold text-sm text-neutral-900">Already have a resume? Just pre-fill the builder.</p>
+              <p className="text-xs text-neutral-500">Upload your PDF or Word file — we extract your info and you edit from there.</p>
+            </div>
+            <span className="text-neutral-400 text-sm group-open:rotate-180 transition-transform">▼</span>
+          </summary>
+          <div className="px-5 pb-5">
+            <ResumeUpload />
+          </div>
+        </details>
+
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">

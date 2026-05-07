@@ -8,7 +8,7 @@ import { templates } from "@/components/templates";
 import type { TemplateKey } from "@/components/templates";
 import { getOrCreateUserId } from "@/lib/userId";
 
-const MAX_DOWNLOADS = 2;
+const MAX_DOWNLOADS = 3;
 
 export default function ResumePreviewPage() {
   const { 
