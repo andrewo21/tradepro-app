@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from "next/server";
+import { PDF_TEMPLATE_REGISTRY } from "@/lib/pdfTemplates";
 
 // ── Template registry (mirrors server.js) ────────────────────────────────────
 
@@ -252,7 +253,10 @@ export async function POST(req: NextRequest) {
         drawProjectPortfolio(doc, data);
       } else if (isResume) {
         const templateId = data.selectedTemplate || "standard-contemporary";
-        const draw = templateRegistry[templateId] || drawStandardContemporary;
+        // Use vector renderer if available, fall back to legacy renderer
+        const vectorDraw = PDF_TEMPLATE_REGISTRY[templateId];
+        const legacyDraw = templateRegistry[templateId] || drawStandardContemporary;
+        const draw = vectorDraw || legacyDraw;
         draw(doc, data);
       } else {
         // Cover letter

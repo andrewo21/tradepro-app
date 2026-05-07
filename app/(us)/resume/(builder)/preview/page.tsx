@@ -47,29 +47,49 @@ export default function ResumePreviewPage() {
   const remaining = downloadsUsed !== null ? Math.max(0, MAX_DOWNLOADS - downloadsUsed) : null;
 
   const handleDownloadPDF = async () => {
-    if (!previewRef.current || revoked) return;
+    if (revoked) return;
     setLoading(true);
     try {
-      const html2canvas = (await import("html2canvas")).default;
-      const { jsPDF } = await import("jspdf");
+      // Build the data payload matching what pdfTemplates.ts expects
+      const pdfPayload = {
+        type: "resume",
+        selectedTemplate,
+        name: `${personalInfo.firstName || ""} ${personalInfo.lastName || ""}`.trim(),
+        title: personalInfo.tradeTitle || "",
+        contact: {
+          phone: personalInfo.phone || "",
+          email: personalInfo.email || "",
+          location: `${personalInfo.city || ""}${personalInfo.city && personalInfo.state ? ", " : ""}${personalInfo.state || ""}`,
+        },
+        summary: summary || "",
+        skills: skills?.map((s: any) => s.text || s).filter(Boolean) || [],
+        experience: experience.map((exp: any) => ({
+          jobTitle: exp.jobTitle || "",
+          company: exp.company || "",
+          startDate: exp.startDate || "",
+          endDate: exp.endDate || "",
+          responsibilities: exp.responsibilities?.map((r: any) => r.text || r).filter(Boolean) || [],
+          achievements: exp.achievements?.map((a: any) => a.text || a).filter(Boolean) || [],
+        })),
+        education: education || [],
+        certifications: [],
+      };
 
-      const canvas = await html2canvas(previewRef.current, {
-        scale: 1.5,
-        useCORS: true,
-        logging: false,
+      const pdfRes = await fetch("/api/export/pdf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(pdfPayload),
       });
 
-      const imgData = canvas.toDataURL("image/jpeg", 0.85);
-      const pdf = new jsPDF({ orientation: "portrait", unit: "pt", format: "letter" });
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      const imgWidth = canvas.width;
-      const imgHeight = canvas.height;
-      const ratio = Math.min(pageWidth / imgWidth, pageHeight / imgHeight);
-      const imgX = (pageWidth - imgWidth * ratio) / 2;
+      if (!pdfRes.ok) throw new Error("PDF generation failed");
 
-      pdf.addImage(imgData, "JPEG", imgX, 0, imgWidth * ratio, imgHeight * ratio);
-      pdf.save("Resume.pdf");
+      const blob = await pdfRes.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "Resume.pdf";
+      a.click();
+      window.URL.revokeObjectURL(url);
 
       // Record the download server-side
       const res = await fetch("/api/stripe/record-download", {
@@ -83,7 +103,6 @@ export default function ResumePreviewPage() {
         setDownloadsUsed(data.downloadsUsed);
         if (data.revoked) {
           setRevoked(true);
-          // Clear the resume store so data doesn't persist
           clearAll();
         }
       }
