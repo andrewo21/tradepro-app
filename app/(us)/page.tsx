@@ -220,10 +220,9 @@ export default function HomePage() {
 
       {/* REST OF PAGE (unchanged) */}
 
-      {/* BRAND VIDEO — emotional/mission */}
-      <section className="w-full bg-neutral-900 py-16 px-4">
-        <div className="max-w-4xl mx-auto text-center">
-          <p className="text-neutral-400 text-xs uppercase tracking-widest mb-6 font-medium">Our Mission</p>
+      {/* BRAND VIDEO */}
+      <section className="w-full bg-neutral-900 py-12 px-4">
+        <div className="max-w-4xl mx-auto">
           <div className="aspect-video rounded-xl overflow-hidden shadow-2xl">
             <iframe
               src="https://player.vimeo.com/video/1190159148?badge=0&autopause=0&player_id=0&app_id=58479"
