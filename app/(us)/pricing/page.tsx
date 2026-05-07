@@ -63,7 +63,7 @@ export default function PricingPage() {
                 <li>• 5 Standard templates</li>
                 <li>• AI‑assisted writing and cleanup</li>
                 <li>• Edit until you're happy</li>
-                <li>• 2 PDF downloads included</li>
+                <li>• 3 PDF downloads included</li>
                 <li className="opacity-60">• Premium templates (not included)</li>
                 <li className="opacity-60">• Cover Letter Generator (not included)</li>
                 <li className="opacity-60">• Project List Builder (not included)</li>
@@ -99,7 +99,7 @@ export default function PricingPage() {
               <ul className="text-left text-neutral-700 space-y-3 mb-8">
                 <li>• AI‑assisted writing</li>
                 <li>• Edit until you're happy</li>
-                <li>• 2 PDF downloads included</li>
+                <li>• 3 PDF downloads included</li>
                 <li className="opacity-60">• Resume Builder (not included)</li>
                 <li className="opacity-60">• Premium templates (not included)</li>
                 <li className="opacity-60">• Project List Builder (not included)</li>
@@ -143,7 +143,7 @@ export default function PricingPage() {
                   <li>• All 9 templates (5 standard + 4 premium)</li>
                   <li>• AI‑assisted writing and cleanup</li>
                   <li>• Edit until you're happy</li>
-                  <li>• 2 PDF downloads per tool included</li>
+                  <li>• 3 PDF downloads per tool included</li>
                   <li>• Cover Letter Generator included</li>
                   <li>• Project Portfolio Builder included</li>
                 </ul>
@@ -166,7 +166,7 @@ export default function PricingPage() {
           </div>
 
           <p className="text-neutral-500 text-xs mt-10">
-            One‑time purchase per session. Edit freely — 2 PDF downloads included per tool.
+            One‑time purchase per session. Edit freely — 3 PDF downloads included per tool.
           </p>
 
 

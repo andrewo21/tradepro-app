@@ -6,7 +6,7 @@ import Link from "next/link";
 import { getOrCreateUserId } from "@/lib/userId";
 import { coverLetterTemplates, type CoverLetterTemplateKey } from "@/components/CoverLetterTemplates";
 
-const MAX_DOWNLOADS = 2;
+const MAX_DOWNLOADS = 3;
 
 export default function CoverLetterPage() {
   const {

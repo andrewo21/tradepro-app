@@ -14,7 +14,7 @@ import BrTecnicoModerno from "@/components/templates/brazil/BrTecnicoModerno";
 import BrPremiumDourado from "@/components/templates/brazil/BrPremiumDourado";
 import BrMinimalistaBR from "@/components/templates/brazil/BrMinimalistaBR";
 
-const MAX_DOWNLOADS = 2;
+const MAX_DOWNLOADS = 3;
 
 const TEMPLATES: Record<string, any> = {
   "br-moderno-azul": BrModernoAzul,

@@ -40,6 +40,9 @@ export const useResumeStore = create<any>()(
     premiumUnlocked: false,
     showWatermark: true,
     jobDescription: "",
+    atsPresent: [] as string[],
+    atsMissing: [] as string[],
+    atsBaseScore: 0,
 
     // --- SHARED ACTIONS ---
     setField: (field: string, value: any) => set({ [field]: value }),
@@ -239,6 +242,9 @@ export const useResumeStore = create<any>()(
       premiumUnlocked: false,
       showWatermark: true,
       jobDescription: "",
+      atsPresent: [],
+      atsMissing: [],
+      atsBaseScore: 0,
     }),
   }), {
     name: "resume-storage",

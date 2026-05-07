@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useResumeStore } from "@/app/store/useResumeStore";
 import JobMatch from "@/components/JobMatch";
+import ATSScoreTracker from "@/components/ATSScoreTracker";
 
 export default function SummaryPage() {
   const summary = useResumeStore((s) => s.summary);
@@ -137,8 +138,13 @@ export default function SummaryPage() {
         </div>
       )}
 
-      {/* Job Match Optimizer */}
-      <div className="mt-8 mb-2">
+      {/* ATS Score Tracker — shows when resume was built from a job description */}
+      <div className="mt-6 mb-2">
+        <ATSScoreTracker />
+      </div>
+
+      {/* Job Match Optimizer — shows when building from scratch */}
+      <div className="mt-4 mb-2">
         <JobMatch />
       </div>
 
