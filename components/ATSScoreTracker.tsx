@@ -84,8 +84,10 @@ export default function ATSScoreTracker() {
   }
 
   const bulletSuggestions = (atsBulletSuggestions || []).filter(Boolean);
-  const hasSuggestions = stillMissing.length > 0 || bulletSuggestions.length > 0 || !hasAtsData;
-  const totalSuggestions = hasAtsData ? (stillMissing.length + bulletSuggestions.length) : genericSuggestions.length;
+  // Suggestions tab always has content — either specific (from analysis) or generic tips
+  const specificSuggestions = [...stillMissing, ...bulletSuggestions];
+  const showGeneric = specificSuggestions.length === 0;
+  const totalSuggestions = showGeneric ? genericSuggestions.length : specificSuggestions.length;
 
   return (
     <div className="rounded-xl overflow-hidden border shadow-sm" style={{ borderColor: scoreBorder, backgroundColor: scoreBg }}>
@@ -164,34 +166,32 @@ export default function ATSScoreTracker() {
       {/* Suggestions tab */}
       {tab === "suggestions" && (
         <div className="px-4 py-4 space-y-3">
-          {!hasAtsData ? (
-            // Generic improvement suggestions when no job was analyzed
+          {showGeneric ? (
+            // Always show improvement tips — either generic or after all specific ones applied
             <div className="space-y-2">
-              <p className="text-xs text-neutral-600 font-medium mb-3">Resume improvement tips:</p>
+              <p className="text-xs text-neutral-600 font-medium mb-2">
+                {hasAtsData ? "✓ Job-specific improvements applied. General tips:" : "Resume improvement tips:"}
+              </p>
               {genericSuggestions.map((tip, i) => (
                 <div key={i} className="bg-white/70 rounded-lg px-3 py-2.5 border border-white text-xs text-neutral-700 leading-relaxed flex items-start gap-2">
-                  <span className="font-bold flex-shrink-0 mt-0.5" style={{ color: scoreColor }}>{i + 1}.</span>
-                  {tip}
+                  <span className="font-bold flex-shrink-0" style={{ color: scoreColor }}>{i + 1}.</span>
+                  <span>{tip}</span>
                 </div>
               ))}
-              <p className="text-xs text-neutral-400 pt-1">Run the Job Match Optimizer to get job-specific suggestions.</p>
-            </div>
-          ) : stillMissing.length === 0 && bulletSuggestions.length === 0 ? (
-            <div className="text-center py-4">
-              <p className="text-sm font-semibold" style={{ color: scoreColor }}>✓ All suggestions applied!</p>
-              <p className="text-xs text-neutral-500 mt-1">Your score is now at {liveScore}%</p>
             </div>
           ) : (
             <>
               <div className="flex items-center justify-between">
                 <p className="text-xs text-neutral-600 font-medium">
-                  {stillMissing.length} improvement{stillMissing.length !== 1 ? "s" : ""} available
+                  {specificSuggestions.length} improvement{specificSuggestions.length !== 1 ? "s" : ""} available
                 </p>
-                <button onClick={acceptAll}
-                  className="text-xs font-bold px-3 py-1.5 rounded-lg text-white transition"
-                  style={{ backgroundColor: scoreColor }}>
-                  Accept All (+{stillMissing.length * pointsPerKeyword} pts)
-                </button>
+                {stillMissing.length > 0 && (
+                  <button onClick={acceptAll}
+                    className="text-xs font-bold px-3 py-1.5 rounded-lg text-white transition"
+                    style={{ backgroundColor: scoreColor }}>
+                    Accept All Skills (+{stillMissing.length * pointsPerKeyword} pts)
+                  </button>
+                )}
               </div>
 
               <div className="space-y-2">
