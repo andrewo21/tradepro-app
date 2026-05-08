@@ -20,9 +20,13 @@ export default function JobMatch() {
     setField("atsBaseScore", data.presentKeywords?.length && (data.presentKeywords.length + data.missingKeywords.length) > 0
       ? Math.round((data.presentKeywords.length / (data.presentKeywords.length + data.missingKeywords.length)) * 100)
       : 0);
-    // smartSkillAdditions become the suggestions in ATSScoreTracker
+    // smartSkillAdditions become the skill suggestions in ATSScoreTracker
     if (data.smartSkillAdditions?.length) {
       setField("atsMissing", data.smartSkillAdditions);
+    }
+    // bullet suggestions for the Suggestions tab
+    if (data.bulletSuggestions?.length) {
+      setField("atsBulletSuggestions", data.bulletSuggestions);
     }
   }
   const [loading, setLoading] = useState(false);

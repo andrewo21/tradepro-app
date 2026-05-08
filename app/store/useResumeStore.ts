@@ -43,6 +43,7 @@ export const useResumeStore = create<any>()(
     atsPresent: [] as string[],
     atsMissing: [] as string[],
     atsBaseScore: 0,
+    atsBulletSuggestions: [] as string[],
 
     // --- SHARED ACTIONS ---
     setField: (field: string, value: any) => set({ [field]: value }),
@@ -245,6 +246,7 @@ export const useResumeStore = create<any>()(
       atsPresent: [],
       atsMissing: [],
       atsBaseScore: 0,
+      atsBulletSuggestions: [],
     }),
   }), {
     name: "resume-storage",
