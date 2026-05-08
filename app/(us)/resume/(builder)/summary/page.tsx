@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useResumeStore } from "@/app/store/useResumeStore";
-import ATSScoreTracker from "@/components/ATSScoreTracker";
 
 export default function SummaryPage() {
   const summary = useResumeStore((s) => s.summary);
@@ -136,11 +135,6 @@ export default function SummaryPage() {
           </div>
         </div>
       )}
-
-      {/* ATS Score + Suggestions */}
-      <div className="mt-6 mb-2">
-        <ATSScoreTracker />
-      </div>
 
       {/* Navigation */}
       <div className="flex justify-between mt-8">
