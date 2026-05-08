@@ -247,6 +247,8 @@ export function drawBasicTwoColumnPDF(doc: any, data: any) {
   const skills = getSkills(data);
   const SIDE_W = 160; const MAIN_X = SIDE_W + 20; const MAIN_W = PAGE_W - MAIN_X - 30;
 
+  // Draw sidebar background on every page
+  doc.on("pageAdded", () => doc.rect(0, 0, SIDE_W, PAGE_H).fill("#f3f4f6"));
   doc.rect(0, 0, SIDE_W, PAGE_H).fill("#f3f4f6");
 
   let sY = 24;
@@ -303,6 +305,8 @@ export function drawSidebarGreenPDF(doc: any, data: any) {
   const GREEN = "#166534"; const GREEN_BG = "#f0fdf4";
   const SIDE_W = 155; const MAIN_X = SIDE_W + 20; const MAIN_W = PAGE_W - MAIN_X - 30;
 
+  // Draw sidebar background on every page
+  doc.on("pageAdded", () => doc.rect(0, 0, SIDE_W, PAGE_H).fill(GREEN_BG));
   doc.rect(0, 0, SIDE_W, PAGE_H).fill(GREEN_BG);
 
   let sY = 20;
@@ -401,6 +405,8 @@ export function drawExecutiveLuxePDF(doc: any, data: any) {
   const GOLD_BG = "#F4E7C6";
   const SIDE_W = 165; const MAIN_X = SIDE_W + 20; const MAIN_W = PAGE_W - MAIN_X - 30;
 
+  // Draw sidebar background on every page
+  doc.on("pageAdded", () => doc.rect(0, 0, SIDE_W, PAGE_H).fill(GOLD_BG));
   doc.rect(0, 0, SIDE_W, PAGE_H).fill(GOLD_BG);
 
   let sY = 24;
@@ -463,7 +469,8 @@ export function drawModernElitePDF(doc: any, data: any) {
   const GREY = "#4B5563";
   const LEFT_W = 155; const RIGHT_X = LEFT_W + 20; const RIGHT_W = PAGE_W - RIGHT_X - 30;
 
-  // Grey header bar
+  // Modern Elite doesn't have a sidebar background — no pageAdded needed
+  // Grey header bar (page 1 only)
   doc.rect(0, 0, PAGE_W, 58).fill(GREY);
   doc.font("Helvetica-Bold").fontSize(20).fillColor("#ffffff").text(name || "", L, 14);
   if (title) doc.font("Helvetica").fontSize(11).fillColor("#e5e7eb").text(title, L, 34);
