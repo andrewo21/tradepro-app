@@ -186,10 +186,14 @@ export async function grantEntitlement(userId: string, productId: ProductId): Pr
     case ProductId.RESUME:
       updated.resume = true;
       updated.resumeDownloads = 0; // fresh purchase resets counter
+      // If they also have coverLetter, restore bundle access
+      if (updated.coverLetter) updated.bundle = true;
       break;
     case ProductId.COVER_LETTER:
       updated.coverLetter = true;
       updated.coverLetterDownloads = 0;
+      // If they also have resume, restore bundle access
+      if (updated.resume) updated.bundle = true;
       break;
     case ProductId.BUNDLE:
     case ProductId.UPGRADE_RESUME_TO_BUNDLE:
