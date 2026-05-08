@@ -302,51 +302,91 @@ export function drawBasicTwoColumnPDF(doc: any, data: any) {
 // React: green #f0fdf4 sidebar, green section headers + rules in sidebar
 // ═══════════════════════════════════════════════════════════════════════════════
 export function drawSidebarGreenPDF(doc: any, data: any) {
-  const { name, title, contact, summary, experience, education } = data;
+  // Exact match to SidebarGreen.tsx React component
+  const { name, title, contact, summary, experience, education, certifications } = data;
   const skills = getSkills(data);
-  const GREEN = "#166534"; const GREEN_BG = "#dcfce7"; // slightly more saturated than #f0fdf4 which renders transparent in pdfkit
-  const SIDE_W = 155; const MAIN_X = SIDE_W + 20; const MAIN_W = PAGE_W - MAIN_X - 30;
+  const GREEN_SECTION = "#1f2937"; // text-gray-800 for section headers
+  const GREEN_BG = "#E6F4EA";     // exact hex from React component style={{ backgroundColor: "#E6F4EA" }}
+  const SIDE_W = 180;              // ~32% of 612pt letter width
+  const MAIN_X = SIDE_W + 15;
+  const MAIN_W = PAGE_W - MAIN_X - 35;
 
+  // Draw sidebar background — called on page 1 and every new page
   const drawSidebar5 = () => {
     doc.rect(0, 0, SIDE_W, doc.page.height).fillColor(GREEN_BG).fill();
-    doc.fillColor("#000000");
+    doc.fillColor("#1f2937"); // reset to dark for text
   };
   drawSidebar5();
 
+  // SIDEBAR CONTENT — Name (black bold), title, contact, skills, certifications
+  // React: h1 inherits text-gray-900 (#111827) from aside — NOT green
   let sY = 20;
-  doc.font("Helvetica-Bold").fontSize(14).fillColor(GREEN).text(name || "", 15, sY, { width: SIDE_W - 20 }); sY = doc.y + 2;
-  if (title) { doc.font("Helvetica").fontSize(9).fillColor("#374151").text(title, 15, sY, { width: SIDE_W - 20 }); sY = doc.y + 8; }
-  [contact?.phone, contact?.email, contact?.location].filter(Boolean).forEach(c => {
-    doc.font("Helvetica").fontSize(8.5).fillColor("#4b5563").text(c, 15, sY, { width: SIDE_W - 20 }); sY = doc.y + 2;
+  doc.font("Helvetica-Bold").fontSize(16).fillColor("#111827")
+    .text(name || "", 15, sY, { width: SIDE_W - 20 }); sY = doc.y + 3;
+  if (title) {
+    doc.font("Helvetica").fontSize(9.5).fillColor("#374151")
+      .text(title, 15, sY, { width: SIDE_W - 20 }); sY = doc.y + 6;
+  }
+  // Contact
+  [contact?.location, contact?.email, contact?.phone].filter(Boolean).forEach(c => {
+    doc.font("Helvetica").fontSize(8.5).fillColor("#374151").text(c, 15, sY, { width: SIDE_W - 20 }); sY = doc.y + 2;
   }); sY += 8;
 
+  // Skills — React: SidebarHeader = text-gray-800 + border-gray-400
   if (skills.length) {
-    doc.font("Helvetica-Bold").fontSize(8).fillColor(GREEN).text("SKILLS", 15, sY, { characterSpacing: 0.5 }); sY = doc.y + 3;
-    doc.moveTo(15, sY).lineTo(SIDE_W - 10, sY).lineWidth(0.5).stroke(GREEN); sY += 4;
+    doc.font("Helvetica-Bold").fontSize(8).fillColor(GREEN_SECTION)
+      .text("SKILLS", 15, sY, { characterSpacing: 0.5 }); sY = doc.y + 2;
+    doc.moveTo(15, sY).lineTo(SIDE_W - 10, sY).lineWidth(0.5).stroke("#9ca3af"); sY += 4;
     skills.forEach(s => {
-      doc.circle(22, sY + 4, 1.5).fill(GREEN);
-      doc.font("Helvetica").fontSize(8.5).fillColor("#374151").text(s, 28, sY, { width: SIDE_W - 33 }); sY = doc.y + 2;
+      doc.circle(21, sY + 4, 1.5).fill("#1f2937");
+      doc.font("Helvetica").fontSize(8.5).fillColor("#1f2937")
+        .text(s, 27, sY, { width: SIDE_W - 32 }); sY = doc.y + 2;
     }); sY += 6;
   }
-  if (education?.length && sY < PAGE_H - 100) {
-    doc.font("Helvetica-Bold").fontSize(8).fillColor(GREEN).text("EDUCATION", 15, sY, { characterSpacing: 0.5 }); sY = doc.y + 3;
-    doc.moveTo(15, sY).lineTo(SIDE_W - 10, sY).lineWidth(0.5).stroke(GREEN); sY += 4;
-    education.forEach((edu: any) => {
-      doc.font("Helvetica-Bold").fontSize(8.5).fillColor(GREEN).text(edu.degree || "", 15, sY, { width: SIDE_W - 20 }); sY = doc.y + 1;
-      doc.font("Helvetica").fontSize(8).fillColor("#6b7280").text([edu.school, edu.year].filter(Boolean).join(" · "), 15, sY, { width: SIDE_W - 20 }); sY = doc.y + 5;
+
+  // Certifications — React: in sidebar below skills
+  if ((certifications || []).length) {
+    doc.font("Helvetica-Bold").fontSize(8).fillColor(GREEN_SECTION)
+      .text("CERTIFICATIONS", 15, sY, { characterSpacing: 0.5 }); sY = doc.y + 2;
+    doc.moveTo(15, sY).lineTo(SIDE_W - 10, sY).lineWidth(0.5).stroke("#9ca3af"); sY += 4;
+    certifications.forEach((c: string) => {
+      doc.circle(21, sY + 4, 1.5).fill("#1f2937");
+      doc.font("Helvetica").fontSize(8.5).fillColor("#1f2937")
+        .text(c, 27, sY, { width: SIDE_W - 32 }); sY = doc.y + 2;
     });
   }
 
+  // MAIN CONTENT — Summary, Experience, Education (React: all in main, NOT sidebar)
   let mY = 20;
+
   if (summary?.trim()) {
-    doc.font("Helvetica-Bold").fontSize(9).fillColor(GREEN).text("PROFESSIONAL SUMMARY", MAIN_X, mY, { characterSpacing: 0.4 }); mY = doc.y + 3;
-    doc.moveTo(MAIN_X, mY).lineTo(PAGE_W - 30, mY).lineWidth(0.5).stroke(GREEN); mY += 5;
-    doc.font("Helvetica").fontSize(9.5).fillColor("#374151").text(summary, MAIN_X, mY, { width: MAIN_W, lineGap: 2 }); mY = doc.y + 10;
+    doc.font("Helvetica-Bold").fontSize(9).fillColor(GREEN_SECTION)
+      .text("PROFESSIONAL SUMMARY", MAIN_X, mY, { characterSpacing: 0.5 }); mY = doc.y + 2;
+    doc.moveTo(MAIN_X, mY).lineTo(PAGE_W - 30, mY).lineWidth(0.5).stroke("#d1d5db"); mY += 5;
+    doc.font("Helvetica").fontSize(9.5).fillColor("#374151")
+      .text(summary, MAIN_X, mY, { width: MAIN_W, lineGap: 2 }); mY = doc.y + 10;
   }
+
   if (experience?.length) {
-    doc.font("Helvetica-Bold").fontSize(9).fillColor(GREEN).text("EXPERIENCE", MAIN_X, mY, { characterSpacing: 0.4 }); mY = doc.y + 3;
-    doc.moveTo(MAIN_X, mY).lineTo(PAGE_W - 30, mY).lineWidth(0.5).stroke(GREEN); mY += 5;
-    experience.forEach((job: any) => { mY = jobBlock(doc, job, MAIN_X, mY, MAIN_W, "#374151", "#111827", "#4b5563", "#6b7280", drawSidebar5); });
+    doc.font("Helvetica-Bold").fontSize(9).fillColor(GREEN_SECTION)
+      .text("EXPERIENCE", MAIN_X, mY, { characterSpacing: 0.5 }); mY = doc.y + 2;
+    doc.moveTo(MAIN_X, mY).lineTo(PAGE_W - 30, mY).lineWidth(0.5).stroke("#d1d5db"); mY += 5;
+    experience.forEach((job: any) => {
+      mY = jobBlock(doc, job, MAIN_X, mY, MAIN_W, "#374151", "#111827", "#4b5563", "#6b7280", drawSidebar5);
+    });
+  }
+
+  // Education in MAIN — matches React template (not sidebar)
+  if (education?.length) {
+    mY = checkPageBreak(doc, mY, 40, 40, drawSidebar5);
+    doc.font("Helvetica-Bold").fontSize(9).fillColor(GREEN_SECTION)
+      .text("EDUCATION", MAIN_X, mY, { characterSpacing: 0.5 }); mY = doc.y + 2;
+    doc.moveTo(MAIN_X, mY).lineTo(PAGE_W - 30, mY).lineWidth(0.5).stroke("#d1d5db"); mY += 5;
+    education.forEach((edu: any) => {
+      const parts = [edu.degree, edu.school, edu.year].filter(Boolean);
+      doc.font("Helvetica").fontSize(9).fillColor("#374151")
+        .text(parts.join(" | "), MAIN_X, mY, { width: MAIN_W }); mY = doc.y + 4;
+    });
   }
 }
 
