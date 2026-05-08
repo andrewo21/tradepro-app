@@ -250,11 +250,21 @@ export const useResumeStore = create<any>()(
     }),
   }), {
     name: "resume-storage",
-    version: 2,
+    version: 3,
     migrate: (persistedState: any, version: number) => {
       if (version < 2) {
-        // Force watermark on for existing users
         return { ...persistedState, showWatermark: true };
+      }
+      if (version < 3) {
+        // Add new ATS fields for existing users
+        return {
+          ...persistedState,
+          atsPresent: persistedState.atsPresent || [],
+          atsMissing: persistedState.atsMissing || [],
+          atsBaseScore: persistedState.atsBaseScore || 0,
+          atsBulletSuggestions: persistedState.atsBulletSuggestions || [],
+          jobDescription: persistedState.jobDescription || "",
+        };
       }
       return persistedState;
     },
