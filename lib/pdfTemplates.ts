@@ -304,7 +304,7 @@ export function drawBasicTwoColumnPDF(doc: any, data: any) {
 export function drawSidebarGreenPDF(doc: any, data: any) {
   const { name, title, contact, summary, experience, education } = data;
   const skills = getSkills(data);
-  const GREEN = "#166534"; const GREEN_BG = "#f0fdf4";
+  const GREEN = "#166534"; const GREEN_BG = "#dcfce7"; // slightly more saturated than #f0fdf4 which renders transparent in pdfkit
   const SIDE_W = 155; const MAIN_X = SIDE_W + 20; const MAIN_W = PAGE_W - MAIN_X - 30;
 
   const drawSidebar5 = () => {

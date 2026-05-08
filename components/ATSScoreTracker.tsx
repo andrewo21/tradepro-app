@@ -6,7 +6,7 @@ import { useMemo, useState } from "react";
 export default function ATSScoreTracker() {
   const {
     summary, skills, experience,
-    jobDescription, atsPresent, atsMissing, atsBaseScore,
+    jobDescription, atsPresent, atsMissing, atsBaseScore, atsBulletSuggestions,
     addSkill, updateSummary,
   } = useResumeStore();
 
@@ -75,8 +75,9 @@ export default function ATSScoreTracker() {
     setAccepted(prev => new Set([...prev, ...stillMissing]));
   }
 
-  const hasSuggestions = stillMissing.length > 0;
-  const suggestionCount = stillMissing.length + (summaryAccepted ? 0 : 0);
+  const bulletSuggestions = (atsBulletSuggestions || []).filter(Boolean);
+  const hasSuggestions = stillMissing.length > 0 || bulletSuggestions.length > 0;
+  const totalSuggestions = stillMissing.length + bulletSuggestions.length;
 
   return (
     <div className="rounded-xl overflow-hidden border shadow-sm" style={{ borderColor: scoreBorder, backgroundColor: scoreBg }}>
@@ -107,7 +108,7 @@ export default function ATSScoreTracker() {
           {hasSuggestions && (
             <span className="ml-1.5 inline-flex items-center justify-center w-4 h-4 rounded-full text-white text-[10px] font-bold"
               style={{ backgroundColor: scoreColor }}>
-              {stillMissing.length}
+              {totalSuggestions}
             </span>
           )}
         </button>
@@ -139,7 +140,7 @@ export default function ATSScoreTracker() {
             <button onClick={() => setTab("suggestions")}
               className="mt-3 text-xs font-semibold underline underline-offset-2"
               style={{ color: scoreColor }}>
-              View {stillMissing.length} suggestion{stillMissing.length !== 1 ? "s" : ""} to improve your score →
+              View {totalSuggestions} suggestion{totalSuggestions !== 1 ? "s" : ""} to improve your resume →
             </button>
           )}
           {!hasSuggestions && liveScore >= 85 && (
@@ -199,9 +200,26 @@ export default function ATSScoreTracker() {
               </div>
 
               <p className="text-xs text-neutral-400 pt-1">
-                Accepting a suggestion adds it directly to your Skills section.
-                Your score updates instantly.
+                Accepting a skill adds it to your Skills section. Your score updates instantly.
               </p>
+
+              {/* AI Bullet suggestions */}
+              {bulletSuggestions.length > 0 && (
+                <div className="pt-2 border-t" style={{ borderColor: scoreBorder }}>
+                  <p className="text-xs font-bold text-neutral-700 uppercase tracking-wide mb-2">
+                    💡 AI-Suggested Bullets to Add
+                  </p>
+                  <div className="space-y-2">
+                    {bulletSuggestions.map((bullet, i) => (
+                      <div key={i} className="bg-white/70 rounded-lg px-3 py-2.5 border border-white text-xs text-neutral-700 leading-relaxed">
+                        <span className="flex-shrink-0 font-bold mr-1" style={{ color: scoreColor }}>▸</span>
+                        {bullet}
+                        <p className="text-neutral-400 mt-1 text-[10px]">Add this to your Work Experience section.</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </>
           )}
         </div>
