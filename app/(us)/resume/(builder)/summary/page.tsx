@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useResumeStore } from "@/app/store/useResumeStore";
-import JobMatch from "@/components/JobMatch";
 import ATSScoreTracker from "@/components/ATSScoreTracker";
 
 export default function SummaryPage() {
@@ -138,14 +137,9 @@ export default function SummaryPage() {
         </div>
       )}
 
-      {/* ATS Score Tracker — shows when resume was built from a job description */}
+      {/* ATS Score + slim skill suggestions — only shows when targeted build was used */}
       <div className="mt-6 mb-2">
         <ATSScoreTracker />
-      </div>
-
-      {/* Job Match Optimizer — shows when building from scratch */}
-      <div className="mt-4 mb-2">
-        <JobMatch />
       </div>
 
       {/* Navigation */}
