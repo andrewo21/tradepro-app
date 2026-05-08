@@ -81,8 +81,8 @@ const TYPED_WORDS = [
   "Precision",
   "Craftsmanship",
   "Leadership",
-  "Safety‑Focused",
-  "Problem‑Solving",
+  "Safety-Focused",
+  "Problem-Solving",
 ];
 
 export default function HomePage() {
