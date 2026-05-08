@@ -575,52 +575,82 @@ export function drawModernElitePDF(doc: any, data: any) {
 // React: CENTERED header (text-center), grey bottom border, "Professional Summary"/"Core Skills"
 // ═══════════════════════════════════════════════════════════════════════════════
 export function drawModernProfessionalPDF(doc: any, data: any) {
+  // Fully inline — no shared helpers that could corrupt text state
   const { name, title, contact, summary, experience, education, certifications } = data;
   const skills = getSkills(data);
+  const W = CONTENT_W; // 522pt
 
-  // Centered header block
+  const mpSection = (label: string, y: number): number => {
+    doc.font("Helvetica-Bold").fontSize(8.5).fillColor("#374151")
+      .text(label, L, y, { width: W, lineBreak: false, characterSpacing: 0.5 });
+    const rY = y + 12;
+    doc.moveTo(L, rY).lineTo(L + W, rY).lineWidth(0.5).stroke("#d1d5db");
+    return rY + 6;
+  };
+
+  // Centered header
   doc.font("Helvetica-Bold").fontSize(20).fillColor("#111827")
-    .text(name || "", L, 24, { width: CONTENT_W, align: "center" });
-  const afterName = doc.y + 2;
+    .text(name || "", L, 24, { width: W, align: "center", lineBreak: false });
+  let y = 50;
   if (title) {
     doc.font("Helvetica").fontSize(11).fillColor("#374151")
-      .text(title, L, afterName, { width: CONTENT_W, align: "center" });
+      .text(title, L, y, { width: W, align: "center", lineBreak: false });
+    y = y + 16;
   }
   const cp = [contact?.location, contact?.email, contact?.phone].filter(Boolean);
-  doc.font("Helvetica").fontSize(9).fillColor("#6b7280")
-    .text(cp.join("   "), L, doc.y + 3, { width: CONTENT_W, align: "center" });
-
-  // Bottom border under header
-  const headerBottom = doc.y + 8;
-  doc.moveTo(L, headerBottom).lineTo(R, headerBottom).lineWidth(0.75).stroke("#d1d5db");
-  let y = headerBottom + 10;
+  if (cp.length) {
+    doc.font("Helvetica").fontSize(9).fillColor("#6b7280")
+      .text(cp.join("   "), L, y, { width: W, align: "center", lineBreak: false });
+    y = y + 14;
+  }
+  doc.moveTo(L, y).lineTo(L + W, y).lineWidth(0.75).stroke("#d1d5db");
+  y = y + 10;
 
   if (summary?.trim()) {
-    y = sectionRule(doc, "Professional Summary", L, y, CONTENT_W, "#374151");
-    doc.font("Helvetica").fontSize(9.5).fillColor("#374151").text(summary, L, y, { width: CONTENT_W, lineGap: 2 }); y = doc.y + 8;
+    y = mpSection("PROFESSIONAL SUMMARY", y);
+    doc.font("Helvetica").fontSize(9.5).fillColor("#374151")
+      .text(summary, L, y, { width: W, lineGap: 2 });
+    y = doc.y + 8;
   }
   if (skills.length) {
-    y = sectionRule(doc, "Core Skills", L, y, CONTENT_W, "#374151");
-    y = skillsGrid(doc, skills, L, y, CONTENT_W, "#374151");
+    y = mpSection("CORE SKILLS", y);
+    const col = W / 2;
+    const mid = Math.ceil(skills.length / 2);
+    const sy = y;
+    skills.slice(0, mid).forEach((s, i) => {
+      const ry = sy + i * 13;
+      doc.circle(L + 4, ry + 4, 1.5).fill("#374151");
+      doc.font("Helvetica").fontSize(9).fillColor("#374151").text(s, L + 10, ry, { width: col - 15, lineBreak: false });
+    });
+    skills.slice(mid).forEach((s, i) => {
+      const ry = sy + i * 13;
+      doc.circle(L + col + 4, ry + 4, 1.5).fill("#374151");
+      doc.font("Helvetica").fontSize(9).fillColor("#374151").text(s, L + col + 10, ry, { width: col - 15, lineBreak: false });
+    });
+    y = sy + Math.ceil(skills.length / 2) * 13 + 8;
   }
   if (experience?.length) {
-    y = sectionRule(doc, "Experience", L, y, CONTENT_W, "#374151");
-    experience.forEach((job: any) => { y = jobBlock(doc, job, L, y, CONTENT_W, "#374151", "#111827", "#374151", "#6b7280"); });
+    y = mpSection("EXPERIENCE", y);
+    experience.forEach((job: any) => {
+      y = jobBlock(doc, job, L, y, W, "#374151", "#111827", "#374151", "#6b7280");
+    });
   }
   if (education?.length) {
-    y = checkPageBreak(doc, y, 40);
-    y = sectionRule(doc, "Education", L, y, CONTENT_W, "#374151");
+    if (y + 40 > PAGE_H - 35) { doc.addPage(); y = 40; }
+    y = mpSection("EDUCATION", y);
     education.forEach((edu: any) => {
-      const parts = [edu.degree, edu.school, edu.year].filter(Boolean);
-      doc.font("Helvetica").fontSize(9).fillColor("#374151").text(parts.join(" | "), L, y, { width: CONTENT_W }); y = doc.y + 4;
+      doc.font("Helvetica").fontSize(9).fillColor("#374151")
+        .text([edu.degree, edu.school, edu.year].filter(Boolean).join(" | "), L, y, { width: W });
+      y = doc.y + 4;
     });
   }
   if ((certifications || []).length) {
-    y = checkPageBreak(doc, y, 40);
-    y = sectionRule(doc, "Certifications", L, y, CONTENT_W, "#374151");
+    if (y + 40 > PAGE_H - 35) { doc.addPage(); y = 40; }
+    y = mpSection("CERTIFICATIONS", y);
     certifications.forEach((c: string) => {
       doc.circle(L + 4, y + 4, 1.5).fill("#374151");
-      doc.font("Helvetica").fontSize(9).fillColor("#374151").text(c, L + 10, y, { width: CONTENT_W - 10 }); y = doc.y + 2;
+      doc.font("Helvetica").fontSize(9).fillColor("#374151").text(c, L + 10, y, { width: W - 10 });
+      y = doc.y + 2;
     });
   }
 }
