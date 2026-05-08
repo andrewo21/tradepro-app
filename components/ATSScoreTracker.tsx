@@ -4,11 +4,15 @@ import { useResumeStore } from "@/app/store/useResumeStore";
 import { useMemo, useState } from "react";
 
 export default function ATSScoreTracker() {
-  const {
-    summary, skills, experience,
-    jobDescription, atsPresent, atsMissing, atsBaseScore, atsBulletSuggestions,
-    addSkill, updateSummary,
-  } = useResumeStore();
+  const store = useResumeStore();
+  const summary = store.summary || "";
+  const skills = store.skills || [];
+  const experience = store.experience || [];
+  const atsPresent: string[] = store.atsPresent || [];
+  const atsMissing: string[] = store.atsMissing || [];
+  const atsBaseScore: number = store.atsBaseScore || 0;
+  const atsBulletSuggestions: string[] = store.atsBulletSuggestions || [];
+  const addSkill = store.addSkill;
 
   const [tab, setTab] = useState<"score" | "suggestions">("score");
   const [accepted, setAccepted] = useState<Set<string>>(new Set());
