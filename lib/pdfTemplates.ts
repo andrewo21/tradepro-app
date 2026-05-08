@@ -248,9 +248,8 @@ export function drawBasicTwoColumnPDF(doc: any, data: any) {
   const SIDE_W = 160; const MAIN_X = SIDE_W + 20; const MAIN_W = PAGE_W - MAIN_X - 30;
 
   const drawSidebar4 = () => {
-    doc.save();
-    doc.rect(0, 0, SIDE_W, doc.page.height).fill("#f3f4f6");
-    doc.restore();
+    doc.rect(0, 0, SIDE_W, doc.page.height).fillColor("#f3f4f6").fill();
+    doc.fillColor("#000000"); // reset fill to black for text
   };
   drawSidebar4();
 
@@ -309,9 +308,8 @@ export function drawSidebarGreenPDF(doc: any, data: any) {
   const SIDE_W = 155; const MAIN_X = SIDE_W + 20; const MAIN_W = PAGE_W - MAIN_X - 30;
 
   const drawSidebar5 = () => {
-    doc.save();
-    doc.rect(0, 0, SIDE_W, doc.page.height).fill(GREEN_BG);
-    doc.restore();
+    doc.rect(0, 0, SIDE_W, doc.page.height).fillColor(GREEN_BG).fill();
+    doc.fillColor("#000000");
   };
   drawSidebar5();
 
@@ -412,9 +410,8 @@ export function drawExecutiveLuxePDF(doc: any, data: any) {
   const SIDE_W = 165; const MAIN_X = SIDE_W + 20; const MAIN_W = PAGE_W - MAIN_X - 30;
 
   const drawSidebar7 = () => {
-    doc.save();
-    doc.rect(0, 0, SIDE_W, doc.page.height).fill(GOLD_BG);
-    doc.restore();
+    doc.rect(0, 0, SIDE_W, doc.page.height).fillColor(GOLD_BG).fill();
+    doc.fillColor("#000000");
   };
   drawSidebar7();
 
