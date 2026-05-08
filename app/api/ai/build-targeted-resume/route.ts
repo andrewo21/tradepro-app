@@ -186,9 +186,32 @@ Before returning your JSON, mentally verify:
     const optimizeRaw = optimizeCompletion.choices?.[0]?.message?.content || "{}";
     const optimized = JSON.parse(optimizeRaw);
 
+    // ── POST-GENERATION VALIDATION: enforce bullet count preservation ──────────
+    // If AI dropped bullets for any job, restore the originals from Pass 1
+    const validatedExperience = (optimized.experience || []).map((optJob: any, idx: number) => {
+      const originalJob = (candidate.jobs || [])[idx];
+      if (!originalJob) return optJob;
+
+      const originalCount = (originalJob.bullets || []).length;
+      const optimizedCount = (optJob.responsibilities || []).length;
+
+      if (optimizedCount < originalCount) {
+        // AI dropped bullets — pad with originals for any missing ones
+        const restored = [...(optJob.responsibilities || [])];
+        for (let i = optimizedCount; i < originalCount; i++) {
+          const originalBullet = originalJob.bullets[i] || "";
+          if (originalBullet) restored.push(originalBullet);
+        }
+        console.warn(`Bullet count mismatch for "${optJob.jobTitle}": expected ${originalCount}, got ${optimizedCount}. Restored ${originalCount - optimizedCount} bullets.`);
+        return { ...optJob, responsibilities: restored };
+      }
+
+      return optJob;
+    });
+
     return NextResponse.json({
       success: true,
-      resume: optimized,
+      resume: { ...optimized, experience: validatedExperience },
       jobTitle: jobPosting.title || "",
       employer: jobPosting.company || "",
       atsScore: optimized.atsScore || {},
