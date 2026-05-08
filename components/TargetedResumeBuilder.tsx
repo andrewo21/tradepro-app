@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { useRouter } from "next/navigation";
 import { useResumeStore } from "@/app/store/useResumeStore";
 
 export default function TargetedResumeBuilder() {
@@ -12,8 +11,8 @@ export default function TargetedResumeBuilder() {
   const [success, setSuccess] = useState(false);
   const [step, setStep] = useState<"idle" | "parsing" | "analyzing" | "optimizing" | "done">("idle");
   const [progress, setProgress] = useState(0);
+  const [dragging, setDragging] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
-  const router = useRouter();
   const store = useResumeStore();
 
   const ACCEPTED = [
@@ -111,7 +110,6 @@ export default function TargetedResumeBuilder() {
       }
 
       setProgress(100); setStep("done"); setSuccess(true);
-      setTimeout(() => router.push("/resume/personal"), 1800);
 
     } catch (err: any) {
       setError(err?.message || "Network error. Please try again.");
@@ -122,10 +120,16 @@ export default function TargetedResumeBuilder() {
 
   if (success) {
     return (
-      <div className="bg-green-50 border-2 border-green-400 rounded-xl p-6 text-center">
-        <div className="text-4xl mb-3">✓</div>
-        <p className="font-bold text-green-800 text-base">Your targeted resume is ready!</p>
-        <p className="text-green-700 text-sm mt-1">Taking you to the builder to review and download.</p>
+      <div className="bg-green-50 border-2 border-green-400 rounded-xl p-5 text-center space-y-3">
+        <div className="text-4xl">✓</div>
+        <p className="font-bold text-green-800 text-base">Your targeted resume is built!</p>
+        <p className="text-green-700 text-sm">Your information has been pre-filled. Now pick a template below, then click <strong>"Continue to Step 2"</strong> to review and edit your resume.</p>
+        <button
+          onClick={() => { setSuccess(false); setStep("idle"); setProgress(0); setResumeFile(null); setJobDescription(""); }}
+          className="text-xs text-green-600 hover:underline"
+        >
+          Build another targeted resume
+        </button>
       </div>
     );
   }
@@ -146,8 +150,18 @@ export default function TargetedResumeBuilder() {
         </label>
         <div
           onClick={() => !loading && fileRef.current?.click()}
+          onDragOver={e => { e.preventDefault(); if (!loading) setDragging(true); }}
+          onDragLeave={() => setDragging(false)}
+          onDrop={e => {
+            e.preventDefault();
+            setDragging(false);
+            if (loading) return;
+            const f = e.dataTransfer.files?.[0];
+            if (f) { setResumeFile(f); setError(null); }
+          }}
           className={`border-2 border-dashed rounded-xl p-4 text-center transition ${
             loading ? "cursor-not-allowed opacity-60" :
+            dragging ? "border-blue-500 bg-blue-100 cursor-copy" :
             resumeFile ? "border-blue-400 bg-blue-50 cursor-pointer" :
             "border-neutral-300 bg-neutral-50 hover:border-blue-400 hover:bg-blue-50 cursor-pointer"
           }`}
