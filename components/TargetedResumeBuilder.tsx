@@ -10,7 +10,8 @@ export default function TargetedResumeBuilder() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const [step, setStep] = useState<"idle" | "parsing" | "analyzing" | "building" | "done">("idle");
+  const [step, setStep] = useState<"idle" | "parsing" | "analyzing" | "optimizing" | "done">("idle");
+  const [progress, setProgress] = useState(0);
   const fileRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const store = useResumeStore();
@@ -30,40 +31,31 @@ export default function TargetedResumeBuilder() {
     if (!isAccepted) { setError("Please upload a PDF or Word (.docx) file."); return; }
     if (resumeFile.size > 10 * 1024 * 1024) { setError("File too large. Max 10MB."); return; }
 
-    setLoading(true);
-    setError(null);
-    setStep("parsing");
+    setLoading(true); setError(null); setStep("parsing"); setProgress(15);
 
     try {
-      // Step 1: Extract text from resume
       const formData = new FormData();
       formData.append("file", resumeFile);
       const parseRes = await fetch("/api/ai/parse-resume", { method: "POST", body: formData });
       const parseData = await parseRes.json();
+      if (!parseRes.ok || !parseData.data) { setError(parseData.error || "Could not read your resume."); return; }
 
-      if (!parseRes.ok || !parseData.data) {
-        setError(parseData.error || "Could not read your resume. Try a different file.");
-        return;
-      }
+      setStep("analyzing"); setProgress(40);
 
-      // Build resume text from parsed data for the AI
       const d = parseData.data;
       const resumeText = [
         `${d.personalInfo?.firstName || ""} ${d.personalInfo?.lastName || ""}`.trim(),
         d.personalInfo?.tradeTitle || "",
-        d.personalInfo?.phone || "",
-        d.personalInfo?.email || "",
+        d.personalInfo?.phone || "", d.personalInfo?.email || "",
         `${d.personalInfo?.city || ""} ${d.personalInfo?.state || ""}`.trim(),
         "",
-        "SUMMARY",
-        d.summary || "",
+        "SUMMARY", d.summary || "",
         "",
-        "SKILLS",
-        (d.skills || []).join(", "),
+        "SKILLS", (d.skills || []).join(", "),
         "",
         "EXPERIENCE",
         ...(d.experience || []).flatMap((exp: any) => [
-          `${exp.jobTitle} at ${exp.company} (${exp.startDate} – ${exp.endDate})`,
+          `${exp.jobTitle} | ${exp.company} | ${exp.startDate} – ${exp.endDate}`,
           ...(exp.responsibilities || []).map((r: string) => `• ${r}`),
         ]),
         "",
@@ -71,84 +63,46 @@ export default function TargetedResumeBuilder() {
         ...(d.education || []).map((edu: any) => `${edu.degree}, ${edu.school}, ${edu.year}`),
       ].join("\n");
 
-      setStep("analyzing");
+      setStep("optimizing"); setProgress(70);
 
-      // Step 2: Build targeted resume
       const buildRes = await fetch("/api/ai/build-targeted-resume", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ resumeText, jobDescription }),
       });
-
       const buildData = await buildRes.json();
-      if (!buildRes.ok || !buildData.resume) {
-        setError(buildData.error || "Failed to build resume. Please try again.");
-        return;
-      }
+      if (!buildRes.ok || !buildData.resume) { setError(buildData.error || "Failed to build resume."); return; }
 
-      setStep("building");
-
+      setProgress(95);
       const r = buildData.resume;
 
-      // Pre-fill the store with the targeted resume
       if (r.personalInfo) {
         const p = r.personalInfo;
-        store.updatePersonalInfo("firstName", p.firstName || "");
-        store.updatePersonalInfo("lastName", p.lastName || "");
-        store.updatePersonalInfo("tradeTitle", p.tradeTitle || "");
-        store.updatePersonalInfo("phone", p.phone || "");
-        store.updatePersonalInfo("email", p.email || "");
-        store.updatePersonalInfo("city", p.city || "");
-        store.updatePersonalInfo("state", p.state || "");
+        ["firstName","lastName","tradeTitle","phone","email","city","state"]
+          .forEach(f => store.updatePersonalInfo(f as any, p[f] || ""));
       }
-
       if (r.summary) store.updateSummary(r.summary);
-
       if (Array.isArray(r.skills)) {
-        store.setField("skills", r.skills.map((text: string) => ({
-          text,
-          suggestion: null,
-          hasAcceptedSuggestion: false,
-          loading: false,
-        })));
+        store.setField("skills", r.skills.map((t: string) => ({ text: t, suggestion: null, hasAcceptedSuggestion: false, loading: false })));
       }
-
       if (Array.isArray(r.experience)) {
         store.setField("experience", r.experience.map((exp: any) => ({
           id: `${Date.now()}-${Math.random()}`,
-          jobTitle: exp.jobTitle || "",
-          company: exp.company || "",
-          startDate: exp.startDate || "",
-          endDate: exp.endDate || "",
-          responsibilities: (exp.responsibilities || []).map((text: string) => ({
-            id: `${Date.now()}-${Math.random()}`,
-            text,
-            suggestion: null,
-            hasAcceptedSuggestion: false,
-            loading: false,
-            error: null,
-            needsRewrite: false,
+          jobTitle: exp.jobTitle || "", company: exp.company || "",
+          startDate: exp.startDate || "", endDate: exp.endDate || "",
+          responsibilities: (exp.responsibilities || []).map((t: string) => ({
+            id: `${Date.now()}-${Math.random()}`, text: t,
+            suggestion: null, hasAcceptedSuggestion: false, loading: false, error: null, needsRewrite: false,
           })),
-          achievements: (exp.achievements || []).map((text: string) => ({
-            id: `${Date.now()}-${Math.random()}`,
-            text,
-            suggestion: null,
-            hasAcceptedSuggestion: false,
-            loading: false,
+          achievements: (exp.achievements || []).map((t: string) => ({
+            id: `${Date.now()}-${Math.random()}`, text: t,
+            suggestion: null, hasAcceptedSuggestion: false, loading: false,
           })),
         })));
       }
-
       if (Array.isArray(r.education)) {
-        store.setField("education", r.education.map((edu: any) => ({
-          school: edu.school || "",
-          degree: edu.degree || "",
-          year: edu.year || "",
-          gpa: edu.gpa || "",
-        })));
+        store.setField("education", r.education.map((e: any) => ({ school: e.school||"", degree: e.degree||"", year: e.year||"", gpa: e.gpa||"" })));
       }
-
-      // Store ATS data for the score tracker
       if (r.atsScore) {
         store.setField("jobDescription", jobDescription);
         store.setField("atsPresent", r.atsScore.presentKeywords || []);
@@ -156,8 +110,7 @@ export default function TargetedResumeBuilder() {
         store.setField("atsBaseScore", r.atsScore.score || 0);
       }
 
-      setStep("done");
-      setSuccess(true);
+      setProgress(100); setStep("done"); setSuccess(true);
       setTimeout(() => router.push("/resume/personal"), 1800);
 
     } catch (err: any) {
@@ -169,31 +122,34 @@ export default function TargetedResumeBuilder() {
 
   if (success) {
     return (
-      <div className="border-2 border-green-400 bg-green-50 rounded-xl p-6 text-center">
-        <div className="text-3xl mb-2">✓</div>
-        <p className="font-bold text-green-800">Resume built and optimized!</p>
-        <p className="text-green-700 text-sm mt-1">Taking you to the builder — review, edit, and download.</p>
+      <div className="bg-green-50 border-2 border-green-400 rounded-xl p-6 text-center">
+        <div className="text-4xl mb-3">✓</div>
+        <p className="font-bold text-green-800 text-base">Your targeted resume is ready!</p>
+        <p className="text-green-700 text-sm mt-1">Taking you to the builder to review and download.</p>
       </div>
     );
   }
 
-  const stepLabels: Record<string, string> = {
-    parsing: "Reading your resume...",
-    analyzing: "Analyzing the job description...",
-    building: "Building your targeted resume...",
-  };
+  const steps = [
+    { key: "parsing", label: "Reading your resume", pct: 15 },
+    { key: "analyzing", label: "Analyzing the job description", pct: 40 },
+    { key: "optimizing", label: "Optimizing every bullet for this role", pct: 70 },
+  ];
+  const currentStepLabel = steps.find(s => s.key === step)?.label || "";
 
   return (
     <div className="space-y-4">
-      {/* Resume upload */}
+      {/* Upload */}
       <div>
-        <label className="block text-sm font-semibold text-neutral-800 mb-1">
-          1. Upload Your Existing Resume
+        <label className="block text-xs font-bold text-neutral-600 uppercase tracking-wide mb-1.5">
+          Step 1 — Upload Your Resume
         </label>
         <div
-          onClick={() => fileRef.current?.click()}
-          className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition ${
-            resumeFile ? "border-green-400 bg-green-50" : "border-neutral-300 bg-neutral-50 hover:border-blue-400"
+          onClick={() => !loading && fileRef.current?.click()}
+          className={`border-2 border-dashed rounded-xl p-4 text-center transition ${
+            loading ? "cursor-not-allowed opacity-60" :
+            resumeFile ? "border-blue-400 bg-blue-50 cursor-pointer" :
+            "border-neutral-300 bg-neutral-50 hover:border-blue-400 hover:bg-blue-50 cursor-pointer"
           }`}
         >
           <input ref={fileRef} type="file"
@@ -202,16 +158,16 @@ export default function TargetedResumeBuilder() {
             onChange={e => { const f = e.target.files?.[0]; if (f) { setResumeFile(f); setError(null); } }}
           />
           {resumeFile ? (
-            <div className="flex items-center justify-center gap-2 text-green-700">
-              <span>✓</span>
-              <span className="text-sm font-medium">{resumeFile.name}</span>
+            <div className="flex items-center justify-center gap-2 text-blue-700">
+              <span className="text-lg">📄</span>
+              <span className="text-sm font-semibold truncate max-w-[200px]">{resumeFile.name}</span>
               <button onClick={e => { e.stopPropagation(); setResumeFile(null); }}
-                className="text-xs text-red-500 hover:underline ml-2">Remove</button>
+                className="text-xs text-red-500 hover:text-red-700 ml-1">✕</button>
             </div>
           ) : (
-            <div>
-              <p className="text-sm font-medium text-neutral-700">Click to upload your resume</p>
-              <p className="text-xs text-neutral-400 mt-0.5">PDF or Word (.docx) · Max 10MB</p>
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-neutral-700">Drop your resume here or click to browse</p>
+              <p className="text-xs text-neutral-400">PDF or Word (.docx) · Max 10MB</p>
             </div>
           )}
         </div>
@@ -219,42 +175,47 @@ export default function TargetedResumeBuilder() {
 
       {/* Job description */}
       <div>
-        <label className="block text-sm font-semibold text-neutral-800 mb-1">
-          2. Paste the Job Description
+        <label className="block text-xs font-bold text-neutral-600 uppercase tracking-wide mb-1.5">
+          Step 2 — Paste the Job Description
         </label>
         <textarea
-          className="w-full border-2 border-neutral-200 rounded-xl p-3 text-sm h-36 resize-none focus:ring-2 focus:ring-blue-400 focus:outline-none bg-white focus:border-blue-400"
-          placeholder="Paste the full job posting here — job title, company, requirements, responsibilities, qualifications..."
+          disabled={loading}
+          className="w-full border-2 border-neutral-200 rounded-xl p-3 text-sm h-32 resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none bg-white disabled:opacity-60"
+          placeholder="Paste the complete job posting — title, company, responsibilities, requirements, qualifications..."
           value={jobDescription}
           onChange={e => setJobDescription(e.target.value)}
         />
-        <p className="text-xs text-neutral-400 mt-1">The more complete the job posting, the better the match.</p>
+        <p className="text-xs text-neutral-400 mt-1">The more complete the job posting, the more precisely your resume will be optimized.</p>
       </div>
 
       {error && (
         <p className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>
       )}
 
+      {/* Progress bar */}
+      {loading && (
+        <div className="space-y-2">
+          <div className="flex justify-between text-xs text-neutral-500">
+            <span>{currentStepLabel}...</span>
+            <span>{progress}%</span>
+          </div>
+          <div className="h-2 bg-neutral-100 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-blue-600 rounded-full transition-all duration-700 ease-out"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+          <p className="text-xs text-center text-neutral-400">Takes 15–20 seconds. The AI analyzes both documents thoroughly.</p>
+        </div>
+      )}
+
       <button
         onClick={handleBuild}
         disabled={loading || !resumeFile || !jobDescription.trim()}
-        className="w-full py-4 bg-blue-700 hover:bg-blue-800 text-white font-bold rounded-xl disabled:opacity-40 transition text-sm"
+        className="w-full py-3.5 bg-blue-700 hover:bg-blue-800 text-white font-bold rounded-xl disabled:opacity-40 transition text-sm tracking-wide"
       >
-        {loading ? (
-          <span className="flex items-center justify-center gap-2">
-            <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            {stepLabels[step] || "Building..."}
-          </span>
-        ) : (
-          "⚡ Build My Targeted Resume →"
-        )}
+        {loading ? "Building your targeted resume..." : "⚡  Build My Targeted Resume"}
       </button>
-
-      {loading && (
-        <div className="text-xs text-center text-neutral-400">
-          This takes 15-20 seconds — the AI is doing a deep analysis of both documents.
-        </div>
-      )}
     </div>
   );
 }
