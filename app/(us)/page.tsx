@@ -273,62 +273,25 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* VIDEO SECTION */}
+      {/* VIDEO SECTION — placeholder while new videos are being produced */}
       <section className="w-full bg-neutral-50 border-t border-neutral-200 py-16 px-4">
-        <div className="max-w-5xl mx-auto">
-
-          {/* Video 1 — Resume builder overview */}
-          <div className="text-center mb-14">
-            <h2 className="text-3xl font-semibold mb-3">
-              See TradePro Transform a Resume in Minutes
-            </h2>
-            <p className="text-neutral-600 mb-8 max-w-2xl mx-auto">
-              Turn real work experience into a clean, professional resume — fast, simple, and stress‑free.
-            </p>
-            <div className="max-w-3xl mx-auto aspect-video rounded-lg overflow-hidden shadow-lg">
-              <iframe
-                src="https://www.youtube.com/embed/I7j_Xhz5tUA?start=0"
-                title="TradePro — See How It Works"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-                className="w-full h-full"
-              />
-            </div>
+        <div className="max-w-5xl mx-auto text-center">
+          <h2 className="text-3xl font-semibold mb-3">
+            See TradePro Transform a Resume in Minutes
+          </h2>
+          <p className="text-neutral-600 mb-8 max-w-2xl mx-auto">
+            Turn real work experience into a clean, professional resume — fast, simple, and stress‑free.
+          </p>
+          <div className="max-w-3xl mx-auto aspect-video bg-neutral-200 border border-dashed border-neutral-400 rounded-lg flex items-center justify-center text-neutral-500 text-sm mb-8">
+            Video coming soon
           </div>
-
-          {/* Divider */}
-          <div className="flex items-center gap-4 mb-14">
-            <div className="flex-1 border-t border-neutral-200" />
-            <span className="text-neutral-400 text-sm font-medium">ALSO FEATURED</span>
-            <div className="flex-1 border-t border-neutral-200" />
-          </div>
-
-          {/* Video 2 — ATS Job Match Optimizer */}
-          <div className="text-center">
-            <h2 className="text-3xl font-semibold mb-3">
-              Beat the ATS Filter — Get More Callbacks
-            </h2>
-            <p className="text-neutral-600 mb-8 max-w-2xl mx-auto">
-              Paste any job posting and TradePro shows you exactly which keywords you're missing — then adds them to your resume in one click.
-            </p>
-            <div className="max-w-3xl mx-auto aspect-video rounded-lg overflow-hidden shadow-lg mb-8">
-              <iframe
-                src="https://www.youtube.com/embed/n-Z73irgP7g?start=0"
-                title="TradePro — ATS Job Match Optimizer"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-                className="w-full h-full"
-              />
-            </div>
-            <Link
-              href="/resume"
-              className="inline-block px-8 py-3 rounded-md bg-neutral-900 text-neutral-50 text-sm font-semibold tracking-wide shadow-md hover:bg-neutral-800"
-            >
-              Try TradePro Now
-            </Link>
-            <p className="text-xs text-neutral-500 mt-2">One‑time purchase. No subscription.</p>
-          </div>
-
+          <Link
+            href="/resume"
+            className="inline-block px-8 py-3 rounded-md bg-neutral-900 text-neutral-50 text-sm font-semibold tracking-wide shadow-md hover:bg-neutral-800"
+          >
+            Try TradePro Now
+          </Link>
+          <p className="text-xs text-neutral-500 mt-2">One‑time purchase. No subscription.</p>
         </div>
       </section>
 
