@@ -240,7 +240,8 @@ export async function POST(req: NextRequest) {
     const isProjectList = data.type === "project-list";
 
     const PDFDocument = (await import("pdfkit")).default;
-    const doc = new PDFDocument({ size: "LETTER", margin: 50 });
+    // margin: 0 — templates handle their own margins/padding
+    const doc = new PDFDocument({ size: "LETTER", margin: 0, autoFirstPage: true });
 
     const chunks: Buffer[] = [];
     doc.on("data", (chunk: Buffer) => chunks.push(chunk));

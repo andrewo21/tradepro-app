@@ -166,7 +166,7 @@ export function drawStandardClassicPDF(doc: any, data: any) {
   const { name, title, contact, summary, experience, education } = data;
   const skills = getSkills(data);
 
-  doc.rect(0, 0, PAGE_W, 60).fill("#111827");
+  doc.rect(0, 0, doc.page.width, 60).fill("#111827");
   doc.font("Helvetica-Bold").fontSize(20).fillColor("#ffffff").text(name || "", L, 16);
   if (title) doc.font("Helvetica").fontSize(10).fillColor("#d1d5db").text(title, L, 36);
   const cp = [contact?.phone, contact?.email, contact?.location].filter(Boolean);
@@ -206,7 +206,7 @@ export function drawModernBluePDF(doc: any, data: any) {
   const skills = getSkills(data);
   const BLUE = "#1d4ed8";
 
-  doc.rect(0, 0, PAGE_W, 78).fill(BLUE);
+  doc.rect(0, 0, doc.page.width, 78).fill(BLUE);
   doc.font("Helvetica-Bold").fontSize(22).fillColor("#ffffff").text(name || "", L, 16);
   if (title) doc.font("Helvetica").fontSize(11).fillColor("#bfdbfe").text(title, L, 40);
   const cp = [contact?.phone, contact?.email, contact?.location].filter(Boolean);
@@ -247,7 +247,11 @@ export function drawBasicTwoColumnPDF(doc: any, data: any) {
   const skills = getSkills(data);
   const SIDE_W = 160; const MAIN_X = SIDE_W + 20; const MAIN_W = PAGE_W - MAIN_X - 30;
 
-  const drawSidebar4 = () => doc.rect(0, 0, SIDE_W, PAGE_H).fill("#f3f4f6");
+  const drawSidebar4 = () => {
+    doc.save();
+    doc.rect(0, 0, SIDE_W, doc.page.height).fill("#f3f4f6");
+    doc.restore();
+  };
   drawSidebar4();
 
   let sY = 24;
@@ -304,7 +308,11 @@ export function drawSidebarGreenPDF(doc: any, data: any) {
   const GREEN = "#166534"; const GREEN_BG = "#f0fdf4";
   const SIDE_W = 155; const MAIN_X = SIDE_W + 20; const MAIN_W = PAGE_W - MAIN_X - 30;
 
-  const drawSidebar5 = () => doc.rect(0, 0, SIDE_W, PAGE_H).fill(GREEN_BG);
+  const drawSidebar5 = () => {
+    doc.save();
+    doc.rect(0, 0, SIDE_W, doc.page.height).fill(GREEN_BG);
+    doc.restore();
+  };
   drawSidebar5();
 
   let sY = 20;
@@ -354,7 +362,7 @@ export function drawExecutiveClassicPDF(doc: any, data: any) {
   const NAVY = "#003A70"; const ORANGE = "#F28C28";
 
   // Navy bar
-  doc.rect(0, 0, PAGE_W, 52).fill(NAVY);
+  doc.rect(0, 0, doc.page.width, 52).fill(NAVY);
   doc.font("Helvetica-Bold").fontSize(20).fillColor("#ffffff").text(name || "", L, 16);
   const cp = [contact?.location, contact?.email, contact?.phone].filter(Boolean);
   doc.font("Helvetica").fontSize(8.5).fillColor("#bfdbfe").text(cp.join("  |  "), L, 20, { width: CONTENT_W, align: "right" });
@@ -403,7 +411,11 @@ export function drawExecutiveLuxePDF(doc: any, data: any) {
   const GOLD_BG = "#F4E7C6";
   const SIDE_W = 165; const MAIN_X = SIDE_W + 20; const MAIN_W = PAGE_W - MAIN_X - 30;
 
-  const drawSidebar7 = () => doc.rect(0, 0, SIDE_W, PAGE_H).fill(GOLD_BG);
+  const drawSidebar7 = () => {
+    doc.save();
+    doc.rect(0, 0, SIDE_W, doc.page.height).fill(GOLD_BG);
+    doc.restore();
+  };
   drawSidebar7();
 
   let sY = 24;
@@ -467,7 +479,7 @@ export function drawModernElitePDF(doc: any, data: any) {
   const LEFT_W = 155; const RIGHT_X = LEFT_W + 20; const RIGHT_W = PAGE_W - RIGHT_X - 30;
 
   // Grey header bar (page 1 only — Modern Elite has no sidebar background)
-  doc.rect(0, 0, PAGE_W, 58).fill(GREY);
+  doc.rect(0, 0, doc.page.width, 58).fill(GREY);
   doc.font("Helvetica-Bold").fontSize(20).fillColor("#ffffff").text(name || "", L, 14);
   if (title) doc.font("Helvetica").fontSize(11).fillColor("#e5e7eb").text(title, L, 34);
   const cp = [contact?.location, contact?.email, contact?.phone].filter(Boolean);
