@@ -60,7 +60,17 @@ function jobBlock(
 ): number {
   const dates = [job.startDate, job.endDate].filter(Boolean).join(" – ");
   const dateW = 90;
-  y = checkPageBreak(doc, y, 30);
+  const bullets = getBullets(job);
+
+  // Estimate how much space this job needs to at least show header + first bullet
+  const firstBulletH = bullets.length > 0 ? estimateTextHeight(bullets[0], width - 10) + 6 : 0;
+  const headerH = 32 + firstBulletH; // title + company + first bullet
+
+  // If we can't fit even the header + first bullet, move whole job to next page
+  if (y + headerH > PAGE_H - 50) {
+    doc.addPage();
+    y = 40;
+  }
 
   doc.font("Helvetica-Bold").fontSize(10).fillColor(titleColor)
     .text(job.jobTitle || "", x, y, { width: width - dateW - 5 });
@@ -76,7 +86,15 @@ function jobBlock(
   }
 
   let curY = doc.y + 4;
-  getBullets(job).forEach(b => {
+  bullets.forEach((b, i) => {
+    const neededH = estimateTextHeight(b, width - 10);
+    // Check if this bullet fits; if it's the LAST bullet and there's only a tiny gap,
+    // reduce the margin so we don't waste a whole page on one line
+    const margin = (i === bullets.length - 1) ? 35 : 50;
+    if (curY + neededH > PAGE_H - margin) {
+      doc.addPage();
+      curY = 40;
+    }
     curY = drawBullet(doc, b, x, curY, width, dotColor);
   });
   return curY + 6;

@@ -231,18 +231,27 @@ export async function recordDownload(
   if (type === "resume") {
     updated.resumeDownloads = (current.resumeDownloads ?? 0) + 1;
     if (updated.resumeDownloads >= MAX_DOWNLOADS) {
+      // Revoke resume access — user can repurchase resume independently
       updated.resume = false;
+      // If bundle owner, keep coverLetter access but revoke bundle flag
+      // so they can repurchase resume separately without losing cover letter access
+      if (updated.bundle) {
+        updated.bundle = false;
+        // Preserve coverLetter access even after bundle flag clears
+        // coverLetter remains true — only resume is exhausted
+      }
     }
   } else {
     updated.coverLetterDownloads = (current.coverLetterDownloads ?? 0) + 1;
     if (updated.coverLetterDownloads >= MAX_DOWNLOADS) {
+      // Revoke cover letter access — user can repurchase independently
       updated.coverLetter = false;
+      // If bundle owner, keep resume access but revoke bundle flag
+      if (updated.bundle) {
+        updated.bundle = false;
+        // Preserve resume access even after bundle flag clears
+      }
     }
-  }
-
-  // If bundle — revoke bundle when both limits hit
-  if (updated.bundle && !updated.resume && !updated.coverLetter) {
-    updated.bundle = false;
   }
 
   if (backend === "redis") { await redisSet(userId, updated); }
