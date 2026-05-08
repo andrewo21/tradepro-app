@@ -20,34 +20,28 @@ export async function POST(req: NextRequest) {
 
     const { resumeText, jobDescription } = await req.json();
 
-    if (!resumeText?.trim()) {
-      return NextResponse.json({ error: "Resume text is required." }, { status: 400 });
-    }
-    if (!jobDescription?.trim()) {
-      return NextResponse.json({ error: "Job description is required." }, { status: 400 });
-    }
+    if (!resumeText?.trim()) return NextResponse.json({ error: "Resume text is required." }, { status: 400 });
+    if (!jobDescription?.trim()) return NextResponse.json({ error: "Job description is required." }, { status: 400 });
 
     const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-    // ── PASS 1: Deep analysis of both documents ────────────────────────────────
-    const analysisCompletion = await client.chat.completions.create({
+    // ── PASS 1: Extract structured data from both documents ────────────────────
+    const extractCompletion = await client.chat.completions.create({
       model: "gpt-4o",
       temperature: 0.1,
       response_format: { type: "json_object" },
       messages: [
         {
           role: "system",
-          content: `You are a world-class resume strategist and ATS optimization expert specializing in skilled trades, construction, and technical industries.
+          content: `You are an expert resume data extractor. Extract ALL information from the resume and job posting with perfect accuracy.
 
-Your task is to perform a DEEP analysis of both a candidate's resume and a job description, then extract structured data.
+CRITICAL EXTRACTION RULES:
+- Extract EVERY bullet point from EVERY job. Count them exactly. Do not skip, merge, or summarize any bullet.
+- If a job has 9 bullets, extract all 9. If it has 2, extract both. The count must be exact.
+- Extract text verbatim — do not rephrase during extraction.
+- Extract ALL skills, ALL education entries, ALL certifications exactly as written.
 
-ANALYSIS TASKS:
-1. Extract ALL candidate information from their resume — every job, every bullet, every skill, every certification, every education entry. Miss nothing.
-2. Deeply analyze the job description — identify the role, required skills, preferred qualifications, key responsibilities, industry keywords, and ATS trigger words.
-3. Cross-reference: identify which of the candidate's experiences, skills, and achievements are most relevant to THIS specific job.
-4. Flag any missing keywords from the job description that the candidate's background could legitimately support.
-
-Return ONLY valid JSON in this exact format:
+Return ONLY valid JSON:
 {
   "candidate": {
     "firstName": "",
@@ -57,70 +51,95 @@ Return ONLY valid JSON in this exact format:
     "email": "",
     "city": "",
     "state": "",
-    "allJobs": [
+    "summary": "",
+    "jobs": [
       {
         "jobTitle": "",
         "company": "",
         "startDate": "",
         "endDate": "",
-        "allBullets": ["exact bullet text from resume"]
+        "bullets": ["exact bullet 1", "exact bullet 2", "exact bullet 3"]
       }
     ],
-    "allSkills": ["skill1", "skill2"],
-    "education": [{ "school": "", "degree": "", "year": "" }],
-    "certifications": ["cert1"],
-    "rawSummary": ""
+    "skills": ["skill1", "skill2"],
+    "education": [{ "school": "", "degree": "", "year": "", "gpa": "" }],
+    "certifications": []
   },
-  "jobAnalysis": {
-    "targetJobTitle": "",
-    "employerName": "",
-    "requiredSkills": ["skill1"],
-    "preferredSkills": ["skill1"],
-    "keyResponsibilities": ["responsibility1"],
-    "industryKeywords": ["keyword1"],
-    "atsTriggerWords": ["word1"],
-    "seniorityLevel": "",
-    "industryType": ""
-  },
-  "matchScore": {
-    "presentKeywords": ["keyword found in resume"],
-    "missingKeywords": ["keyword missing but candidate could claim"],
-    "strongestMatches": ["top 3 most relevant experiences"]
+  "jobPosting": {
+    "title": "",
+    "company": "",
+    "requiredSkills": [],
+    "preferredSkills": [],
+    "responsibilities": [],
+    "atsKeywords": [],
+    "industryTerms": [],
+    "seniorityLevel": ""
   }
 }`,
         },
         {
           role: "user",
-          content: `CANDIDATE RESUME:\n${resumeText}\n\n---\n\nJOB DESCRIPTION:\n${jobDescription}`,
+          content: `RESUME:\n${resumeText}\n\n---\n\nJOB POSTING:\n${jobDescription}`,
         },
       ],
     });
 
-    const analysisRaw = analysisCompletion.choices?.[0]?.message?.content || "{}";
-    const analysis = JSON.parse(analysisRaw);
+    const extractRaw = extractCompletion.choices?.[0]?.message?.content || "{}";
+    const extracted = JSON.parse(extractRaw);
 
-    // ── PASS 2: Build the optimized resume using the analysis ─────────────────
-    const buildCompletion = await client.chat.completions.create({
+    const candidate = extracted.candidate || {};
+    const jobPosting = extracted.jobPosting || {};
+
+    // Verify bullet counts before passing to optimizer
+    const bulletCounts = (candidate.jobs || []).map((j: any) => ({
+      title: j.jobTitle,
+      count: (j.bullets || []).length,
+    }));
+
+    // ── PASS 2: Optimize with strict rules ─────────────────────────────────────
+    const optimizeCompletion = await client.chat.completions.create({
       model: "gpt-4o",
       temperature: 0.2,
       response_format: { type: "json_object" },
       messages: [
         {
           role: "system",
-          content: `You are a master resume writer and ATS optimization expert. Using the deep analysis provided, build a perfectly optimized resume tailored specifically for the target job.
+          content: `You are a master resume optimizer. You will optimize a candidate's resume for a specific job posting.
 
-RULES — FOLLOW STRICTLY:
-1. NEVER fabricate experience, skills, or qualifications the candidate does not have
-2. Rewrite every bullet point using strong past-tense action verbs (Led, Managed, Delivered, Implemented, Oversaw, Executed, Coordinated, Achieved, Drove, Streamlined)
-3. Quantify achievements where the original data hints at numbers — if no numbers exist, use strong qualitative language
-4. Naturally weave in the job's ATS trigger words and industry keywords throughout — summary, bullets, and skills
-5. Prioritize and re-order bullet points so the most relevant-to-this-job content appears first
-6. Write the summary specifically for THIS job — it should read like it was written for this role
-7. Skills list should include all candidate skills PLUS any missing ATS keywords their background legitimately supports
-8. Professional English only — no first-person pronouns
-9. Every bullet must be a complete, polished, impactful statement — no vague or weak language
+═══════════════════════════════════════════════
+ABSOLUTE RULES — NEVER VIOLATE ANY OF THESE
+═══════════════════════════════════════════════
 
-Return ONLY valid JSON:
+HONESTY CONSTRAINT (CRITICAL):
+- NEVER invent job titles, employers, dates, degrees, certifications, tools, or technologies
+- NEVER add experience the candidate did not have
+- NEVER fabricate any numbers, metrics, or achievements
+- You may ONLY: rephrase, reorder, emphasize, condense, clarify, align wording with the job posting
+- You may infer and clarify ONLY what is already implied by the candidate's own text
+
+BULLET PRESERVATION RULE (CRITICAL):
+- Count the bullets in each job. The output MUST have the exact same count.
+- If a job has 9 bullets in → output must have exactly 9 bullets.
+- If a job has 2 bullets in → output must have exactly 2 bullets.
+- DO NOT delete any bullet. DO NOT merge bullets. DO NOT collapse multiple bullets into one.
+- Every single original bullet must have exactly one corresponding output bullet.
+
+BULLET OPTIMIZATION LOGIC:
+For each bullet, compare it to the job posting:
+- HIGHLY RELEVANT: Strongly optimize — powerful action verb, measurable impact if already implied (never invent numbers), weave in job posting language naturally
+- SOMEWHAT RELEVANT: Lightly optimize — clarify impact, tighten wording, align terminology
+- NOT RELEVANT: Keep it — light grammar/clarity cleanup only, do not hide or remove it
+
+SKILLS RULE:
+- Only include skills the candidate explicitly has or clearly demonstrated
+- You may reflect ATS keywords from the job posting in skills ONLY if the candidate's experience supports them
+- Never add skills the user does not have
+
+═══════════════════════════════════════════════
+OUTPUT STRUCTURE
+═══════════════════════════════════════════════
+
+Return ONLY valid JSON with no explanations or meta text:
 {
   "personalInfo": {
     "firstName": "",
@@ -132,41 +151,47 @@ Return ONLY valid JSON:
     "state": ""
   },
   "summary": "",
-  "skills": ["skill1", "skill2"],
+  "skills": [],
   "experience": [
     {
       "jobTitle": "",
       "company": "",
       "startDate": "",
       "endDate": "",
-      "responsibilities": ["polished bullet 1", "polished bullet 2"],
+      "responsibilities": [],
       "achievements": []
     }
   ],
   "education": [{ "school": "", "degree": "", "year": "", "gpa": "" }],
   "atsScore": {
-    "presentKeywords": ["keyword1"],
+    "presentKeywords": [],
     "missingKeywords": [],
-    "score": 95
+    "score": 0
   }
-}`,
+}
+
+VERIFICATION BEFORE RESPONDING:
+Before returning your JSON, mentally verify:
+1. Each job's responsibilities array length matches the original bullet count: ${JSON.stringify(bulletCounts)}
+2. No invented facts anywhere
+3. All bullets preserved (none deleted, none merged)`,
         },
         {
           role: "user",
-          content: `Build the optimized resume using this analysis:\n${JSON.stringify(analysis, null, 2)}`,
+          content: `CANDIDATE DATA:\n${JSON.stringify(candidate, null, 2)}\n\nJOB POSTING DATA:\n${JSON.stringify(jobPosting, null, 2)}`,
         },
       ],
     });
 
-    const buildRaw = buildCompletion.choices?.[0]?.message?.content || "{}";
-    const built = JSON.parse(buildRaw);
+    const optimizeRaw = optimizeCompletion.choices?.[0]?.message?.content || "{}";
+    const optimized = JSON.parse(optimizeRaw);
 
     return NextResponse.json({
       success: true,
-      resume: built,
-      matchAnalysis: analysis.matchScore,
-      jobTitle: analysis.jobAnalysis?.targetJobTitle || "",
-      employer: analysis.jobAnalysis?.employerName || "",
+      resume: optimized,
+      jobTitle: jobPosting.title || "",
+      employer: jobPosting.company || "",
+      atsScore: optimized.atsScore || {},
     });
 
   } catch (err: any) {
