@@ -29,6 +29,19 @@ function sectionHead(doc: any, title: string, x: number, y: number, width: numbe
   return lineY + 6;
 }
 
+/** Estimate how many lines a text will take at given width and font size */
+function estimateLines(text: string, width: number, fontSize = 9): number {
+  // Approximate: Helvetica at 9pt is ~5.5px per char, width in points
+  const charsPerLine = Math.floor(width / (fontSize * 0.55));
+  return Math.max(1, Math.ceil(text.length / charsPerLine));
+}
+
+/** Estimate height a bullet will take */
+function estimateBulletHeight(text: string, width: number): number {
+  const lines = estimateLines(text, width - 10, 9);
+  return lines * 13 + 4; // 13pt per line + gap
+}
+
 /** Draw bullet, returns new Y */
 function bullet(doc: any, text: string, x: number, y: number, width: number, dotColor = "#374151"): number {
   doc.circle(x + 4, y + 4, 1.5).fill(dotColor);
@@ -37,10 +50,17 @@ function bullet(doc: any, text: string, x: number, y: number, width: number, dot
   return doc.y + 2;
 }
 
-/** Draw a job block, returns new Y */
-function jobBlock(doc: any, job: any, x: number, y: number, width: number): number {
+/** Draw a job block with proper page overflow handling, returns new Y */
+function jobBlock(doc: any, job: any, x: number, y: number, width: number, dotColor = "#374151"): number {
   const dates = [job.startDate, job.endDate].filter(Boolean).join(" – ");
   const dateW = 90;
+  const BOTTOM_MARGIN = PAGE_H - 50;
+
+  // Page break if the job header won't fit
+  if (y > BOTTOM_MARGIN - 40) {
+    doc.addPage();
+    y = 40;
+  }
 
   doc.font("Helvetica-Bold").fontSize(10).fillColor("#111827")
     .text(job.jobTitle || "", x, y, { width: width - dateW - 5 });
@@ -59,9 +79,17 @@ function jobBlock(doc: any, job: any, x: number, y: number, width: number): numb
 
   let curY = doc.y + 4;
   const bullets = getBullets(job);
+
   bullets.forEach(b => {
-    if (curY > PAGE_H - 60) return; // don't overflow page
-    curY = bullet(doc, b, x, curY, width);
+    const estimatedH = estimateBulletHeight(b, width);
+
+    // If this bullet won't fit on the current page, start a new page
+    if (curY + estimatedH > BOTTOM_MARGIN) {
+      doc.addPage();
+      curY = 40;
+    }
+
+    curY = bullet(doc, b, x, curY, width, dotColor);
   });
 
   return curY + 6;
