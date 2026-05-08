@@ -57,13 +57,21 @@ export default function ATSScoreTracker() {
     return estimatedCoverage * pointsPerKeyword;
   }, [stillMissing, pointsPerKeyword, summaryAccepted]);
 
-  // Don't show if no ATS data
-  if (!atsPresent?.length && !atsMissing?.length && !atsBaseScore) return null;
+  // Generic suggestions shown when no ATS data (built from scratch)
+  const genericSuggestions = [
+    "Add measurable results to your bullets (e.g. 'Reduced costs by 15%', 'Led team of 10')",
+    "Include certifications relevant to your trade (OSHA 30, NR-10, PMP, etc.)",
+    "Start every bullet with a strong past-tense action verb (Led, Managed, Delivered, Built)",
+    "Add specific project values or scope (e.g. '$2MM commercial build', '50,000 SF facility')",
+    "List industry-specific tools and software you use daily",
+  ];
+  const hasAtsData = !!(atsPresent?.length || atsMissing?.length || atsBaseScore);
 
-  const scoreColor = liveScore >= 85 ? "#16a34a" : liveScore >= 65 ? "#d97706" : "#dc2626";
-  const scoreBg = liveScore >= 85 ? "#f0fdf4" : liveScore >= 65 ? "#fffbeb" : "#fef2f2";
-  const scoreBorder = liveScore >= 85 ? "#86efac" : liveScore >= 65 ? "#fcd34d" : "#fca5a5";
-  const scoreLabel = liveScore >= 85 ? "Excellent match" : liveScore >= 65 ? "Good match" : "Keep optimizing";
+  // Always show — use neutral colors when no ATS data
+  const scoreColor = !hasAtsData ? "#6366f1" : liveScore >= 85 ? "#16a34a" : liveScore >= 65 ? "#d97706" : "#dc2626";
+  const scoreBg = !hasAtsData ? "#eef2ff" : liveScore >= 85 ? "#f0fdf4" : liveScore >= 65 ? "#fffbeb" : "#fef2f2";
+  const scoreBorder = !hasAtsData ? "#c7d2fe" : liveScore >= 85 ? "#86efac" : liveScore >= 65 ? "#fcd34d" : "#fca5a5";
+  const scoreLabel = !hasAtsData ? "Paste a job description to get your score" : liveScore >= 85 ? "Excellent match" : liveScore >= 65 ? "Good match" : "Keep optimizing";
 
   function acceptSkill(skill: string) {
     addSkill(skill);
@@ -76,8 +84,8 @@ export default function ATSScoreTracker() {
   }
 
   const bulletSuggestions = (atsBulletSuggestions || []).filter(Boolean);
-  const hasSuggestions = stillMissing.length > 0 || bulletSuggestions.length > 0;
-  const totalSuggestions = stillMissing.length + bulletSuggestions.length;
+  const hasSuggestions = stillMissing.length > 0 || bulletSuggestions.length > 0 || !hasAtsData;
+  const totalSuggestions = hasAtsData ? (stillMissing.length + bulletSuggestions.length) : genericSuggestions.length;
 
   return (
     <div className="rounded-xl overflow-hidden border shadow-sm" style={{ borderColor: scoreBorder, backgroundColor: scoreBg }}>
@@ -117,44 +125,58 @@ export default function ATSScoreTracker() {
       {/* Score tab */}
       {tab === "score" && (
         <div className="px-4 py-4">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-sm font-bold text-neutral-800">ATS Match Score</p>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-medium px-2 py-0.5 rounded-full"
-                style={{ color: scoreColor, backgroundColor: `${scoreColor}20` }}>
-                {scoreLabel}
-              </span>
-              <span className="text-2xl font-black tabular-nums" style={{ color: scoreColor }}>
-                {liveScore}%
-              </span>
+          {hasAtsData ? (
+            <>
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-sm font-bold text-neutral-800">ATS Match Score</p>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-medium px-2 py-0.5 rounded-full"
+                    style={{ color: scoreColor, backgroundColor: `${scoreColor}20` }}>
+                    {scoreLabel}
+                  </span>
+                  <span className="text-2xl font-black tabular-nums" style={{ color: scoreColor }}>
+                    {liveScore}%
+                  </span>
+                </div>
+              </div>
+              <div className="h-2.5 bg-white/60 rounded-full overflow-hidden border border-white/40">
+                <div className="h-full rounded-full transition-all duration-500 ease-out"
+                  style={{ width: `${liveScore}%`, backgroundColor: scoreColor }} />
+              </div>
+              <p className="text-xs text-neutral-500 mt-1.5">
+                {coveredCount} of {totalKeywords} job keywords matched · Updates live as you edit
+              </p>
+            </>
+          ) : (
+            <div className="text-center py-2">
+              <p className="text-sm font-semibold text-neutral-700">ATS Score</p>
+              <p className="text-xs text-neutral-500 mt-1">Use the Job Match Optimizer at the top of this page to analyze your resume against a specific job posting and get your score.</p>
             </div>
-          </div>
-          <div className="h-2.5 bg-white/60 rounded-full overflow-hidden border border-white/40">
-            <div className="h-full rounded-full transition-all duration-500 ease-out"
-              style={{ width: `${liveScore}%`, backgroundColor: scoreColor }} />
-          </div>
-          <p className="text-xs text-neutral-500 mt-1.5">
-            {coveredCount} of {totalKeywords} job keywords matched · Updates live as you edit
-          </p>
-          {hasSuggestions && (
-            <button onClick={() => setTab("suggestions")}
-              className="mt-3 text-xs font-semibold underline underline-offset-2"
-              style={{ color: scoreColor }}>
-              View {totalSuggestions} suggestion{totalSuggestions !== 1 ? "s" : ""} to improve your resume →
-            </button>
           )}
-          {!hasSuggestions && liveScore >= 85 && (
-            <p className="text-xs font-medium mt-2" style={{ color: scoreColor }}>
-              ✓ All key skills covered — your resume is well-matched to this job.
-            </p>
-          )}
+          <button onClick={() => setTab("suggestions")}
+            className="mt-3 text-xs font-semibold underline underline-offset-2"
+            style={{ color: scoreColor }}>
+            View {totalSuggestions} suggestion{totalSuggestions !== 1 ? "s" : ""} →
+          </button>
         </div>
       )}
 
       {/* Suggestions tab */}
       {tab === "suggestions" && (
         <div className="px-4 py-4 space-y-3">
-          {!hasSuggestions ? (
+          {!hasAtsData ? (
+            // Generic improvement suggestions when no job was analyzed
+            <div className="space-y-2">
+              <p className="text-xs text-neutral-600 font-medium mb-3">Resume improvement tips:</p>
+              {genericSuggestions.map((tip, i) => (
+                <div key={i} className="bg-white/70 rounded-lg px-3 py-2.5 border border-white text-xs text-neutral-700 leading-relaxed flex items-start gap-2">
+                  <span className="font-bold flex-shrink-0 mt-0.5" style={{ color: scoreColor }}>{i + 1}.</span>
+                  {tip}
+                </div>
+              ))}
+              <p className="text-xs text-neutral-400 pt-1">Run the Job Match Optimizer to get job-specific suggestions.</p>
+            </div>
+          ) : stillMissing.length === 0 && bulletSuggestions.length === 0 ? (
             <div className="text-center py-4">
               <p className="text-sm font-semibold" style={{ color: scoreColor }}>✓ All suggestions applied!</p>
               <p className="text-xs text-neutral-500 mt-1">Your score is now at {liveScore}%</p>
