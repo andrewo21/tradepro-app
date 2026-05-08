@@ -36,10 +36,14 @@ export async function POST(req: NextRequest) {
           content: `You are an expert resume data extractor. Extract ALL information from the resume and job posting with perfect accuracy.
 
 CRITICAL EXTRACTION RULES:
+- IGNORE page markers like "-- 1 of 3 --", "-- 2 of 3 --" — these are PDF artifacts, not content.
+- IGNORE repeated name/contact lines that appear at page tops — these are page headers, skip them.
+- Bullets after a page break belong to the SAME job active before the break — do NOT create a new job.
 - Extract EVERY bullet point from EVERY job. Count them exactly. Do not skip, merge, or summarize any bullet.
-- If a job has 9 bullets, extract all 9. If it has 2, extract both. The count must be exact.
+- If a job has 10 bullets across multiple pages, extract all 10 into one job entry.
 - Extract text verbatim — do not rephrase during extraction.
 - Extract ALL skills, ALL education entries, ALL certifications exactly as written.
+- For dates like "2018-2021 – 2023-2025" use startDate="2018" endDate="2025".
 
 Return ONLY valid JSON:
 {
@@ -79,7 +83,7 @@ Return ONLY valid JSON:
         },
         {
           role: "user",
-          content: `RESUME:\n${resumeText}\n\n---\n\nJOB POSTING:\n${jobDescription}`,
+          content: `RESUME (page markers like "-- 1 of 3 --" and repeated name headers are artifacts — ignore them, keep all bullets from all pages in the correct job):\n${resumeText}\n\n---\n\nJOB POSTING:\n${jobDescription}`,
         },
       ],
     });
