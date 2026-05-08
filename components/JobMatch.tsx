@@ -13,6 +13,18 @@ interface MatchResult {
 
 export default function JobMatch() {
   const { jobDescription, summary, skills, experience, setField, updateSummary, addSkill } = useResumeStore();
+  // Write ATS results to store so ATSScoreTracker can show suggestions
+  function saveToStore(data: MatchResult) {
+    setField("atsPresent", data.presentKeywords || []);
+    setField("atsMissing", data.missingKeywords || []);
+    setField("atsBaseScore", data.presentKeywords?.length && (data.presentKeywords.length + data.missingKeywords.length) > 0
+      ? Math.round((data.presentKeywords.length / (data.presentKeywords.length + data.missingKeywords.length)) * 100)
+      : 0);
+    // smartSkillAdditions become the suggestions in ATSScoreTracker
+    if (data.smartSkillAdditions?.length) {
+      setField("atsMissing", data.smartSkillAdditions);
+    }
+  }
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<MatchResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -56,6 +68,7 @@ export default function JobMatch() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || data.error || "Analysis failed");
       setResult(data);
+      saveToStore(data);
     } catch (err: any) {
       setError(err?.message || "Something went wrong.");
     } finally {
