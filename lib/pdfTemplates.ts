@@ -26,18 +26,19 @@ function estimateTextHeight(text: string, width: number, fontSize = 9, lineGap =
   return lines * (fontSize + lineGap) + 2;
 }
 
-function checkPageBreak(doc: any, y: number, neededHeight: number, margin = 50): number {
+function checkPageBreak(doc: any, y: number, neededHeight: number, margin = 50, onNewPage?: () => void): number {
   if (y + neededHeight > PAGE_H - margin) {
     doc.addPage();
+    if (onNewPage) onNewPage();
     return 40;
   }
   return y;
 }
 
 /** Draw bullet and return new Y */
-function drawBullet(doc: any, text: string, x: number, y: number, width: number, dotColor = "#374151"): number {
+function drawBullet(doc: any, text: string, x: number, y: number, width: number, dotColor = "#374151", onNewPage?: () => void): number {
   const neededH = estimateTextHeight(text, width - 10);
-  y = checkPageBreak(doc, y, neededH);
+  y = checkPageBreak(doc, y, neededH, 50, onNewPage);
   doc.circle(x + 4, y + 4, 1.5).fill(dotColor);
   doc.font("Helvetica").fontSize(9).fillColor("#374151")
     .text(text, x + 10, y, { width: width - 10, lineGap: 1.5 });
@@ -56,17 +57,16 @@ function sectionRule(doc: any, title: string, x: number, y: number, width: numbe
 /** Draw a job block with overflow handling, return new Y */
 function jobBlock(
   doc: any, job: any, x: number, y: number, width: number,
-  dotColor = "#374151", titleColor = "#111827", companyColor = "#4b5563", dateColor = "#6b7280"
+  dotColor = "#374151", titleColor = "#111827", companyColor = "#4b5563", dateColor = "#6b7280",
+  onNewPage?: () => void
 ): number {
   const dates = [job.startDate, job.endDate].filter(Boolean).join(" – ");
   const dateW = 90;
   const bullets = getBullets(job);
 
-  // Only check if the job HEADER fits (title + company ≈ 26pt).
-  // Don't estimate bullet heights here — overestimation causes large gaps.
-  // Individual bullets handle their own page breaks as they're drawn.
   if (y + 26 > PAGE_H - 40) {
     doc.addPage();
+    if (onNewPage) onNewPage();
     y = 40;
   }
 
@@ -86,9 +86,9 @@ function jobBlock(
   let curY = doc.y + 4;
   bullets.forEach(b => {
     const neededH = estimateTextHeight(b, width - 10) + 4;
-    // Only break to next page if this bullet genuinely won't fit
     if (curY + neededH > PAGE_H - 35) {
       doc.addPage();
+      if (onNewPage) onNewPage();
       curY = 40;
     }
     curY = drawBullet(doc, b, x, curY, width, dotColor);
@@ -247,10 +247,8 @@ export function drawBasicTwoColumnPDF(doc: any, data: any) {
   const skills = getSkills(data);
   const SIDE_W = 160; const MAIN_X = SIDE_W + 20; const MAIN_W = PAGE_W - MAIN_X - 30;
 
-  // Patch addPage so sidebar background is redrawn immediately on every new page
-  const _addPage4 = doc.addPage.bind(doc);
-  doc.addPage = (...a: any[]) => { const r = _addPage4(...a); doc.rect(0, 0, SIDE_W, PAGE_H).fill("#f3f4f6"); return r; };
-  doc.rect(0, 0, SIDE_W, PAGE_H).fill("#f3f4f6");
+  const drawSidebar4 = () => doc.rect(0, 0, SIDE_W, PAGE_H).fill("#f3f4f6");
+  drawSidebar4();
 
   let sY = 24;
   doc.font("Helvetica-Bold").fontSize(15).fillColor("#111827").text(name || "", 15, sY, { width: SIDE_W - 20 }); sY = doc.y + 2;
@@ -292,7 +290,7 @@ export function drawBasicTwoColumnPDF(doc: any, data: any) {
   if (experience?.length) {
     doc.font("Helvetica-Bold").fontSize(9).fillColor("#374151").text("EXPERIENCE", MAIN_X, mY, { characterSpacing: 0.4 }); mY = doc.y + 3;
     doc.moveTo(MAIN_X, mY).lineTo(PAGE_W - 30, mY).lineWidth(0.5).stroke("#d1d5db"); mY += 5;
-    experience.forEach((job: any) => { mY = jobBlock(doc, job, MAIN_X, mY, MAIN_W); });
+    experience.forEach((job: any) => { mY = jobBlock(doc, job, MAIN_X, mY, MAIN_W, "#374151", "#111827", "#4b5563", "#6b7280", drawSidebar4); });
   }
 }
 
@@ -306,10 +304,8 @@ export function drawSidebarGreenPDF(doc: any, data: any) {
   const GREEN = "#166534"; const GREEN_BG = "#f0fdf4";
   const SIDE_W = 155; const MAIN_X = SIDE_W + 20; const MAIN_W = PAGE_W - MAIN_X - 30;
 
-  // Patch addPage so sidebar background is redrawn immediately on every new page
-  const _addPage5 = doc.addPage.bind(doc);
-  doc.addPage = (...a: any[]) => { const r = _addPage5(...a); doc.rect(0, 0, SIDE_W, PAGE_H).fill(GREEN_BG); return r; };
-  doc.rect(0, 0, SIDE_W, PAGE_H).fill(GREEN_BG);
+  const drawSidebar5 = () => doc.rect(0, 0, SIDE_W, PAGE_H).fill(GREEN_BG);
+  drawSidebar5();
 
   let sY = 20;
   doc.font("Helvetica-Bold").fontSize(14).fillColor(GREEN).text(name || "", 15, sY, { width: SIDE_W - 20 }); sY = doc.y + 2;
@@ -344,7 +340,7 @@ export function drawSidebarGreenPDF(doc: any, data: any) {
   if (experience?.length) {
     doc.font("Helvetica-Bold").fontSize(9).fillColor(GREEN).text("EXPERIENCE", MAIN_X, mY, { characterSpacing: 0.4 }); mY = doc.y + 3;
     doc.moveTo(MAIN_X, mY).lineTo(PAGE_W - 30, mY).lineWidth(0.5).stroke(GREEN); mY += 5;
-    experience.forEach((job: any) => { mY = jobBlock(doc, job, MAIN_X, mY, MAIN_W); });
+    experience.forEach((job: any) => { mY = jobBlock(doc, job, MAIN_X, mY, MAIN_W, "#374151", "#111827", "#4b5563", "#6b7280", drawSidebar5); });
   }
 }
 
@@ -407,10 +403,8 @@ export function drawExecutiveLuxePDF(doc: any, data: any) {
   const GOLD_BG = "#F4E7C6";
   const SIDE_W = 165; const MAIN_X = SIDE_W + 20; const MAIN_W = PAGE_W - MAIN_X - 30;
 
-  // Patch addPage so sidebar background is redrawn immediately on every new page
-  const _addPage7 = doc.addPage.bind(doc);
-  doc.addPage = (...a: any[]) => { const r = _addPage7(...a); doc.rect(0, 0, SIDE_W, PAGE_H).fill(GOLD_BG); return r; };
-  doc.rect(0, 0, SIDE_W, PAGE_H).fill(GOLD_BG);
+  const drawSidebar7 = () => doc.rect(0, 0, SIDE_W, PAGE_H).fill(GOLD_BG);
+  drawSidebar7();
 
   let sY = 24;
   doc.font("Helvetica-Bold").fontSize(16).fillColor("#111827").text(name || "", 15, sY, { width: SIDE_W - 20 }); sY = doc.y + 2;
@@ -448,7 +442,7 @@ export function drawExecutiveLuxePDF(doc: any, data: any) {
     doc.font("Helvetica-Bold").fontSize(10).fillColor("#111827").text("EXPERIENCE", MAIN_X, mY, { characterSpacing: 0.5 });
     mY = doc.y + 2;
     doc.moveTo(MAIN_X, mY).lineTo(PAGE_W - 30, mY).lineWidth(0.5).stroke("#9ca3af"); mY += 5;
-    experience.forEach((job: any) => { mY = jobBlock(doc, job, MAIN_X, mY, MAIN_W, "#111827", "#111827", "#374151", "#6b7280"); });
+    experience.forEach((job: any) => { mY = jobBlock(doc, job, MAIN_X, mY, MAIN_W, "#111827", "#111827", "#374151", "#6b7280", drawSidebar7); });
   }
   if (education?.length) {
     mY = checkPageBreak(doc, mY, 40);
