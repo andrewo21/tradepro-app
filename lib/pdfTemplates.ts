@@ -62,12 +62,10 @@ function jobBlock(
   const dateW = 90;
   const bullets = getBullets(job);
 
-  // Estimate how much space this job needs to at least show header + first bullet
-  const firstBulletH = bullets.length > 0 ? estimateTextHeight(bullets[0], width - 10) + 6 : 0;
-  const headerH = 32 + firstBulletH; // title + company + first bullet
-
-  // If we can't fit even the header + first bullet, move whole job to next page
-  if (y + headerH > PAGE_H - 50) {
+  // Only check if the job HEADER fits (title + company ≈ 26pt).
+  // Don't estimate bullet heights here — overestimation causes large gaps.
+  // Individual bullets handle their own page breaks as they're drawn.
+  if (y + 26 > PAGE_H - 40) {
     doc.addPage();
     y = 40;
   }
@@ -86,12 +84,10 @@ function jobBlock(
   }
 
   let curY = doc.y + 4;
-  bullets.forEach((b, i) => {
-    const neededH = estimateTextHeight(b, width - 10);
-    // Check if this bullet fits; if it's the LAST bullet and there's only a tiny gap,
-    // reduce the margin so we don't waste a whole page on one line
-    const margin = (i === bullets.length - 1) ? 35 : 50;
-    if (curY + neededH > PAGE_H - margin) {
+  bullets.forEach(b => {
+    const neededH = estimateTextHeight(b, width - 10) + 4;
+    // Only break to next page if this bullet genuinely won't fit
+    if (curY + neededH > PAGE_H - 35) {
       doc.addPage();
       curY = 40;
     }
