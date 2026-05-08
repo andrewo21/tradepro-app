@@ -48,7 +48,7 @@ function drawBullet(doc: any, text: string, x: number, y: number, width: number,
 /** Draw section header with rule, return new Y */
 function sectionRule(doc: any, title: string, x: number, y: number, width: number, color = "#1f2937"): number {
   doc.font("Helvetica-Bold").fontSize(8.5).fillColor(color)
-    .text(title.toUpperCase(), x, y, { width: width - 60, characterSpacing: 0.8 });
+    .text(title.toUpperCase(), x, y, { width, characterSpacing: 0.8, lineBreak: false });
   const ruleY = y + 12;
   doc.moveTo(x, ruleY).lineTo(x + width, ruleY).lineWidth(0.5).stroke("#d1d5db");
   return ruleY + 6;
