@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabase } from "@/lib/supabase";
 import { useResumeStore } from "@/app/store/useResumeStore";
+import { getOrCreateUserId } from "@/lib/userId";
 import Link from "next/link";
 
 interface Resume {
@@ -71,15 +72,32 @@ export default function AccountPage() {
     if (!sb) return;
     const { data: { session } } = await sb.auth.getSession();
     if (!session) return;
+
+    // Load resume data
     const res = await fetch(`/api/resume/load?id=${id}`, {
       headers: { Authorization: `Bearer ${session.access_token}` },
     });
     const json = await res.json();
-    if (json.resume?.data) {
-      const d = json.resume.data;
-      Object.keys(d).forEach(k => setField(k, d[k]));
-      router.push("/resume/personal");
-    }
+    if (!json.resume?.data) return;
+
+    // Restore entitlement — saved resume = proof of purchase
+    const userId = getOrCreateUserId();
+    await fetch("/api/resume/grant-access", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({ userId }),
+    });
+
+    // Hydrate store with saved data + clear watermark
+    const d = json.resume.data;
+    Object.keys(d).forEach(k => setField(k, d[k]));
+    setField("showWatermark", false);
+    setField("premiumUnlocked", d.premiumUnlocked ?? false);
+
+    router.push("/resume/personal");
   }
 
   async function handleSignOut() {
