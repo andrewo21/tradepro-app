@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
-import UserMenu from "@/components/UserMenu";
 
 export default function Header() {
   const [open, setOpen] = useState(false);
@@ -22,13 +21,11 @@ export default function Header() {
   return (
     <header className="w-full border-b bg-white relative z-50">
 
-      {/* TOP-RIGHT: User profile + Menu */}
+      {/* TOP-RIGHT: Menu */}
       <div
         className="absolute right-4 top-4 sm:right-8 sm:top-8 z-20 flex items-center gap-2"
         ref={menuRef}
       >
-        <UserMenu />
-
         <div className="relative">
           <button
             onClick={() => setOpen(!open)}
@@ -46,7 +43,9 @@ export default function Header() {
               <Link href="/pricing" className="block px-4 py-2 text-neutral-800 hover:bg-neutral-100 hover:text-neutral-900">Pricing</Link>
               <Link href="/about" className="block px-4 py-2 text-neutral-800 hover:bg-neutral-100 hover:text-neutral-900">About Us</Link>
               <Link href="/contact" className="block px-4 py-2 text-neutral-800 hover:bg-neutral-100 hover:text-neutral-900">Contact Us</Link>
-              <Link href="/login" className="block px-4 py-2 text-neutral-800 hover:bg-neutral-100 hover:text-neutral-900">Login / My Account</Link>
+              <div className="border-t border-neutral-100 mt-1 pt-1">
+                <Link href="/minhas-versoes" className="block px-4 py-2 text-blue-700 font-medium hover:bg-blue-50">My Account / Saved Resumes</Link>
+              </div>
               <div className="border-t border-neutral-100 mt-1 pt-1">
                 <Link href="/br" className="flex items-center gap-2 px-4 py-2 text-neutral-800 hover:bg-green-50 hover:text-green-800 text-sm font-medium">
                   <span>🇧🇷</span>
