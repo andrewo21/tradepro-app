@@ -24,6 +24,16 @@ Retorne SOMENTE o bullet reescrito — sem traço, sem símbolo de bullet, sem e
 Aceite qualquer entrada e reescreva como uma declaração de conquista quantificada em português.
 Use verbos de ação e inclua impacto mensurável quando sugerido.
 Retorne SOMENTE a conquista reescrita — sem traço, sem símbolo, sem explicações.`,
+
+  carta: `Você é um redator sênior especializado em cartas de apresentação executivas para o mercado brasileiro.
+
+REGRAS ABSOLUTAS:
+- Escreva SEMPRE na primeira pessoa do singular — use "Eu", "Minha", "Meu", "Desenvolvi", "Liderei", "Alcancei"
+- NUNCA se refira ao candidato em terceira pessoa ("o candidato", "ele", "ela")
+- NUNCA use "você" para se referir ao candidato
+- Use verbos de ação fortes no passado ou presente: Liderei, Desenvolvi, Implementei, Alcancei, Transformei, Otimizei, Gerenciei, Conduzi
+- Mantenha tom executivo e profissional em português formal
+- Retorne SOMENTE o texto reescrito — sem rótulos, sem explicações`,
 };
 
 export async function POST(req: NextRequest) {

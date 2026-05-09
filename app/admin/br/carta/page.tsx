@@ -109,42 +109,41 @@ export default function OperadorCartaBR() {
     setLoading(true); setError(null);
     try {
       const tomInstrucao = tom === "executivo"
-        ? "executivo e estratégico — use vocabulário de alto nível como 'impulsionar', 'alavancar', 'transformar', 'otimizar', 'liderar com excelência'"
+        ? "executivo e estratégico — vocabulário de alto nível: 'impulsionei', 'alavanquei', 'transformei', 'otimizei', 'liderei com excelência'"
         : tom === "tecnico"
-        ? "técnico e direto — enfatize competências específicas, certificações e resultados mensuráveis"
-        : "cordial e profissional — equilibre competência com acessibilidade";
+        ? "técnico e direto — enfatize competências específicas, certificações e resultados mensuráveis com 'implementei', 'desenvolvi', 'operei'"
+        : "cordial e profissional — equilibre competência com acessibilidade usando 'contribuí', 'colaborei', 'apoiei'";
 
       const destinatario = nomeContratante
-        ? `Dirija-se diretamente a ${nomeContratante}, responsável por Recursos Humanos ou pela seleção.`
-        : `Use abertura profissional 'A quem possa interessar'.`;
+        ? `Dirija-se diretamente a ${nomeContratante} pelo nome, de forma respeitosa e pessoal.`
+        : `Use abertura profissional dirigida à empresa ou ao setor de RH.`;
 
-      const prompt = `Você é um consultor sênior de carreira executiva especializado no mercado brasileiro.
+      const prompt = `Você é um redator sênior especializado em cartas de apresentação executivas para o mercado brasileiro.
 
-Escreva o CORPO de uma carta de apresentação de nível executivo em português brasileiro formal para:
-
-CANDIDATO: ${nome}
-CARGO PRETENDIDO: ${cargo}${empresa ? `\nEMPRESA: ${empresa}` : ""}${nomeContratante ? `\nDESTINATÁRIO: ${nomeContratante}` : ""}
+Escreva o CORPO de uma carta de apresentação em português brasileiro formal para ${nome} se candidatando ao cargo de ${cargo}${empresa ? ` na empresa ${empresa}` : ""}.
 
 ${destinatario}
 
 TOM: ${tomInstrucao}
 
 ESTRUTURA OBRIGATÓRIA (4 parágrafos):
-1. Abertura impactante — apresente o candidato com uma declaração de valor única, mostrando por que esta candidatura é estratégica para a empresa
-2. Realizações-chave — destaque o resultado mais expressivo e quantificável da trajetória, conectando diretamente às necessidades do cargo
-3. Competências diferenciadoras — 2-3 habilidades críticas para o cargo, com exemplos concretos que demonstrem domínio e liderança
-4. Encerramento executivo — chamada para ação confiante, demonstrando disponibilidade e visão de impacto
+1. Abertura — declare com confiança quem sou e por que esta oportunidade é estratégica para mim e para a empresa
+2. Realizações-chave — meu resultado mais expressivo e quantificável, conectado diretamente às necessidades do cargo
+3. Competências diferenciadoras — 2-3 habilidades críticas com exemplos concretos do que já executei
+4. Encerramento — chamada para ação confiante, com disponibilidade e entusiasmo real
 
-REGRAS:
-- Nunca use pronomes em primeira pessoa (eu, meu, minha) — use sujeito implícito ou terceira pessoa
-- Mínimo 4 parágrafos completos, linguagem densa e substancial
+REGRAS ABSOLUTAS — VIOLAÇÃO ZERO:
+- Escreva SEMPRE na primeira pessoa: "Eu", "Liderei", "Desenvolvi", "Alcancei", "Implementei", "Gerenciei"
+- NUNCA use terceira pessoa para o candidato ("o candidato", "ele", "ela", "possui", "tem experiência em")
+- NUNCA use "você" referindo-se ao candidato
+- Use verbos de ação fortes: Liderei, Desenvolvi, Implementei, Alcancei, Transformei, Otimizei, Conduzi, Estabeleci
+- Mínimo 4 parágrafos completos e substanciais
 - Escreva APENAS o corpo da carta — sem saudação, sem assinatura
-- Cada parágrafo deve ter no mínimo 3 linhas
-- Use conectores executivos: "Ao longo de", "Comprometido com", "Reconhecido por", "Com sólida trajetória em"
+- Cada parágrafo mínimo 3 linhas
 
-CONTEXTO E EXPERIÊNCIA DO CANDIDATO:
-${experiencia || `Profissional da área de ${cargo} buscando oportunidade na empresa ${empresa || "referenciada"}.`}
-${realizacoes ? `\nREALIZAÇÕES ESPECÍFICAS A DESTACAR:\n${realizacoes}` : ""}`;
+CONTEXTO E TRAJETÓRIA:
+${experiencia || `Profissional da área de ${cargo} com experiência relevante buscando oportunidade${empresa ? ` na ${empresa}` : ""}.`}
+${realizacoes ? `\nREALIZAÇÕES A DESTACAR:\n${realizacoes}` : ""}`;
 
       const res = await fetch("/api/ai/br/rewrite", {
         method: "POST",
@@ -176,7 +175,7 @@ ${realizacoes ? `\nREALIZAÇÕES ESPECÍFICAS A DESTACAR:\n${realizacoes}` : ""}
       const res = await fetch("/api/ai/br/rewrite", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          text: `Reescreva este parágrafo de carta de apresentação executiva em português formal, mantendo o mesmo significado mas com linguagem mais impactante e profissional de alto nível: ${text}`,
+          text: `Reescreva este parágrafo mantendo a primeira pessoa (Eu, Liderei, Desenvolvi etc.) e tornando a linguagem mais impactante e executiva em português formal: ${text}`,
           type: "carta",
         }),
       });
