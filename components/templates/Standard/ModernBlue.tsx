@@ -94,6 +94,10 @@ export default function ModernBlue({
                     {job.startDate} – {job.endDate}
                   </p>
 
+                  {job.roleSummary && (
+                    <p className="text-sm text-blue-100 mb-2 leading-snug">{job.roleSummary}</p>
+                  )}
+
                   {job.responsibilities?.length > 0 && (
                     <ul className="space-y-1 list-none p-0 m-0">
                       {job.responsibilities.map((r: string, i: number) => (

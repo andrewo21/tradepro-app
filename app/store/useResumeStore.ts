@@ -22,6 +22,7 @@ const createExperienceItem = () => ({
   company: "", 
   startDate: "", 
   endDate: "", 
+  roleSummary: "",   // intro paragraph shown before bullets
   responsibilities: [createBullet()], 
   achievements: [createBullet()] 
 });
@@ -162,6 +163,9 @@ export const useResumeStore = create<any>()(
     updateExperience: (id: string, f: string, v: string) => set((state: any) => ({ 
       experience: state.experience.map((e: any) => e.id === id ? { ...e, [f]: v } : e) 
     })),
+    updateRoleSummary: (id: string, text: string) => set((state: any) => ({
+      experience: state.experience.map((e: any) => e.id === id ? { ...e, roleSummary: text } : e)
+    })),
 
     // --- RESPONSIBILITIES ACTIONS ---
     addResponsibility: (id: string) => set((state: any) => ({ 
@@ -287,11 +291,15 @@ export const useResumeStore = create<any>()(
             ...(s.personalInfo || {}),
             linkedin: s.personalInfo?.linkedin || "",
           },
-          // strip year field from education entries
           education: (s.education || []).map((e: any) => {
             const { year, ...rest } = e;
             return rest;
           }),
+          // add roleSummary to existing experience items
+          experience: (s.experience || []).map((e: any) => ({
+            ...e,
+            roleSummary: e.roleSummary || "",
+          })),
         };
       }
       return s;

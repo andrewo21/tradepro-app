@@ -39,6 +39,7 @@ export default function ExperiencePage() {
   const removeExperience = useResumeStore((s) => s.removeExperience);
 
   const updateExperience = useResumeStore((s) => s.updateExperience);
+  const updateRoleSummary = useResumeStore((s) => s.updateRoleSummary);
 
   const addResponsibility = useResumeStore((s) => s.addResponsibility);
   const updateResponsibility = useResumeStore((s) => s.updateResponsibility);
@@ -194,6 +195,22 @@ export default function ExperiencePage() {
                 </label>
               </div>
             </div>
+
+            {/* ROLE SUMMARY — intro paragraph */}
+            {(job.roleSummary !== undefined) && (
+              <div className="mb-5">
+                <label className="block text-sm font-medium mb-1">
+                  Role Overview <span className="text-neutral-400 font-normal text-xs">(optional — intro paragraph shown before bullets)</span>
+                </label>
+                <textarea
+                  spellCheck={true}
+                  value={job.roleSummary || ""}
+                  onChange={(e) => updateRoleSummary(job.id, e.target.value)}
+                  placeholder="Brief description of the role or company context..."
+                  className="w-full border border-neutral-300 rounded-md px-3 py-2 text-sm resize-none h-20"
+                />
+              </div>
+            )}
 
             {/* RESPONSIBILITIES */}
             <div className="mb-6">

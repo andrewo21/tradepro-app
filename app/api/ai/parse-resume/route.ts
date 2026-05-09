@@ -41,10 +41,10 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
-    // Pre-process: strip PDF page markers and repeated headers before sending to AI
+    // Pre-process: strip PDF page markers and repeated page headers
     const cleanedText = text
-      .replace(/--\s*\d+\s*of\s*\d+\s*--/gi, "")           // remove "-- 1 of 3 --"
-      .replace(/\n{3,}/g, "\n\n")                             // collapse excess blank lines
+      .replace(/--\s*\d+\s*of\s*\d+\s*--/gi, "")     // remove "-- 1 of 3 --"
+      .replace(/\n{3,}/g, "\n\n")                       // collapse excess blank lines
       .trim();
 
     const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -56,33 +56,70 @@ export async function POST(req: NextRequest) {
       messages: [
         {
           role: "system",
-          content: `You are an expert resume parser. Extract ALL information from this resume with perfect accuracy.
+          content: `You are an expert resume parser. Your job is to extract ALL information from a resume with perfect accuracy and map it to the correct fields.
 
-CRITICAL RULES — FOLLOW EXACTLY:
+══════════════════════════════════════════════════
+SECTION DETECTION — READ THIS CAREFULLY
+══════════════════════════════════════════════════
 
-PAGE HANDLING:
-- The resume may span multiple pages. Page headers (repeated name/contact at top of each page) and page footers are NOT content — ignore them entirely.
-- Bullets that appear after a page break belong to the SAME job that was active before the page break. Do NOT create a new job entry when a page break occurs mid-job.
-- If you see "ANDREW O'NEILL" or any name/contact line repeated mid-document, it is a page header — skip it and continue parsing the current job.
+1. PROFESSIONAL SUMMARY (global, about the person)
+   - The paragraph(s) at the very top describing who the person is
+   - May include bullet points (➢ • ▪ -) as part of the summary
+   - Include ALL of it — the paragraph AND any following bullets — joined into one summary field
+   - If you find a "Summary" paragraph INSIDE the experience section (a document-level overview), treat it as the global summary ONLY if no other summary was found at the top
+   - Do NOT include company-specific paragraphs in the global summary
 
-BULLET COUNTING (CRITICAL):
-- Extract EVERY bullet from EVERY job. Count them carefully.
-- Bullets are lines starting with •, ▪, ➢, -, *, or indented/leading whitespace.
-- The intro paragraph of each job (non-bulleted text after the job title) counts as part of that job — include it as the first responsibility.
-- Do NOT skip any bullet. Do NOT merge bullets. Output count must equal source count.
-- If Hedrick Brothers has 10 bullets in the source, output must have 10 bullets.
+2. SKILLS / CORE COMPETENCIES
+   - Look for sections labeled: Skills, Core Competencies, Key Skills, Competencies, Areas of Expertise
+   - IMPORTANT: Section headers may have spaced letters (e.g. "C o r e  C o m p e t e n c i e s") — recognize these as skill section headers
+   - Extract every individual skill as its own item in the skills array
+   - Do NOT skip skills sections just because the header has unusual formatting
 
-DATE HANDLING:
-- "2018-2021 – 2023-2025" means two stints at the same company — use startDate="2018" endDate="2025"
-- "2025-Present" → startDate="2025" endDate="Present"
+3. EXPERIENCE — PER COMPANY (most critical section)
+   Each job entry has up to 4 parts. You MUST separate them:
+   
+   a) COMPANY NAME — the employer (e.g. "HEDRICK BROTHERS CONSTRUCTION")
+   b) JOB TITLE + DATES — e.g. "Project Manager, Operations ● 2018-2021"
+   c) ROLE SUMMARY (roleSummary) — The NON-BULLETED paragraph immediately after the job title.
+      This is a prose description of the role/company. It is NOT a bullet point.
+      It often starts with "Held a strategic role...", "Facilitated...", "Hands-on and strategic..."
+      Store this in "roleSummary". Do NOT put it in responsibilities.
+   d) RESPONSIBILITIES — the bulleted lines (starting with • ▪ ➢ - ★ or similar)
+      Store these in the "responsibilities" array.
+      Extract EVERY bullet — do not skip or merge any.
 
-OTHER RULES:
-- Extract ALL skills, ALL education, ALL certifications
-- Split first/last name correctly
-- Empty string "" for missing fields
-- Return ONLY valid JSON, no explanations
+4. WHAT TO IGNORE
+   - Page headers: repeated name/contact lines appearing mid-document (e.g. "ANDREW O'NEILL, MBA 914-424-4786")
+   - Page footers / page numbers
+   - Testimonials / quotes (text in quotes attributed to a person)
+   - Document-level "Summary" paragraphs that appear at the start of the Experience section (only use as global summary if needed)
 
-JSON FORMAT:
+5. PAGE BREAK HANDLING
+   - Bullets continuing after a page break belong to the SAME job that was active before the break
+   - Do NOT start a new job entry at a page break
+   - If you see a name/contact line mid-document, skip it and continue with the current job
+
+6. BULLET COUNTING — ZERO TOLERANCE
+   - Count every bullet in every job before outputting
+   - Output count MUST equal source count
+   - If Hedrick Brothers has 10 bullets, output 10 bullets
+   - Never merge two bullets into one
+
+7. EDUCATION
+   - Extract school, degree, city/state if present
+   - Do NOT include year (we've removed that field)
+
+8. CERTIFICATIONS
+   - Any section labeled Certifications, Licenses, Community Involvement, Board Memberships, Professional Affiliations
+   - Extract each item as a string in the certifications array
+
+9. LINKEDIN + CONTACT
+   - Extract LinkedIn URL if present (look for linkedin.com/in/...)
+   - Include in personalInfo.linkedin
+
+══════════════════════════════════════════════════
+OUTPUT FORMAT (return ONLY valid JSON)
+══════════════════════════════════════════════════
 {
   "personalInfo": {
     "firstName": "",
@@ -91,9 +128,10 @@ JSON FORMAT:
     "phone": "",
     "email": "",
     "city": "",
-    "state": ""
+    "state": "",
+    "linkedin": ""
   },
-  "summary": "",
+  "summary": "full professional summary paragraph(s) and any top-level bullets combined into one string",
   "skills": ["skill1", "skill2"],
   "experience": [
     {
@@ -101,7 +139,8 @@ JSON FORMAT:
       "company": "",
       "startDate": "",
       "endDate": "",
-      "responsibilities": ["bullet1", "bullet2"],
+      "roleSummary": "the prose paragraph describing the role — NOT bulleted. Empty string if none.",
+      "responsibilities": ["every bullet point, word for word"],
       "achievements": []
     }
   ],
@@ -109,15 +148,15 @@ JSON FORMAT:
     {
       "school": "",
       "degree": "",
-      "year": "",
       "gpa": ""
     }
-  ]
+  ],
+  "certifications": ["any cert, license, community involvement, board role"]
 }`,
         },
         {
           role: "user",
-          content: `Parse this resume completely. Remember: page headers (repeated name lines) are NOT content, and bullets continuing after a page break belong to the SAME job.\n\n${cleanedText}`,
+          content: `Parse this resume completely and accurately. Remember:\n- Page headers (repeated name lines) are NOT content\n- Bullets after a page break belong to the SAME job\n- roleSummary is the prose paragraph per company, responsibilities are the bullets\n- Extract EVERY bullet — count them\n- Spaced letters in section headers (like "C o r e  C o m p e t e n c i e s") are still skill sections\n\n${cleanedText}`,
         },
       ],
     });
@@ -128,6 +167,16 @@ JSON FORMAT:
       data = JSON.parse(raw);
     } catch {
       return NextResponse.json({ error: "Failed to parse AI response." }, { status: 500 });
+    }
+
+    // Ensure every experience item has roleSummary
+    if (Array.isArray(data.experience)) {
+      data.experience = data.experience.map((job: any) => ({
+        ...job,
+        roleSummary: job.roleSummary || "",
+        responsibilities: (job.responsibilities || []).filter(Boolean),
+        achievements: (job.achievements || []).filter(Boolean),
+      }));
     }
 
     return NextResponse.json({ success: true, data });

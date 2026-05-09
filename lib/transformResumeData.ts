@@ -70,6 +70,7 @@ export function transformResumeData(input: any) {
     company: job.company || "",
     startDate: job.startDate || "",
     endDate: job.endDate || "",
+    roleSummary: job.roleSummary || "",
     responsibilities: (job.responsibilities || []).map((r: any) =>
       typeof r === "string" ? r : r.text || ""
     ),

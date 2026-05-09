@@ -124,6 +124,11 @@ export default function BasicTwoColumn({
                   </span>
                 </div>
 
+                {/* Role summary */}
+                {job.roleSummary && (
+                  <p className="mt-2 text-xs text-gray-600 leading-snug">{job.roleSummary}</p>
+                )}
+
                 {/* Responsibilities */}
                 {job.responsibilities.length > 0 && (
                   <ul className="list-none p-0 m-0 mt-2 text-sm text-gray-700 space-y-1">

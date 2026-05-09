@@ -173,6 +173,9 @@ const ExperienceBlock = ({ job }: { job: any }) => {
         )}
       </div>
 
+      {job.roleSummary && (
+        <p className="mt-1.5 text-[10.5px] text-gray-600 leading-snug">{job.roleSummary}</p>
+      )}
       {bullets.length > 0 && (
         <ul className="mt-1.5 space-y-0.5">
           {bullets.map((line: string, idx: number) => (

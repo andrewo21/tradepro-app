@@ -98,6 +98,17 @@ function jobBlock(
   }
 
   let curY = doc.y + 5;
+
+  // Role summary paragraph (non-bulleted intro)
+  const roleSummary = job.roleSummary || "";
+  if (roleSummary.trim()) {
+    const rsH = estimateTextHeight(roleSummary, width);
+    curY = checkPageBreak(doc, curY, rsH, MARGIN, onNewPage);
+    doc.font("Helvetica").fontSize(10).fillColor("#4b5563")
+      .text(roleSummary, x, curY, { width, lineGap: 1.5 });
+    curY = doc.y + 4;
+  }
+
   bullets.forEach(b => {
     const neededH = estimateTextHeight(b, width - 13) + 5;
     if (curY + neededH > PAGE_H - MARGIN) {
