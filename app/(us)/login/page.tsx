@@ -32,9 +32,10 @@ export default function LoginPage() {
       setLoading(false);
       return;
     }
+    localStorage.setItem("auth_redirect", "/minhas-versoes");
     const { error: err } = await sb.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=/minhas-versoes` },
+      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
     });
     setLoading(false);
     if (err) {

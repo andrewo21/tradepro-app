@@ -31,9 +31,11 @@ export default function BrLoginPage() {
       setLoading(false);
       return;
     }
+    // Store BR intent so callback page knows where to redirect
+    localStorage.setItem("auth_redirect", "/br/meus-curriculos");
     const { error: err } = await sb.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=/br/meus-curriculos` },
+      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
     });
     setLoading(false);
     if (err) setError(err.message);

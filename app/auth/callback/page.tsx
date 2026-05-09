@@ -7,28 +7,31 @@ import { Suspense } from "react";
 
 function CallbackContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const next = searchParams.get("next") || "/minhas-versoes";
   const [status, setStatus] = useState("Verificando seu acesso…");
 
   useEffect(() => {
     const sb = getSupabase();
-    if (!sb) {
-      setStatus("Auth not configured.");
-      return;
+    if (!sb) { setStatus("Auth not configured."); return; }
+
+    // Read redirect destination set by login page before magic link was sent
+    const dest = localStorage.getItem("auth_redirect") || "/minhas-versoes";
+
+    function redirect() {
+      localStorage.removeItem("auth_redirect");
+      router.replace(dest);
     }
 
     sb.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN" && session) {
         setStatus("Pronto! Redirecionando…");
-        router.replace(next);
+        redirect();
       }
     });
 
     sb.auth.getSession().then(({ data: { session } }) => {
-      if (session) router.replace(next);
+      if (session) redirect();
     });
-  }, [router, next]);
+  }, [router]);
 
   return (
     <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
