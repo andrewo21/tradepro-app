@@ -35,7 +35,7 @@ export default function LoginPage() {
     const { error: err } = await sb.auth.signInWithOtp({ email });
     setLoading(false);
     if (err) {
-      setError(err.message);
+      setError(`${err.message} [${err.status ?? "no status"}]`);
     } else {
       setSent(true);
     }
