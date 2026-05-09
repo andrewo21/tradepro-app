@@ -197,13 +197,16 @@ export default function OperadorBR() {
         experience: (resumeData.experiencia || []).map((exp: any) => ({
           jobTitle: exp.cargo || "",
           company: exp.empresa || "",
+          city: exp.cidade || "",
+          state: exp.estado || "",
           startDate: exp.dataInicio || "",
           endDate: exp.dataFim || "",
+          roleSummary: exp.roleSummary || "",
           responsibilities: (exp.responsabilidades || []).map((r: any) => r.text || r).filter(Boolean),
           achievements: [],
         })),
         education: (resumeData.formacao || []).map((f: any) => ({
-          school: f.instituicao || "", degree: f.curso || "", year: f.anoConclusao || "",
+          school: f.instituicao || "", degree: f.curso || "",
         })),
         certifications: (resumeData.cursosCertificacoes || []).filter((c: any) => c.nome).map((c: any) => c.nome),
       };

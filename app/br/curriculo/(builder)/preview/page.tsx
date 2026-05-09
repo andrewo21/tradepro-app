@@ -28,6 +28,19 @@ const TEMPLATES: Record<string, any> = {
   "br-minimalista-br": BrMinimalistaBR,
 };
 
+// Map BR template key to US PDF template key
+const BR_TO_PDF_TEMPLATE: Record<string, string> = {
+  "br-moderno-azul": "modern-blue",
+  "br-clasico-profissional": "standard-classic",
+  "br-verde-tecnico": "sidebar-green",
+  "br-simples-direto": "standard-contemporary",
+  "br-executivo-verde": "executive-classic",
+  "br-construcao-bold": "modern-elite",
+  "br-tecnico-moderno": "basic-two-column",
+  "br-premium-dourado": "executive-luxe",
+  "br-minimalista-br": "modern-professional",
+};
+
 export default function BrPreviewPage() {
   const store = useBrResumeStore();
   const [loading, setLoading] = useState(false);
@@ -45,6 +58,13 @@ export default function BrPreviewPage() {
       });
   }, [userId]);
 
+  // Intercept browser print — redirect to PDF download
+  useEffect(() => {
+    function onBeforePrint(e: Event) { e.preventDefault(); handleDownload(); }
+    window.addEventListener("beforeprint", onBeforePrint);
+    return () => window.removeEventListener("beforeprint", onBeforePrint);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const remaining = downloadsUsed !== null ? Math.max(0, MAX_DOWNLOADS - downloadsUsed) : null;
   const TemplateComponent = TEMPLATES[store.selectedTemplate] || BrModernoAzul;
 
@@ -57,46 +77,42 @@ export default function BrPreviewPage() {
     cursosCertificacoes: store.cursosCertificacoes,
   };
 
+  const buildPayload = () => ({
+    type: "resume",
+    selectedTemplate: BR_TO_PDF_TEMPLATE[store.selectedTemplate] || "standard-contemporary",
+    name: `${store.personalInfo.nome || ""} ${store.personalInfo.sobrenome || ""}`.trim(),
+    title: store.personalInfo.tituloProfissional || "",
+    contact: {
+      phone: store.personalInfo.telefone || store.personalInfo.whatsapp || "",
+      email: store.personalInfo.email || "",
+      location: `${store.personalInfo.cidade || ""}${store.personalInfo.cidade && store.personalInfo.estado ? ", " : ""}${store.personalInfo.estado || ""}`,
+      linkedin: store.personalInfo.linkedin || "",
+    },
+    summary: store.resumoProfissional || "",
+    skills: (store.habilidades || []).map((h: any) => h.text || h).filter(Boolean),
+    experience: (store.experiencia || []).map((exp: any) => ({
+      jobTitle: exp.cargo || "",
+      company: exp.empresa || "",
+      city: exp.cidade || "",
+      state: exp.estado || "",
+      startDate: exp.dataInicio || "",
+      endDate: exp.dataFim || "",
+      roleSummary: exp.roleSummary || "",
+      responsibilities: (exp.responsabilidades || []).map((r: any) => r.text || r).filter(Boolean),
+      achievements: [],
+    })),
+    education: (store.formacao || []).map((f: any) => ({
+      school: f.instituicao || "",
+      degree: f.curso || "",
+    })),
+    certifications: (store.cursosCertificacoes || []).filter((c: any) => c.nome).map((c: any) => c.nome),
+  });
+
   async function handleDownload() {
     if (revoked) return;
     setLoading(true);
     try {
-      // Map BR store fields to US PDF renderer format, use vector PDF
-      const pdfPayload = {
-        type: "resume",
-        selectedTemplate: store.selectedTemplate.replace("br-moderno-azul", "modern-blue")
-          .replace("br-clasico-profissional", "standard-classic")
-          .replace("br-verde-tecnico", "sidebar-green")
-          .replace("br-simples-direto", "standard-contemporary")
-          .replace("br-executivo-verde", "executive-classic")
-          .replace("br-construcao-bold", "modern-elite")
-          .replace("br-tecnico-moderno", "basic-two-column")
-          .replace("br-premium-dourado", "executive-luxe")
-          .replace("br-minimalista-br", "modern-professional"),
-        name: `${store.personalInfo.nome || ""} ${store.personalInfo.sobrenome || ""}`.trim(),
-        title: store.personalInfo.tituloProfissional || "",
-        contact: {
-          phone: store.personalInfo.telefone || store.personalInfo.whatsapp || "",
-          email: store.personalInfo.email || "",
-          location: `${store.personalInfo.cidade || ""}${store.personalInfo.cidade && store.personalInfo.estado ? ", " : ""}${store.personalInfo.estado || ""}`,
-        },
-        summary: store.resumoProfissional || "",
-        skills: (store.habilidades || []).map((h: any) => h.text || h).filter(Boolean),
-        experience: (store.experiencia || []).map((exp: any) => ({
-          jobTitle: exp.cargo || "",
-          company: exp.empresa || "",
-          startDate: exp.dataInicio || "",
-          endDate: exp.dataFim || "",
-          responsibilities: (exp.responsabilidades || []).map((r: any) => r.text || r).filter(Boolean),
-          achievements: [],
-        })),
-        education: (store.formacao || []).map((f: any) => ({
-          school: f.instituicao || "",
-          degree: f.curso || "",
-          year: f.anoConclusao || "",
-        })),
-        certifications: (store.cursosCertificacoes || []).filter((c: any) => c.nome).map((c: any) => c.nome),
-      };
+      const pdfPayload = buildPayload();
 
       const pdfRes = await fetch("/api/export/pdf", {
         method: "POST",
@@ -144,6 +160,19 @@ export default function BrPreviewPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
+
+      {/* Print warning */}
+      <style>{`
+        @media print {
+          body > * { display: none !important; }
+          .no-print { display: none !important; }
+        }
+      `}</style>
+      <div className="no-print mb-4 px-4 py-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800 flex items-center gap-2">
+        <span className="text-base">🖨️</span>
+        <span>Para imprimir, <strong>baixe o PDF</strong> abaixo e imprima pelo Adobe Reader ou Preview. Imprimir diretamente pelo navegador gera texto muito pequeno.</span>
+      </div>
+
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-semibold">Visualização Final</h1>
