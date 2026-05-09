@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
+import UserMenu from "@/components/UserMenu";
 
 export default function Header() {
   const [open, setOpen] = useState(false);
@@ -21,11 +22,13 @@ export default function Header() {
   return (
     <header className="w-full border-b bg-white relative z-50">
 
-      {/* MENU — absolutely positioned so it never affects the centering of the logo */}
+      {/* TOP-RIGHT: User profile + Menu */}
       <div
-        className="absolute right-4 top-4 sm:right-8 sm:top-8 z-20"
+        className="absolute right-4 top-4 sm:right-8 sm:top-8 z-20 flex items-center gap-2"
         ref={menuRef}
       >
+        <UserMenu />
+
         <div className="relative">
           <button
             onClick={() => setOpen(!open)}
@@ -39,11 +42,7 @@ export default function Header() {
               <Link href="/" className="block px-4 py-2 text-neutral-800 hover:bg-neutral-100 hover:text-neutral-900">Home</Link>
               <Link href="/resume" className="block px-4 py-2 text-neutral-800 hover:bg-neutral-100 hover:text-neutral-900">Resume Builder</Link>
               <Link href="/cover-letter" className="block px-4 py-2 text-neutral-800 hover:bg-neutral-100 hover:text-neutral-900">Cover Letter Generator</Link>
-
-              <Link href="/projects" className="block px-4 py-2 text-neutral-800 hover:bg-neutral-100 hover:text-neutral-900">
-                Project Portfolio Builder
-              </Link>
-
+              <Link href="/projects" className="block px-4 py-2 text-neutral-800 hover:bg-neutral-100 hover:text-neutral-900">Project Portfolio Builder</Link>
               <Link href="/pricing" className="block px-4 py-2 text-neutral-800 hover:bg-neutral-100 hover:text-neutral-900">Pricing</Link>
               <Link href="/about" className="block px-4 py-2 text-neutral-800 hover:bg-neutral-100 hover:text-neutral-900">About Us</Link>
               <Link href="/contact" className="block px-4 py-2 text-neutral-800 hover:bg-neutral-100 hover:text-neutral-900">Contact Us</Link>

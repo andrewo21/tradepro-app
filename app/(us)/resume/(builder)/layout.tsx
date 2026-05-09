@@ -9,6 +9,7 @@ import WatermarkSync from "@/components/WatermarkSync";
 import { ProductId } from "@/lib/pricing";
 import { overrides } from "@/config/overrides";
 import { getServerUserId } from "@/lib/userId";
+import BuilderSaveBar from "@/components/BuilderSaveBar";
 
 // Server wrapper for async logic
 async function ResumeGate({ children }: { children: ReactNode }) {
@@ -23,12 +24,15 @@ async function ResumeGate({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50 px-2 py-4 sm:p-6">
+    <div className="min-h-screen bg-neutral-50">
+      <BuilderSaveBar />
       <WatermarkSync
         hasResume={entitlements.resume || entitlements.bundle || devOverride}
         hasBundle={entitlements.bundle || overrides.premium}
       />
-      {children}
+      <div className="px-2 py-4 sm:p-6">
+        {children}
+      </div>
       {!devOverride && <BundleUpsell userId={userId} entitlements={entitlements} />}
     </div>
   );
