@@ -189,17 +189,19 @@ export function drawStandardContemporaryPDF(doc: any, data: any) {
   const { name, title, contact, summary, experience, education, certifications } = data;
   const skills = getSkills(data);
   const L$ = getLabels(data.locale);
+  const PHOTO_SIZE = 54;
 
+  if (data.photo) drawPhoto(doc, data.photo, R - PHOTO_SIZE, 20, PHOTO_SIZE);
   doc.font("Helvetica-Bold").fontSize(22).fillColor("#111827").text(name || "", L, 36);
   const afterName = doc.y + 3;
   if (title) doc.font("Helvetica").fontSize(12).fillColor("#6b7280").text(title, L, afterName);
 
   const cp = [contact?.phone, contact?.email, contact?.location, contact?.linkedin].filter(Boolean);
   if (cp.length) doc.font("Helvetica").fontSize(10).fillColor("#6b7280")
-    .text(cp.join("  |  "), L, 40, { width: CONTENT_W, align: "right" });
+    .text(cp.join("  |  "), L, 40, { width: data.photo ? CONTENT_W - PHOTO_SIZE - 8 : CONTENT_W, align: "right" });
 
-  doc.moveTo(L, 72).lineTo(R, 72).lineWidth(0.75).stroke("#d1d5db");
-  let y = 82;
+  doc.moveTo(L, 78).lineTo(R, 78).lineWidth(0.75).stroke("#d1d5db");
+  let y = 88;
 
   if (summary?.trim()) {
     y = sectionRule(doc, L$.summary, L, y, CONTENT_W);
@@ -243,10 +245,11 @@ export function drawStandardClassicPDF(doc: any, data: any) {
   const L$ = getLabels(data.locale);
 
   doc.rect(0, 0, PAGE_W, 68).fill("#111827");
+  if (data.photo) drawPhoto(doc, data.photo, R - 52, 8, 52);
   doc.font("Helvetica-Bold").fontSize(22).fillColor("#ffffff").text(name || "", L, 18);
   if (title) doc.font("Helvetica").fontSize(12).fillColor("#d1d5db").text(title, L, 42);
   const cp = [contact?.phone, contact?.email, contact?.location].filter(Boolean);
-  doc.font("Helvetica").fontSize(10).fillColor("#9ca3af").text(cp.join("  |  "), L, 22, { width: CONTENT_W, align: "right" });
+  doc.font("Helvetica").fontSize(10).fillColor("#9ca3af").text(cp.join("  |  "), L, 22, { width: data.photo ? CONTENT_W - 58 : CONTENT_W, align: "right" });
 
   let y = 82;
   if (summary?.trim()) {
@@ -291,10 +294,11 @@ export function drawModernBluePDF(doc: any, data: any) {
   const BLUE = "#1d4ed8";
 
   doc.rect(0, 0, PAGE_W, 86).fill(BLUE);
+  if (data.photo) drawPhoto(doc, data.photo, R - 54, 16, 54);
   doc.font("Helvetica-Bold").fontSize(22).fillColor("#ffffff").text(name || "", L, 18);
   if (title) doc.font("Helvetica").fontSize(12).fillColor("#bfdbfe").text(title, L, 43);
   const cp = [contact?.phone, contact?.email, contact?.location].filter(Boolean);
-  doc.font("Helvetica").fontSize(10).fillColor("#dbeafe").text(cp.join("  |  "), L, 68, { width: CONTENT_W });
+  doc.font("Helvetica").fontSize(10).fillColor("#dbeafe").text(cp.join("  |  "), L, 68, { width: data.photo ? CONTENT_W - 60 : CONTENT_W });
 
   let y = 100;
   if (summary?.trim()) {
@@ -493,9 +497,10 @@ export function drawExecutiveClassicPDF(doc: any, data: any) {
   const NAVY = "#003A70"; const ORANGE = "#F28C28";
 
   doc.rect(0, 0, PAGE_W, 58).fill(NAVY);
+  if (data.photo) drawPhoto(doc, data.photo, R - 50, 4, 50);
   doc.font("Helvetica-Bold").fontSize(22).fillColor("#ffffff").text(name || "", L, 18);
   const cp = [contact?.location, contact?.email, contact?.phone].filter(Boolean);
-  doc.font("Helvetica").fontSize(10).fillColor("#bfdbfe").text(cp.join("  |  "), L, 22, { width: CONTENT_W, align: "right" });
+  doc.font("Helvetica").fontSize(10).fillColor("#bfdbfe").text(cp.join("  |  "), L, 22, { width: data.photo ? CONTENT_W - 56 : CONTENT_W, align: "right" });
 
   doc.moveTo(L, 60).lineTo(R, 60).lineWidth(1.5).stroke(ORANGE);
   if (title) {
@@ -633,11 +638,12 @@ export function drawModernElitePDF(doc: any, data: any) {
 
   // ── Header (page 1 only) ──────────────────────────────────────────────────
   doc.rect(0, 0, PAGE_W, 64).fill(GREY);
+  if (data.photo) drawPhoto(doc, data.photo, R - 52, 6, 52);
   doc.font("Helvetica-Bold").fontSize(22).fillColor("#ffffff").text(name || "", L, 16, { lineBreak: false });
   if (title) doc.font("Helvetica").fontSize(12).fillColor("#e5e7eb").text(title, L, 39, { lineBreak: false });
   const cp = [contact?.location, contact?.email, contact?.phone].filter(Boolean);
   if (cp.length) doc.font("Helvetica").fontSize(10).fillColor("#d1d5db")
-    .text(cp.join("  |  "), L, 20, { width: CONTENT_W, align: "right", lineBreak: false });
+    .text(cp.join("  |  "), L, 20, { width: data.photo ? CONTENT_W - 58 : CONTENT_W, align: "right", lineBreak: false });
 
   // Thin vertical divider between columns on page 1
   doc.moveTo(RIGHT_X - 10, BODY_TOP).lineTo(RIGHT_X - 10, PAGE_H - MARGIN).lineWidth(0.3).stroke("#e5e7eb");
@@ -729,8 +735,9 @@ export function drawModernProfessionalPDF(doc: any, data: any) {
     return rY + 7;
   };
 
+  if (data.photo) drawPhoto(doc, data.photo, R - 52, 18, 52);
   doc.font("Helvetica-Bold").fontSize(22).fillColor("#111827")
-    .text(name || "", L, 26, { width: W, align: "center", lineBreak: false });
+    .text(name || "", L, 26, { width: data.photo ? W - 58 : W, align: "center", lineBreak: false });
   let y = 54;
   if (title) {
     doc.font("Helvetica").fontSize(12).fillColor("#374151")
