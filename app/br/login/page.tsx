@@ -31,7 +31,10 @@ export default function BrLoginPage() {
       setLoading(false);
       return;
     }
-    const { error: err } = await sb.auth.signInWithOtp({ email });
+    const { error: err } = await sb.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+    });
     setLoading(false);
     if (err) setError(err.message);
     else setSent(true);
