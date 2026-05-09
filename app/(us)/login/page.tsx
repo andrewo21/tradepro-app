@@ -32,10 +32,7 @@ export default function LoginPage() {
       setLoading(false);
       return;
     }
-    const { error: err } = await sb.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
-    });
+    const { error: err } = await sb.auth.signInWithOtp({ email });
     setLoading(false);
     if (err) {
       setError(err.message);
@@ -55,7 +52,7 @@ export default function LoginPage() {
     }
     const { error: err } = await sb.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
+      options: { redirectTo: `${window.location.origin}/minhas-versoes` },
     });
     if (err) {
       setError(err.message);

@@ -31,10 +31,7 @@ export default function BrLoginPage() {
       setLoading(false);
       return;
     }
-    const { error: err } = await sb.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=/br/curriculo` },
-    });
+    const { error: err } = await sb.auth.signInWithOtp({ email });
     setLoading(false);
     if (err) setError(err.message);
     else setSent(true);
@@ -51,7 +48,7 @@ export default function BrLoginPage() {
     }
     const { error: err } = await sb.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/callback?next=/br/curriculo` },
+      options: { redirectTo: `${window.location.origin}/br/meus-curriculos` },
     });
     if (err) { setError(err.message); setGoogleLoading(false); }
   }
