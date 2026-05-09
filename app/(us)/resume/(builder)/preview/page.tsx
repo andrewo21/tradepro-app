@@ -16,7 +16,8 @@ export default function ResumePreviewPage() {
     summary, 
     skills, 
     experience, 
-    education, 
+    education,
+    certifications,
     selectedTemplate, 
     premiumUnlocked,
     showWatermark,
@@ -46,34 +47,49 @@ export default function ResumePreviewPage() {
 
   const remaining = downloadsUsed !== null ? Math.max(0, MAX_DOWNLOADS - downloadsUsed) : null;
 
+  // Intercept browser print — redirect to PDF download instead
+  useEffect(() => {
+    function onBeforePrint(e: Event) {
+      e.preventDefault();
+      handleDownloadPDF();
+    }
+    window.addEventListener("beforeprint", onBeforePrint);
+    return () => window.removeEventListener("beforeprint", onBeforePrint);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const buildPayload = () => ({
+    type: "resume",
+    selectedTemplate,
+    name: `${personalInfo.firstName || ""} ${personalInfo.lastName || ""}`.trim(),
+    title: personalInfo.tradeTitle || "",
+    contact: {
+      phone: personalInfo.phone || "",
+      email: personalInfo.email || "",
+      location: `${personalInfo.city || ""}${personalInfo.city && personalInfo.state ? ", " : ""}${personalInfo.state || ""}`,
+      linkedin: personalInfo.linkedin || "",
+    },
+    summary: summary || "",
+    skills: skills?.map((s: any) => s.text || s).filter(Boolean) || [],
+    experience: experience.map((exp: any) => ({
+      jobTitle: exp.jobTitle || "",
+      company: exp.company || "",
+      city: exp.city || "",
+      state: exp.state || "",
+      startDate: exp.startDate || "",
+      endDate: exp.endDate || "",
+      roleSummary: exp.roleSummary || "",
+      responsibilities: exp.responsibilities?.map((r: any) => r.text || r).filter(Boolean) || [],
+      achievements: exp.achievements?.map((a: any) => a.text || a).filter(Boolean) || [],
+    })),
+    education: education || [],
+    certifications: certifications?.map((c: any) => c.text || c).filter(Boolean) || [],
+  });
+
   const handleDownloadPDF = async () => {
     if (revoked) return;
     setLoading(true);
     try {
-      // Build the data payload matching what pdfTemplates.ts expects
-      const pdfPayload = {
-        type: "resume",
-        selectedTemplate,
-        name: `${personalInfo.firstName || ""} ${personalInfo.lastName || ""}`.trim(),
-        title: personalInfo.tradeTitle || "",
-        contact: {
-          phone: personalInfo.phone || "",
-          email: personalInfo.email || "",
-          location: `${personalInfo.city || ""}${personalInfo.city && personalInfo.state ? ", " : ""}${personalInfo.state || ""}`,
-        },
-        summary: summary || "",
-        skills: skills?.map((s: any) => s.text || s).filter(Boolean) || [],
-        experience: experience.map((exp: any) => ({
-          jobTitle: exp.jobTitle || "",
-          company: exp.company || "",
-          startDate: exp.startDate || "",
-          endDate: exp.endDate || "",
-          responsibilities: exp.responsibilities?.map((r: any) => r.text || r).filter(Boolean) || [],
-          achievements: exp.achievements?.map((a: any) => a.text || a).filter(Boolean) || [],
-        })),
-        education: education || [],
-        certifications: [],
-      };
+      const pdfPayload = buildPayload();
 
       const pdfRes = await fetch("/api/export/pdf", {
         method: "POST",
@@ -123,19 +139,23 @@ export default function ResumePreviewPage() {
       phone: personalInfo.phone || "",
       email: personalInfo.email || "",
       location: `${personalInfo.city || ""}${personalInfo.city && personalInfo.state ? ", " : ""}${personalInfo.state || ""}`,
+      linkedin: personalInfo.linkedin || "",
     },
     summary: summary || "",
     experience: experience.map((exp: any) => ({
       jobTitle: exp.jobTitle || "",
       company: exp.company || "",
+      city: exp.city || "",
+      state: exp.state || "",
       startDate: exp.startDate || "",
       endDate: exp.endDate || "",
+      roleSummary: exp.roleSummary || "",
       responsibilities: exp.responsibilities?.map((r: any) => r.text || "").filter(Boolean) || [],
       achievements: exp.achievements?.map((a: any) => a.text || "").filter(Boolean) || [],
     })),
     education: education || [],
     skills: skills?.map((s: any) => s.text || "").filter(Boolean) || [],
-    certifications: [],
+    certifications: certifications?.map((c: any) => c.text || c).filter(Boolean) || [],
   };
 
   if (revoked) {
@@ -161,6 +181,20 @@ export default function ResumePreviewPage() {
 
   return (
     <div className="max-w-6xl mx-auto py-10 px-6">
+
+      {/* Print warning — shown only in browser print dialog */}
+      <style>{`
+        @media print {
+          body > * { display: none !important; }
+          .resume-print-container { display: block !important; position: fixed; top: 0; left: 0; width: 100%; }
+          .no-print { display: none !important; }
+        }
+      `}</style>
+      <div className="no-print mb-4 px-4 py-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800 flex items-center gap-2">
+        <span className="text-base">🖨️</span>
+        <span>To print your resume, <strong>download the PDF</strong> below and print from Adobe Reader or Preview for best quality. Printing directly from the browser produces tiny text.</span>
+      </div>
+
       <div className="flex justify-between items-center border-b pb-6 mb-6">
         <div>
           <h1 className="text-3xl font-bold">Final Preview</h1>

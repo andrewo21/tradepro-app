@@ -240,8 +240,20 @@ export async function POST(req: NextRequest) {
     const isProjectList = data.type === "project-list";
 
     const PDFDocument = (await import("pdfkit")).default;
-    // margin: 0 — templates handle their own margins/padding
+    const path = await import("path");
+    const FONT_DIR = path.join(process.cwd(), "public", "fonts");
+    const FONT_REGULAR = path.join(FONT_DIR, "Carlito-Regular.ttf");
+    const FONT_BOLD = path.join(FONT_DIR, "Carlito-Bold.ttf");
+
     const doc = new PDFDocument({ size: "LETTER", margin: 0, autoFirstPage: true, bufferPages: true });
+
+    // Register Carlito (Calibri-compatible open-source font)
+    try {
+      doc.registerFont("Helvetica", FONT_REGULAR);
+      doc.registerFont("Helvetica-Bold", FONT_BOLD);
+    } catch {
+      // fall back to built-in Helvetica if font files unavailable
+    }
 
     const chunks: Buffer[] = [];
     doc.on("data", (chunk: Buffer) => chunks.push(chunk));
@@ -317,8 +329,14 @@ export async function POST(req: NextRequest) {
       status: 200,
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename="${filename}.pdf"`,
+        // 'attachment' forces download in all browsers including Firefox
+        "Content-Disposition": `attachment; filename="${filename}.pdf"; filename*=UTF-8''${encodeURIComponent(filename + ".pdf")}`,
         "Content-Length": String(pdfBuffer.length),
+        // Prevent caching issues in Firefox
+        "Cache-Control": "no-store, no-cache, must-revalidate",
+        "Pragma": "no-cache",
+        // Tell Firefox this is a binary file
+        "X-Content-Type-Options": "nosniff",
       },
     });
   } catch (err: any) {
