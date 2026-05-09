@@ -21,6 +21,7 @@ export default function OperadorCartaBR() {
   const [email, setEmail] = useState("");
   const [telefone, setTelefone] = useState("");
   const [cidadeEstado, setCidadeEstado] = useState("");
+  const [linkedin, setLinkedin] = useState("");
 
   // Vaga / empresa
   const [cargo, setCargo] = useState("");
@@ -37,6 +38,7 @@ export default function OperadorCartaBR() {
   const [loading, setLoading] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [rewritingIdx, setRewritingIdx] = useState<number | null>(null);
 
   const hoje = new Date();
   const dataHoje = `${String(hoje.getDate()).padStart(2, "0")}/${String(hoje.getMonth() + 1).padStart(2, "0")}/${hoje.getFullYear()}`;
@@ -77,6 +79,32 @@ export default function OperadorCartaBR() {
     } finally { setLoading(false); }
   }
 
+  // Split carta into paragraphs for per-paragraph editing
+  const paragraphs = carta.split("\n\n");
+  function updateParagraph(idx: number, text: string) {
+    const updated = [...paragraphs];
+    updated[idx] = text;
+    setCarta(updated.join("\n\n"));
+  }
+
+  async function rewriteParagraph(idx: number) {
+    const text = paragraphs[idx];
+    if (!text?.trim()) return;
+    setRewritingIdx(idx);
+    try {
+      const res = await fetch("/api/ai/br/rewrite", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text: `Reescreva este parágrafo de carta de apresentação de forma profissional em português: ${text}`,
+          type: "carta",
+        }),
+      });
+      const d = await res.json();
+      if (d.suggestion) updateParagraph(idx, d.suggestion);
+    } catch { /* silent */ }
+    finally { setRewritingIdx(null); }
+  }
+
   async function handleDownload() {
     if (!carta) return;
     setDownloading(true);
@@ -91,6 +119,7 @@ export default function OperadorCartaBR() {
           applicantEmail: email,
           applicantPhone: telefone,
           applicantCityStateZip: cidadeEstado,
+          applicantLinkedin: linkedin || undefined,
           date: dataHoje,
           hiringManager: nomeContratante,
           companyName: empresa,
@@ -171,6 +200,9 @@ export default function OperadorCartaBR() {
               <div><label className="block text-xs font-medium mb-1 text-neutral-500">Cidade / Estado</label>
                 <input className="w-full border rounded-lg px-3 py-2 text-sm" placeholder="São Paulo, SP"
                   value={cidadeEstado} onChange={e => setCidadeEstado(e.target.value)} /></div>
+              <div className="col-span-2"><label className="block text-xs font-medium mb-1 text-neutral-500">LinkedIn <span className="text-neutral-400 font-normal">(opcional)</span></label>
+                <input className="w-full border rounded-lg px-3 py-2 text-sm" placeholder="linkedin.com/in/seunome"
+                  value={linkedin} onChange={e => setLinkedin(e.target.value)} /></div>
             </div>
           </div>
 
@@ -221,15 +253,33 @@ export default function OperadorCartaBR() {
             </div>
           </div>
 
-          {/* Carta gerada — editable */}
+          {/* Carta gerada — editable per paragraph with AI rewrite */}
           {carta && (
-            <div className="bg-white rounded-xl border p-6 space-y-3">
-              <h2 className="font-semibold text-neutral-700 text-sm uppercase tracking-wide">Carta Gerada — Edite se Precisar</h2>
-              <textarea
-                className="w-full border rounded-lg px-3 py-2 text-sm resize-none h-64 focus:ring-2 focus:ring-green-500 focus:outline-none font-mono"
-                value={carta}
-                onChange={e => setCarta(e.target.value)}
-              />
+            <div className="bg-white rounded-xl border p-6 space-y-4">
+              <h2 className="font-semibold text-neutral-700 text-sm uppercase tracking-wide">✏️ Editar e Reescrever com IA</h2>
+              {paragraphs.map((para, idx) => {
+                const isGreeting = idx === 0;
+                const isSignoff = idx >= paragraphs.length - 2;
+                const canRewrite = !isGreeting && !isSignoff;
+                return (
+                  <div key={idx} className="flex gap-2 items-start">
+                    <textarea
+                      className={`flex-1 border rounded-lg px-3 py-2 text-sm resize-none focus:ring-2 focus:ring-green-500 focus:outline-none ${isGreeting || isSignoff ? "h-12 bg-neutral-50" : "h-20"}`}
+                      value={para}
+                      onChange={e => updateParagraph(idx, e.target.value)}
+                    />
+                    {canRewrite && (
+                      <button
+                        onClick={() => rewriteParagraph(idx)}
+                        disabled={rewritingIdx !== null}
+                        className="flex-shrink-0 px-3 py-2 bg-green-700 text-white rounded-lg text-xs font-semibold hover:bg-green-800 disabled:opacity-50 mt-1 whitespace-nowrap"
+                      >
+                        {rewritingIdx === idx ? <span className="animate-pulse">IA...</span> : "✦ Reescrever"}
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
 

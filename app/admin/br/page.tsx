@@ -61,6 +61,7 @@ export default function OperadorBR() {
   const [cidade, setCidade] = useState("");
   const [estado, setEstado] = useState("");
   const [foto, setFoto] = useState<string>("");
+  const [linkedin, setLinkedin] = useState("");
   const [setor, setSetor] = useState("Construção Civil");
   const [certificacoes, setCertificacoes] = useState("");
   const [selectedTemplate, setSelectedTemplate] = useState("br-moderno-azul");
@@ -78,6 +79,8 @@ export default function OperadorBR() {
 
   const [loading, setLoading] = useState(false);
   const [parsing, setParsing] = useState(false);
+  const [rewritingResumo, setRewritingResumo] = useState(false);
+  const [rewritingBullet, setRewritingBullet] = useState<{expId: string; idx: number} | null>(null);
   const [resumeData, setResumeData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const previewRef = useRef<HTMLDivElement>(null);
@@ -102,6 +105,7 @@ export default function OperadorBR() {
         setEmail(d.personalInfo.email || "");
         setCidade(d.personalInfo.city || d.personalInfo.cidade || "");
         setEstado(d.personalInfo.state || d.personalInfo.estado || "");
+        setLinkedin(d.personalInfo.linkedin || "");
       }
       if (d.summary) setResumo(d.summary);
       if (d.skills?.length) setHabilidades(d.skills.filter(Boolean));
@@ -215,7 +219,7 @@ export default function OperadorBR() {
           nome, sobrenome,
           tituloProfissional: experiencias[0].cargo,
           telefone, whatsapp, email, cidade, estado,
-          cpf: "", linkedin: "", foto,
+          cpf: "", linkedin, foto,
         },
         resumoProfissional: generatedResumo,
         habilidades: finalHabilidades.map((h: string) => ({ text: h })),
@@ -231,6 +235,52 @@ export default function OperadorBR() {
     } catch (err: any) {
       setError(err?.message || "Erro ao gerar currículo.");
     } finally { setLoading(false); }
+  }
+
+  // Update a bullet text directly in resumeData
+  function updateBullet(expId: string, idx: number, text: string) {
+    setResumeData((prev: any) => ({
+      ...prev,
+      experiencia: prev.experiencia.map((exp: any) =>
+        exp.id === expId
+          ? { ...exp, responsabilidades: exp.responsabilidades.map((r: any, i: number) => i === idx ? { ...r, text } : r) }
+          : exp
+      ),
+    }));
+  }
+
+  // Update resumo directly
+  function updateResumo(text: string) {
+    setResumeData((prev: any) => ({ ...prev, resumoProfissional: text }));
+  }
+
+  // AI rewrite a single bullet
+  async function rewriteBulletAI(expId: string, idx: number, currentText: string, cargo: string) {
+    setRewritingBullet({ expId, idx });
+    try {
+      const res = await fetch("/api/ai/br/rewrite", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: `Reescreva este bullet para ${cargo}: ${currentText}`, type: "responsabilidade" }),
+      });
+      const d = await res.json();
+      if (d.suggestion) updateBullet(expId, idx, d.suggestion);
+    } catch { /* silent */ }
+    finally { setRewritingBullet(null); }
+  }
+
+  // AI rewrite resumo
+  async function rewriteResumoAI() {
+    if (!resumeData) return;
+    setRewritingResumo(true);
+    try {
+      const res = await fetch("/api/ai/br/rewrite", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: `Melhore este resumo profissional: ${resumeData.resumoProfissional}`, type: "resumo" }),
+      });
+      const d = await res.json();
+      if (d.suggestion) updateResumo(d.suggestion);
+    } catch { /* silent */ }
+    finally { setRewritingResumo(false); }
   }
 
   async function handleDownload() {
@@ -257,6 +307,7 @@ export default function OperadorBR() {
           phone: telefone || whatsapp || "",
           email: email || "",
           location: `${cidade || ""}${cidade && estado ? ", " : ""}${estado || ""}`,
+          linkedin: linkedin || "",
         },
         summary: resumeData.resumoProfissional || "",
         skills: (resumeData.habilidades || []).map((h: any) => h.text || h).filter(Boolean),
@@ -388,6 +439,8 @@ export default function OperadorBR() {
                 </select></div>
               <div><label className="block text-xs font-medium mb-1 text-neutral-500">Certificações (vírgula)</label>
                 <input className="w-full border rounded-lg px-3 py-2 text-sm" placeholder="NR-10, NR-35, CNH B" value={certificacoes} onChange={e => setCertificacoes(e.target.value)} /></div>
+              <div className="col-span-2"><label className="block text-xs font-medium mb-1 text-neutral-500">LinkedIn <span className="text-neutral-400 font-normal">(opcional)</span></label>
+                <input className="w-full border rounded-lg px-3 py-2 text-sm" placeholder="linkedin.com/in/seunome" value={linkedin} onChange={e => setLinkedin(e.target.value)} /></div>
             </div>
           </div>
 
@@ -555,7 +608,7 @@ export default function OperadorBR() {
           </button>
         </div>
 
-        {/* RIGHT — Preview */}
+        {/* RIGHT — Edit + Preview */}
         <div className="space-y-4">
           {resumeData ? (
             <>
@@ -566,6 +619,56 @@ export default function OperadorBR() {
                 </button>
                 <button onClick={() => setResumeData(null)} className="px-4 py-2.5 border border-neutral-300 rounded-lg text-sm hover:bg-neutral-50">Novo</button>
               </div>
+
+              {/* Editable content panel */}
+              <div className="bg-white border rounded-xl p-5 space-y-5">
+                <h3 className="font-semibold text-neutral-700 text-sm uppercase tracking-wide">✏️ Editar e Reescrever com IA</h3>
+
+                {/* Resumo */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-semibold text-neutral-500 uppercase">Resumo Profissional</label>
+                    <button onClick={rewriteResumoAI} disabled={rewritingResumo}
+                      className="px-3 py-1 bg-green-700 text-white rounded-lg text-xs font-semibold hover:bg-green-800 disabled:opacity-50 flex items-center gap-1">
+                      {rewritingResumo ? <span className="animate-pulse">IA...</span> : "✦ Reescrever"}
+                    </button>
+                  </div>
+                  <textarea
+                    className="w-full border rounded-lg px-3 py-2 text-sm resize-none h-24 focus:ring-2 focus:ring-green-500 focus:outline-none"
+                    value={resumeData.resumoProfissional}
+                    onChange={e => updateResumo(e.target.value)}
+                  />
+                </div>
+
+                {/* Bullets per experience */}
+                {(resumeData.experiencia || []).map((exp: any) => (
+                  <div key={exp.id} className="space-y-2">
+                    <p className="text-xs font-semibold text-neutral-600 uppercase tracking-wide border-b pb-1">
+                      {exp.cargo} — {exp.empresa}
+                    </p>
+                    {(exp.responsabilidades || []).map((r: any, i: number) => {
+                      const isRewriting = rewritingBullet?.expId === exp.id && rewritingBullet?.idx === i;
+                      return (
+                        <div key={i} className="flex gap-2 items-start">
+                          <textarea
+                            className="flex-1 border rounded-lg px-3 py-2 text-xs resize-none h-16 focus:ring-2 focus:ring-green-500 focus:outline-none"
+                            value={r.text}
+                            onChange={e => updateBullet(exp.id, i, e.target.value)}
+                          />
+                          <button
+                            onClick={() => rewriteBulletAI(exp.id, i, r.text, exp.cargo)}
+                            disabled={!!rewritingBullet || isRewriting}
+                            className="flex-shrink-0 px-2.5 py-1.5 bg-green-700 text-white rounded-lg text-xs font-semibold hover:bg-green-800 disabled:opacity-50 whitespace-nowrap mt-1"
+                          >
+                            {isRewriting ? <span className="animate-pulse">IA...</span> : "✦"}
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
+
               <div ref={previewRef} className="bg-white border rounded-xl shadow-xl overflow-hidden">
                 <TemplateComponent data={resumeData} showWatermark={false} />
               </div>
