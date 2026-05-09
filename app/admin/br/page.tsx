@@ -300,6 +300,7 @@ export default function OperadorBR() {
       };
       const pdfPayload = {
         type: "resume",
+        locale: "pt-BR",
         selectedTemplate: templateMap[selectedTemplate] || "standard-contemporary",
         name: `${nome} ${sobrenome}`.trim(),
         title: resumeData.personalInfo?.tituloProfissional || "",

@@ -79,6 +79,7 @@ export default function BrPreviewPage() {
 
   const buildPayload = () => ({
     type: "resume",
+    locale: "pt-BR",
     selectedTemplate: BR_TO_PDF_TEMPLATE[store.selectedTemplate] || "standard-contemporary",
     name: `${store.personalInfo.nome || ""} ${store.personalInfo.sobrenome || ""}`.trim(),
     title: store.personalInfo.tituloProfissional || "",

@@ -8,6 +8,30 @@ const L = MARGIN;
 const R = PAGE_W - MARGIN;
 const CONTENT_W = R - L;    // 468pt
 
+// ── Localized section labels ──────────────────────────────────────────────────
+const LABELS = {
+  en: {
+    summary: "PROFESSIONAL SUMMARY",
+    skills: "CORE SKILLS",
+    experience: "EXPERIENCE",
+    education: "EDUCATION",
+    certifications: "CERTIFICATIONS & LICENSES",
+    competencies: "CORE COMPETENCIES",
+  },
+  "pt-BR": {
+    summary: "RESUMO PROFISSIONAL",
+    skills: "HABILIDADES",
+    experience: "EXPERIÊNCIA",
+    education: "FORMAÇÃO",
+    certifications: "CERTIFICAÇÕES",
+    competencies: "COMPETÊNCIAS-CHAVE",
+  },
+} as const;
+
+function getLabels(locale?: string) {
+  return locale === "pt-BR" ? LABELS["pt-BR"] : LABELS.en;
+}
+
 const FOOTER_Y = PAGE_H - 40; // bottom-center page number position
 
 /** Add page numbers to every page after content is fully rendered.
@@ -149,6 +173,7 @@ function skillsGrid(doc: any, skills: string[], x: number, y: number, width: num
 export function drawStandardContemporaryPDF(doc: any, data: any) {
   const { name, title, contact, summary, experience, education, certifications } = data;
   const skills = getSkills(data);
+  const L$ = getLabels(data.locale);
 
   doc.font("Helvetica-Bold").fontSize(22).fillColor("#111827").text(name || "", L, 36);
   const afterName = doc.y + 3;
@@ -162,21 +187,21 @@ export function drawStandardContemporaryPDF(doc: any, data: any) {
   let y = 82;
 
   if (summary?.trim()) {
-    y = sectionRule(doc, "Professional Summary", L, y, CONTENT_W);
+    y = sectionRule(doc, L$.summary, L, y, CONTENT_W);
     doc.font("Helvetica").fontSize(11).fillColor("#374151").text(summary, L, y, { width: CONTENT_W, lineGap: 2 });
     y = doc.y + 10;
   }
   if (skills.length) {
-    y = sectionRule(doc, "Core Skills", L, y, CONTENT_W);
+    y = sectionRule(doc, L$.skills, L, y, CONTENT_W);
     y = skillsGrid(doc, skills, L, y, CONTENT_W);
   }
   if (experience?.length) {
-    y = sectionRule(doc, "Experience", L, y, CONTENT_W);
+    y = sectionRule(doc, L$.experience, L, y, CONTENT_W);
     experience.forEach((job: any) => { y = jobBlock(doc, job, L, y, CONTENT_W); });
   }
   if (education?.length) {
     y = checkPageBreak(doc, y, 50);
-    y = sectionRule(doc, "Education", L, y, CONTENT_W);
+    y = sectionRule(doc, L$.education, L, y, CONTENT_W);
     education.forEach((edu: any) => {
       doc.font("Helvetica-Bold").fontSize(11).fillColor("#111827")
         .text([edu.degree, edu.school].filter(Boolean).join(" — "), L, y, { width: CONTENT_W });
@@ -185,7 +210,7 @@ export function drawStandardContemporaryPDF(doc: any, data: any) {
   }
   if ((certifications || []).length) {
     y = checkPageBreak(doc, y, 50);
-    y = sectionRule(doc, "Certifications & Licenses", L, y, CONTENT_W);
+    y = sectionRule(doc, L$.certifications, L, y, CONTENT_W);
     certifications.forEach((c: string) => {
       doc.circle(L + 5, y + 5, 1.8).fill("#374151");
       doc.font("Helvetica").fontSize(11).fillColor("#374151").text(c, L + 13, y, { width: CONTENT_W - 13 });
@@ -200,6 +225,7 @@ export function drawStandardContemporaryPDF(doc: any, data: any) {
 export function drawStandardClassicPDF(doc: any, data: any) {
   const { name, title, contact, summary, experience, education, certifications } = data;
   const skills = getSkills(data);
+  const L$ = getLabels(data.locale);
 
   doc.rect(0, 0, PAGE_W, 68).fill("#111827");
   doc.font("Helvetica-Bold").fontSize(22).fillColor("#ffffff").text(name || "", L, 18);
@@ -209,21 +235,21 @@ export function drawStandardClassicPDF(doc: any, data: any) {
 
   let y = 82;
   if (summary?.trim()) {
-    y = sectionRule(doc, "Professional Summary", L, y, CONTENT_W);
+    y = sectionRule(doc, L$.summary, L, y, CONTENT_W);
     doc.font("Helvetica").fontSize(11).fillColor("#374151").text(summary, L, y, { width: CONTENT_W, lineGap: 2 });
     y = doc.y + 10;
   }
   if (skills.length) {
-    y = sectionRule(doc, "Core Skills", L, y, CONTENT_W);
+    y = sectionRule(doc, L$.skills, L, y, CONTENT_W);
     y = skillsGrid(doc, skills, L, y, CONTENT_W);
   }
   if (experience?.length) {
-    y = sectionRule(doc, "Experience", L, y, CONTENT_W);
+    y = sectionRule(doc, L$.experience, L, y, CONTENT_W);
     experience.forEach((job: any) => { y = jobBlock(doc, job, L, y, CONTENT_W); });
   }
   if (education?.length) {
     y = checkPageBreak(doc, y, 50);
-    y = sectionRule(doc, "Education", L, y, CONTENT_W);
+    y = sectionRule(doc, L$.education, L, y, CONTENT_W);
     education.forEach((edu: any) => {
       doc.font("Helvetica-Bold").fontSize(11).fillColor("#111827").text([edu.degree, edu.school].filter(Boolean).join(" — "), L, y, { width: CONTENT_W });
       y = doc.y + 3;
@@ -231,7 +257,7 @@ export function drawStandardClassicPDF(doc: any, data: any) {
   }
   if ((certifications || []).length) {
     y = checkPageBreak(doc, y, 50);
-    y = sectionRule(doc, "Certifications & Licenses", L, y, CONTENT_W);
+    y = sectionRule(doc, L$.certifications, L, y, CONTENT_W);
     certifications.forEach((c: string) => {
       doc.circle(L + 5, y + 5, 1.8).fill("#374151");
       doc.font("Helvetica").fontSize(11).fillColor("#374151").text(c, L + 13, y, { width: CONTENT_W - 13 });
@@ -246,6 +272,7 @@ export function drawStandardClassicPDF(doc: any, data: any) {
 export function drawModernBluePDF(doc: any, data: any) {
   const { name, title, contact, summary, experience, education, certifications } = data;
   const skills = getSkills(data);
+  const L$ = getLabels(data.locale);
   const BLUE = "#1d4ed8";
 
   doc.rect(0, 0, PAGE_W, 86).fill(BLUE);
@@ -256,21 +283,21 @@ export function drawModernBluePDF(doc: any, data: any) {
 
   let y = 100;
   if (summary?.trim()) {
-    doc.font("Helvetica-Bold").fontSize(12).fillColor(BLUE).text("SUMMARY", L, y); y = doc.y + 5;
+    doc.font("Helvetica-Bold").fontSize(12).fillColor(BLUE).text(L$.summary, L, y); y = doc.y + 5;
     doc.font("Helvetica").fontSize(11).fillColor("#374151").text(summary, L, y, { width: CONTENT_W, lineGap: 2 }); y = doc.y + 10;
   }
   if (skills.length) {
-    doc.font("Helvetica-Bold").fontSize(12).fillColor(BLUE).text("SKILLS", L, y); y = doc.y + 5;
+    doc.font("Helvetica-Bold").fontSize(12).fillColor(BLUE).text(L$.skills, L, y); y = doc.y + 5;
     doc.font("Helvetica").fontSize(11).fillColor("#374151").text(skills.join("   •   "), L, y, { width: CONTENT_W }); y = doc.y + 10;
   }
   if (experience?.length) {
-    doc.font("Helvetica-Bold").fontSize(12).fillColor(BLUE).text("EXPERIENCE", L, y);
+    doc.font("Helvetica-Bold").fontSize(12).fillColor(BLUE).text(L$.experience, L, y);
     doc.moveTo(L, doc.y + 5).lineTo(R, doc.y + 5).lineWidth(0.5).stroke(BLUE); y = doc.y + 10;
     experience.forEach((job: any) => { y = jobBlock(doc, job, L, y, CONTENT_W); });
   }
   if (education?.length) {
     y = checkPageBreak(doc, y, 50);
-    doc.font("Helvetica-Bold").fontSize(12).fillColor(BLUE).text("EDUCATION", L, y);
+    doc.font("Helvetica-Bold").fontSize(12).fillColor(BLUE).text(L$.education, L, y);
     doc.moveTo(L, doc.y + 5).lineTo(R, doc.y + 5).lineWidth(0.5).stroke(BLUE); y = doc.y + 10;
     education.forEach((edu: any) => {
       doc.font("Helvetica-Bold").fontSize(11).fillColor("#111827").text([edu.degree, edu.school].filter(Boolean).join(" — "), L, y, { width: CONTENT_W });
@@ -286,6 +313,7 @@ export function drawModernBluePDF(doc: any, data: any) {
 export function drawBasicTwoColumnPDF(doc: any, data: any) {
   const { name, title, contact, summary, experience, education, certifications } = data;
   const skills = getSkills(data);
+  const L$ = getLabels(data.locale);
   const SIDE_W = 170;
   const MAIN_X = SIDE_W + 20;
   const MAIN_W = PAGE_W - MAIN_X - 30;
@@ -304,14 +332,14 @@ export function drawBasicTwoColumnPDF(doc: any, data: any) {
   });
   sY += 8;
   if (skills.length) {
-    doc.font("Helvetica-Bold").fontSize(9).fillColor("#6b7280").text("SKILLS", 15, sY, { characterSpacing: 0.5 }); sY = doc.y + 4;
+    doc.font("Helvetica-Bold").fontSize(9).fillColor("#6b7280").text(L$.skills, 15, sY, { characterSpacing: 0.5 }); sY = doc.y + 4;
     skills.forEach(s => {
       doc.circle(22, sY + 5, 1.8).fill("#6b7280");
       doc.font("Helvetica").fontSize(10).fillColor("#374151").text(s, 30, sY, { width: SIDE_W - 35 }); sY = doc.y + 3;
     }); sY += 8;
   }
   if ((certifications || []).length) {
-    doc.font("Helvetica-Bold").fontSize(9).fillColor("#6b7280").text("CERTIFICATIONS", 15, sY, { characterSpacing: 0.5 }); sY = doc.y + 4;
+    doc.font("Helvetica-Bold").fontSize(9).fillColor("#6b7280").text(L$.certifications, 15, sY, { characterSpacing: 0.5 }); sY = doc.y + 4;
     certifications.forEach((c: string) => {
       doc.circle(22, sY + 5, 1.8).fill("#6b7280");
       doc.font("Helvetica").fontSize(10).fillColor("#374151").text(c, 30, sY, { width: SIDE_W - 35 }); sY = doc.y + 3;
@@ -319,7 +347,7 @@ export function drawBasicTwoColumnPDF(doc: any, data: any) {
   }
   if (education?.length) {
     sY += 8;
-    doc.font("Helvetica-Bold").fontSize(9).fillColor("#6b7280").text("EDUCATION", 15, sY, { characterSpacing: 0.5 }); sY = doc.y + 4;
+    doc.font("Helvetica-Bold").fontSize(9).fillColor("#6b7280").text(L$.education, 15, sY, { characterSpacing: 0.5 }); sY = doc.y + 4;
     education.forEach((edu: any) => {
       doc.font("Helvetica-Bold").fontSize(10).fillColor("#374151").text(edu.degree || "", 15, sY, { width: SIDE_W - 20 }); sY = doc.y + 2;
       doc.font("Helvetica").fontSize(9).fillColor("#6b7280").text(edu.school || "", 15, sY, { width: SIDE_W - 20 }); sY = doc.y + 6;
@@ -328,12 +356,12 @@ export function drawBasicTwoColumnPDF(doc: any, data: any) {
 
   let mY = 28;
   if (summary?.trim()) {
-    doc.font("Helvetica-Bold").fontSize(11).fillColor("#374151").text("PROFESSIONAL SUMMARY", MAIN_X, mY, { characterSpacing: 0.4 }); mY = doc.y + 4;
+    doc.font("Helvetica-Bold").fontSize(11).fillColor("#374151").text(L$.summary, MAIN_X, mY, { characterSpacing: 0.4 }); mY = doc.y + 4;
     doc.moveTo(MAIN_X, mY).lineTo(PAGE_W - 30, mY).lineWidth(0.5).stroke("#d1d5db"); mY += 6;
     doc.font("Helvetica").fontSize(11).fillColor("#374151").text(summary, MAIN_X, mY, { width: MAIN_W, lineGap: 2 }); mY = doc.y + 12;
   }
   if (experience?.length) {
-    doc.font("Helvetica-Bold").fontSize(11).fillColor("#374151").text("EXPERIENCE", MAIN_X, mY, { characterSpacing: 0.4 }); mY = doc.y + 4;
+    doc.font("Helvetica-Bold").fontSize(11).fillColor("#374151").text(L$.experience, MAIN_X, mY, { characterSpacing: 0.4 }); mY = doc.y + 4;
     doc.moveTo(MAIN_X, mY).lineTo(PAGE_W - 30, mY).lineWidth(0.5).stroke("#d1d5db"); mY += 6;
     experience.forEach((job: any) => { mY = jobBlock(doc, job, MAIN_X, mY, MAIN_W, "#374151", "#111827", "#4b5563", "#6b7280", drawSidebar4); });
   }
@@ -346,6 +374,7 @@ export function drawBasicTwoColumnPDF(doc: any, data: any) {
 export function drawSidebarGreenPDF(doc: any, data: any) {
   const { name, title, contact, summary, experience, education, certifications } = data;
   const skills = getSkills(data);
+  const L$ = getLabels(data.locale);
   const GREEN_BG = "#E6F4EA";
   const GREEN_SECTION = "#1f2937";
   const SIDE_W = 185;
@@ -376,7 +405,7 @@ export function drawSidebarGreenPDF(doc: any, data: any) {
 
   if (skills.length) {
     doc.font("Helvetica-Bold").fontSize(9).fillColor(GREEN_SECTION)
-      .text("SKILLS", 16, sY, { characterSpacing: 0.5 }); sY = doc.y + 3;
+      .text(L$.skills, 16, sY, { characterSpacing: 0.5 }); sY = doc.y + 3;
     doc.moveTo(16, sY).lineTo(SIDE_W - 12, sY).lineWidth(0.5).stroke("#9ca3af"); sY += 5;
     skills.forEach(s => {
       doc.circle(22, sY + 5, 1.8).fill("#1f2937");
@@ -387,7 +416,7 @@ export function drawSidebarGreenPDF(doc: any, data: any) {
 
   if ((certifications || []).length) {
     doc.font("Helvetica-Bold").fontSize(9).fillColor(GREEN_SECTION)
-      .text("CERTIFICATIONS", 16, sY, { characterSpacing: 0.5 }); sY = doc.y + 3;
+      .text(L$.certifications, 16, sY, { characterSpacing: 0.5 }); sY = doc.y + 3;
     doc.moveTo(16, sY).lineTo(SIDE_W - 12, sY).lineWidth(0.5).stroke("#9ca3af"); sY += 5;
     certifications.forEach((c: string) => {
       doc.circle(22, sY + 5, 1.8).fill("#1f2937");
@@ -399,7 +428,7 @@ export function drawSidebarGreenPDF(doc: any, data: any) {
   let mY = 24;
   if (summary?.trim()) {
     doc.font("Helvetica-Bold").fontSize(11).fillColor(GREEN_SECTION)
-      .text("PROFESSIONAL SUMMARY", MAIN_X, mY, { characterSpacing: 0.5 }); mY = doc.y + 3;
+      .text(L$.summary, MAIN_X, mY, { characterSpacing: 0.5 }); mY = doc.y + 3;
     doc.moveTo(MAIN_X, mY).lineTo(PAGE_W - 36, mY).lineWidth(0.5).stroke("#d1d5db"); mY += 6;
     doc.font("Helvetica").fontSize(11).fillColor("#374151")
       .text(summary, MAIN_X, mY, { width: MAIN_W, lineGap: 2 }); mY = doc.y + 12;
@@ -407,7 +436,7 @@ export function drawSidebarGreenPDF(doc: any, data: any) {
 
   if (experience?.length) {
     doc.font("Helvetica-Bold").fontSize(11).fillColor(GREEN_SECTION)
-      .text("EXPERIENCE", MAIN_X, mY, { characterSpacing: 0.5 }); mY = doc.y + 3;
+      .text(L$.experience, MAIN_X, mY, { characterSpacing: 0.5 }); mY = doc.y + 3;
     doc.moveTo(MAIN_X, mY).lineTo(PAGE_W - 36, mY).lineWidth(0.5).stroke("#d1d5db"); mY += 6;
     experience.forEach((job: any) => {
       mY = jobBlock(doc, job, MAIN_X, mY, MAIN_W, "#374151", "#111827", "#4b5563", "#6b7280", onNewPage5);
@@ -417,7 +446,7 @@ export function drawSidebarGreenPDF(doc: any, data: any) {
   if (education?.length) {
     mY = checkPageBreak(doc, mY, 50, MARGIN, onNewPage5);
     doc.font("Helvetica-Bold").fontSize(11).fillColor(GREEN_SECTION)
-      .text("EDUCATION", MAIN_X, mY, { characterSpacing: 0.5 }); mY = doc.y + 3;
+      .text(L$.education, MAIN_X, mY, { characterSpacing: 0.5 }); mY = doc.y + 3;
     doc.moveTo(MAIN_X, mY).lineTo(PAGE_W - 36, mY).lineWidth(0.5).stroke("#d1d5db"); mY += 6;
     education.forEach((edu: any) => {
       const parts = [edu.degree, edu.school].filter(Boolean);
@@ -435,6 +464,7 @@ export function drawSidebarGreenPDF(doc: any, data: any) {
 export function drawExecutiveClassicPDF(doc: any, data: any) {
   const { name, title, contact, summary, experience, education, certifications } = data;
   const skills = getSkills(data);
+  const L$ = getLabels(data.locale);
   const NAVY = "#003A70"; const ORANGE = "#F28C28";
 
   doc.rect(0, 0, PAGE_W, 58).fill(NAVY);
@@ -451,22 +481,22 @@ export function drawExecutiveClassicPDF(doc: any, data: any) {
 
   let y = 94;
   if (summary?.trim()) {
-    y = sectionRule(doc, "Professional Summary", L, y, CONTENT_W, NAVY);
+    y = sectionRule(doc, L$.summary, L, y, CONTENT_W, NAVY);
     doc.font("Helvetica").fontSize(11).fillColor("#374151").text(summary, L, y, { width: CONTENT_W, lineGap: 2 }); y = doc.y + 10;
   }
   if (skills.length) {
-    y = sectionRule(doc, "Core Competencies", L, y, CONTENT_W, NAVY);
+    y = sectionRule(doc, L$.competencies, L, y, CONTENT_W, NAVY);
     y = skillsGrid(doc, skills, L, y, CONTENT_W, ORANGE);
   }
   if (experience?.length) {
-    y = sectionRule(doc, "Professional Experience", L, y, CONTENT_W, NAVY);
+    y = sectionRule(doc, L$.experience, L, y, CONTENT_W, NAVY);
     experience.forEach((job: any) => {
       y = jobBlock(doc, job, L, y, CONTENT_W, ORANGE, NAVY, "#374151", "#374151");
     });
   }
   if (education?.length) {
     y = checkPageBreak(doc, y, 50);
-    y = sectionRule(doc, "Education", L, y, CONTENT_W, NAVY);
+    y = sectionRule(doc, L$.education, L, y, CONTENT_W, NAVY);
     education.forEach((edu: any) => {
       doc.font("Helvetica-Bold").fontSize(11).fillColor(NAVY).text([edu.degree, edu.school].filter(Boolean).join(" — "), L, y, { width: CONTENT_W });
       y = doc.y + 3;
@@ -474,7 +504,7 @@ export function drawExecutiveClassicPDF(doc: any, data: any) {
   }
   if ((certifications || []).length) {
     y = checkPageBreak(doc, y, 50);
-    y = sectionRule(doc, "Certifications & Licenses", L, y, CONTENT_W, NAVY);
+    y = sectionRule(doc, L$.certifications, L, y, CONTENT_W, NAVY);
     certifications.forEach((c: string) => {
       doc.circle(L + 5, y + 5, 1.8).fill(ORANGE);
       doc.font("Helvetica").fontSize(11).fillColor("#374151").text(c, L + 13, y, { width: CONTENT_W - 13 });
@@ -490,6 +520,7 @@ export function drawExecutiveClassicPDF(doc: any, data: any) {
 export function drawExecutiveLuxePDF(doc: any, data: any) {
   const { name, title, contact, summary, experience, education, certifications } = data;
   const skills = getSkills(data);
+  const L$ = getLabels(data.locale);
   const GOLD_BG = "#F4E7C6";
   const SIDE_W = 170;
   const MAIN_X = SIDE_W + 22;
@@ -511,7 +542,7 @@ export function drawExecutiveLuxePDF(doc: any, data: any) {
     doc.font("Helvetica").fontSize(10).fillColor("#374151").text(c, 16, sY, { width: SIDE_W - 22 }); sY = doc.y + 3;
   }); sY += 10;
   if (skills.length) {
-    doc.font("Helvetica-Bold").fontSize(9).fillColor("#111827").text("SKILLS", 16, sY, { characterSpacing: 0.5 });
+    doc.font("Helvetica-Bold").fontSize(9).fillColor("#111827").text(L$.skills, 16, sY, { characterSpacing: 0.5 });
     sY = doc.y + 3;
     doc.moveTo(16, sY).lineTo(SIDE_W - 12, sY).lineWidth(0.5).stroke("#374151"); sY += 5;
     skills.forEach(s => {
@@ -520,7 +551,7 @@ export function drawExecutiveLuxePDF(doc: any, data: any) {
     }); sY += 8;
   }
   if ((certifications || []).length) {
-    doc.font("Helvetica-Bold").fontSize(9).fillColor("#111827").text("CERTIFICATIONS", 16, sY, { characterSpacing: 0.5 });
+    doc.font("Helvetica-Bold").fontSize(9).fillColor("#111827").text(L$.certifications, 16, sY, { characterSpacing: 0.5 });
     sY = doc.y + 3;
     doc.moveTo(16, sY).lineTo(SIDE_W - 12, sY).lineWidth(0.5).stroke("#374151"); sY += 5;
     certifications.forEach((c: string) => {
@@ -531,20 +562,20 @@ export function drawExecutiveLuxePDF(doc: any, data: any) {
 
   let mY = 28;
   if (summary?.trim()) {
-    doc.font("Helvetica-Bold").fontSize(12).fillColor("#111827").text("PROFESSIONAL SUMMARY", MAIN_X, mY, { characterSpacing: 0.5 });
+    doc.font("Helvetica-Bold").fontSize(12).fillColor("#111827").text(L$.summary, MAIN_X, mY, { characterSpacing: 0.5 });
     mY = doc.y + 3;
     doc.moveTo(MAIN_X, mY).lineTo(PAGE_W - 34, mY).lineWidth(0.5).stroke("#9ca3af"); mY += 6;
     doc.font("Helvetica").fontSize(11).fillColor("#374151").text(summary, MAIN_X, mY, { width: MAIN_W, lineGap: 2 }); mY = doc.y + 12;
   }
   if (experience?.length) {
-    doc.font("Helvetica-Bold").fontSize(12).fillColor("#111827").text("EXPERIENCE", MAIN_X, mY, { characterSpacing: 0.5 });
+    doc.font("Helvetica-Bold").fontSize(12).fillColor("#111827").text(L$.experience, MAIN_X, mY, { characterSpacing: 0.5 });
     mY = doc.y + 3;
     doc.moveTo(MAIN_X, mY).lineTo(PAGE_W - 34, mY).lineWidth(0.5).stroke("#9ca3af"); mY += 6;
     experience.forEach((job: any) => { mY = jobBlock(doc, job, MAIN_X, mY, MAIN_W, "#111827", "#111827", "#374151", "#6b7280", onNewPage7); });
   }
   if (education?.length) {
     mY = checkPageBreak(doc, mY, 50, MARGIN, onNewPage7);
-    doc.font("Helvetica-Bold").fontSize(12).fillColor("#111827").text("EDUCATION", MAIN_X, mY, { characterSpacing: 0.5 });
+    doc.font("Helvetica-Bold").fontSize(12).fillColor("#111827").text(L$.education, MAIN_X, mY, { characterSpacing: 0.5 });
     mY = doc.y + 3;
     doc.moveTo(MAIN_X, mY).lineTo(PAGE_W - 34, mY).lineWidth(0.5).stroke("#9ca3af"); mY += 6;
     education.forEach((edu: any) => {
@@ -562,6 +593,7 @@ export function drawExecutiveLuxePDF(doc: any, data: any) {
 export function drawModernElitePDF(doc: any, data: any) {
   const { name, title, contact, summary, experience, education, certifications } = data;
   const skills = getSkills(data);
+  const L$ = getLabels(data.locale);
   const GREY = "#4B5563";
   const LEFT_W = 158;
   const RIGHT_X = L + LEFT_W + 18;
@@ -585,7 +617,7 @@ export function drawModernElitePDF(doc: any, data: any) {
 
   if (experience?.length) {
     doc.font("Helvetica-Bold").fontSize(11).fillColor("#374151")
-      .text("EXPERIENCE", RIGHT_X, rightY, { characterSpacing: 0.5, lineBreak: false });
+      .text(L$.experience, RIGHT_X, rightY, { characterSpacing: 0.5, lineBreak: false });
     rightY = doc.y + 4;
     doc.moveTo(RIGHT_X, rightY).lineTo(PAGE_W - MARGIN, rightY).lineWidth(0.5).stroke("#d1d5db");
     rightY += 6;
@@ -596,7 +628,7 @@ export function drawModernElitePDF(doc: any, data: any) {
   if (education?.length) {
     rightY = checkPageBreak(doc, rightY, 50);
     doc.font("Helvetica-Bold").fontSize(11).fillColor("#374151")
-      .text("EDUCATION", RIGHT_X, rightY, { characterSpacing: 0.5, lineBreak: false });
+      .text(L$.education, RIGHT_X, rightY, { characterSpacing: 0.5, lineBreak: false });
     rightY = doc.y + 4;
     doc.moveTo(RIGHT_X, rightY).lineTo(PAGE_W - MARGIN, rightY).lineWidth(0.5).stroke("#d1d5db");
     rightY += 6;
@@ -623,13 +655,13 @@ export function drawModernElitePDF(doc: any, data: any) {
     return true;
   }
 
-  if (summary?.trim() && leftSection("SUMMARY")) {
+  if (summary?.trim() && leftSection(L$.summary)) {
     const remaining = MAX_LEFT_Y - leftY;
     doc.font("Helvetica").fontSize(10.5).fillColor("#374151")
       .text(summary, L, leftY, { width: LEFT_W, lineGap: 1.5, height: remaining });
     leftY = Math.min(doc.y + 10, MAX_LEFT_Y);
   }
-  if (skills.length && leftSection("SKILLS")) {
+  if (skills.length && leftSection(L$.skills)) {
     skills.forEach(s => {
       if (leftY >= MAX_LEFT_Y - 13) return;
       doc.circle(L + 5, leftY + 5, 1.8).fill("#6b7280");
@@ -638,7 +670,7 @@ export function drawModernElitePDF(doc: any, data: any) {
       leftY = doc.y + 3;
     });
   }
-  if ((certifications || []).length && leftSection("CERTIFICATIONS")) {
+  if ((certifications || []).length && leftSection(L$.certifications)) {
     certifications.forEach((c: string) => {
       if (leftY >= MAX_LEFT_Y - 13) return;
       doc.circle(L + 5, leftY + 5, 1.8).fill("#6b7280");
@@ -656,6 +688,7 @@ export function drawModernElitePDF(doc: any, data: any) {
 export function drawModernProfessionalPDF(doc: any, data: any) {
   const { name, title, contact, summary, experience, education, certifications } = data;
   const skills = getSkills(data);
+  const L$ = getLabels(data.locale);
   const W = CONTENT_W;
 
   const mpSection = (label: string, y: number): number => {
@@ -684,13 +717,13 @@ export function drawModernProfessionalPDF(doc: any, data: any) {
   y += 12;
 
   if (summary?.trim()) {
-    y = mpSection("PROFESSIONAL SUMMARY", y);
+    y = mpSection(L$.summary, y);
     doc.font("Helvetica").fontSize(11).fillColor("#374151")
       .text(summary, L, y, { width: W, lineGap: 2 });
     y = doc.y + 10;
   }
   if (skills.length) {
-    y = mpSection("CORE SKILLS", y);
+    y = mpSection(L$.skills, y);
     const col = W / 2;
     const mid = Math.ceil(skills.length / 2);
     const sy = y;
@@ -707,14 +740,14 @@ export function drawModernProfessionalPDF(doc: any, data: any) {
     y = sy + Math.ceil(skills.length / 2) * 15 + 10;
   }
   if (experience?.length) {
-    y = mpSection("EXPERIENCE", y);
+    y = mpSection(L$.experience, y);
     experience.forEach((job: any) => {
       y = jobBlock(doc, job, L, y, W, "#374151", "#111827", "#374151", "#6b7280");
     });
   }
   if (education?.length) {
     if (y + 50 > PAGE_H - MARGIN) { doc.addPage(); pageNum++; y = MARGIN; }
-    y = mpSection("EDUCATION", y);
+    y = mpSection(L$.education, y);
     education.forEach((edu: any) => {
       doc.font("Helvetica").fontSize(11).fillColor("#374151")
         .text([edu.degree, edu.school].filter(Boolean).join(" — "), L, y, { width: W });
@@ -723,7 +756,7 @@ export function drawModernProfessionalPDF(doc: any, data: any) {
   }
   if ((certifications || []).length) {
     if (y + 50 > PAGE_H - MARGIN) { doc.addPage(); pageNum++; y = MARGIN; }
-    y = mpSection("CERTIFICATIONS", y);
+    y = mpSection(L$.certifications, y);
     certifications.forEach((c: string) => {
       doc.circle(L + 5, y + 5, 1.8).fill("#374151");
       doc.font("Helvetica").fontSize(11).fillColor("#374151").text(c, L + 13, y, { width: W - 13 });

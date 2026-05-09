@@ -114,6 +114,7 @@ export default function OperadorCartaBR() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           type: "cover-letter",
+          locale: "pt-BR",
           coverLetterTemplate: selectedTemplate,
           applicantName: nome,
           applicantEmail: email,

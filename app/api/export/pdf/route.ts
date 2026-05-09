@@ -292,8 +292,15 @@ export async function POST(req: NextRequest) {
           doc.font("Helvetica").fontSize(10).fillColor("#374151").text(data.date || "", L2, doc.y);
           doc.moveDown(0.8);
           if (data.hiringManager || data.companyName) {
-            [data.hiringManager, data.companyName, data.companyAddress, data.companyCityStateZip]
-              .filter(Boolean).forEach(line => doc.font("Helvetica").fontSize(10).fillColor("#374151").text(line, L2, doc.y + 2));
+            const isBR = data.locale === "pt-BR";
+            if (data.hiringManager) {
+              doc.font("Helvetica").fontSize(10).fillColor("#374151")
+                .text((isBR ? "Att.: " : "Attn: ") + data.hiringManager, L2, doc.y + 2);
+            }
+            if (data.companyName) {
+              doc.font("Helvetica").fontSize(10).fillColor("#374151")
+                .text((isBR ? "Empresa: " : "") + data.companyName, L2, doc.y + 2);
+            }
             doc.moveDown(0.8);
           }
           doc.font("Helvetica").fontSize(10.5).fillColor("#1f2937")
@@ -310,9 +317,15 @@ export async function POST(req: NextRequest) {
           doc.fillColor("#111827").font("Helvetica").fontSize(10)
             .text(data.date || "", 50, 125);
           if (data.hiringManager || data.companyName) {
+            const isBR2 = data.locale === "pt-BR";
             doc.moveDown(0.5);
-            [data.hiringManager, data.companyName, data.companyAddress, data.companyCityStateZip]
-              .filter(Boolean).forEach(line => doc.font("Helvetica").fontSize(10).fillColor("#374151").text(line, 50, doc.y + 2));
+            const addrLines = [
+              data.hiringManager ? (isBR2 ? "Att.: " : "Attn: ") + data.hiringManager : null,
+              data.companyName ? (isBR2 ? "Empresa: " : "") + data.companyName : null,
+              data.companyAddress,
+              data.companyCityStateZip,
+            ].filter(Boolean);
+            addrLines.forEach((line: any) => doc.font("Helvetica").fontSize(10).fillColor("#374151").text(line, 50, doc.y + 2));
           }
           doc.moveDown(1);
           doc.font("Helvetica").fontSize(10.5).fillColor("#1f2937")
