@@ -180,7 +180,7 @@ export default function OperadorBR() {
       // Generate summary
       const sumRes = await fetch("/api/ai/br/rewrite", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: `Gere um resumo profissional para: ${promptParts}`, type: "resumo" }),
+        body: JSON.stringify({ text: `Gere um resumo profissional em português. NÃO comece com o nome do candidato. Comece diretamente com o cargo ou uma frase de impacto. Dados: ${promptParts}`, type: "resumo" }),
       });
       const sumData = await sumRes.json();
 
@@ -205,7 +205,12 @@ export default function OperadorBR() {
         };
       }));
 
-      const generatedResumo = sumData.suggestion || resumo || "";
+      // Strip any leading name line the AI sometimes adds
+      let generatedResumo = sumData.suggestion || resumo || "";
+      const fullName = `${nome} ${sobrenome}`.trim();
+      if (fullName && generatedResumo.startsWith(fullName)) {
+        generatedResumo = generatedResumo.slice(fullName.length).replace(/^[\s\n,.-]+/, "").trim();
+      }
       if (generatedResumo && !resumo) setResumo(generatedResumo);
 
       const finalHabilidades = habilidades.filter(Boolean).length > 0

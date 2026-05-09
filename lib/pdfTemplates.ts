@@ -323,6 +323,16 @@ export function drawModernBluePDF(doc: any, data: any) {
       y = doc.y + 3;
     });
   }
+  if ((certifications || []).length) {
+    y = checkPageBreak(doc, y, 50);
+    doc.font("Helvetica-Bold").fontSize(12).fillColor(BLUE).text(L$.certifications, L, y);
+    doc.moveTo(L, doc.y + 5).lineTo(R, doc.y + 5).lineWidth(0.5).stroke(BLUE); y = doc.y + 10;
+    certifications.forEach((c: string) => {
+      doc.circle(L + 5, y + 5, 1.8).fill(BLUE);
+      doc.font("Helvetica").fontSize(11).fillColor("#374151").text(c, L + 13, y, { width: CONTENT_W - 13 });
+      y = doc.y + 3;
+    });
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
