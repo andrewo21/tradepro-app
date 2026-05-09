@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import BrModernoAzul from "@/components/templates/brazil/BrModernoAzul";
 import BrClasicoProfissional from "@/components/templates/brazil/BrClasicoProfissional";
 import BrVerdeTecnico from "@/components/templates/brazil/BrVerdeTecnico";
@@ -68,12 +68,63 @@ export default function OperadorBR() {
   // Multiple experiences
   const [experiencias, setExperiencias] = useState<Experiencia[]>([newExp()]);
 
+  // Skills + summary
+  const [habilidades, setHabilidades] = useState<string[]>([""]);
+  const [resumo, setResumo] = useState("");
+
   const [loading, setLoading] = useState(false);
+  const [parsing, setParsing] = useState(false);
   const [resumeData, setResumeData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const previewRef = useRef<HTMLDivElement>(null);
   const [downloading, setDownloading] = useState(false);
   const photoRef = useRef<HTMLInputElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  // Resume drop-in — parse uploaded file and pre-fill all fields
+  async function handleResumeUpload(file: File) {
+    setParsing(true); setError(null);
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      const res = await fetch("/api/ai/parse-resume", { method: "POST", body: form });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Falha ao processar arquivo");
+      const d = json.data;
+      if (d.personalInfo) {
+        setNome(d.personalInfo.firstName || d.personalInfo.nome || "");
+        setSobrenome(d.personalInfo.lastName || d.personalInfo.sobrenome || "");
+        setTelefone(d.personalInfo.phone || d.personalInfo.telefone || "");
+        setEmail(d.personalInfo.email || "");
+        setCidade(d.personalInfo.city || d.personalInfo.cidade || "");
+        setEstado(d.personalInfo.state || d.personalInfo.estado || "");
+      }
+      if (d.summary) setResumo(d.summary);
+      if (d.skills?.length) setHabilidades(d.skills.filter(Boolean));
+      if (d.certifications?.length) setCertificacoes(d.certifications.join(", "));
+      if (d.experience?.length) {
+        setExperiencias(d.experience.map((exp: any) => ({
+          id: Date.now().toString() + Math.random(),
+          cargo: exp.jobTitle || "",
+          empresa: exp.company || "",
+          dataInicio: exp.startDate || "",
+          dataFim: exp.endDate || "",
+          anos: "",
+          supervisionou: false,
+          comercial: false,
+          contexto: exp.roleSummary || exp.responsibilities?.slice(0,2).join(". ") || "",
+        })));
+      }
+    } catch (e: any) {
+      setError(e.message || "Erro ao processar currículo.");
+    } finally { setParsing(false); }
+  }
+
+  function onFileDrop(e: React.DragEvent) {
+    e.preventDefault();
+    const file = e.dataTransfer.files?.[0];
+    if (file) handleResumeUpload(file);
+  }
 
   function handleLogin() {
     if (pw === OPERATOR_PASSWORD) setAuthed(true);
@@ -145,6 +196,15 @@ export default function OperadorBR() {
         };
       }));
 
+      const generatedResumo = sumData.suggestion || resumo || "";
+      if (generatedResumo && !resumo) setResumo(generatedResumo);
+
+      const finalHabilidades = habilidades.filter(Boolean).length > 0
+        ? habilidades.filter(Boolean)
+        : certificacoes
+          ? certificacoes.split(",").map((c: string) => c.trim()).filter(Boolean)
+          : [experiencias[0].cargo, setor].filter(Boolean);
+
       setResumeData({
         personalInfo: {
           nome, sobrenome,
@@ -152,10 +212,8 @@ export default function OperadorBR() {
           telefone, whatsapp, email, cidade, estado,
           cpf: "", linkedin: "", foto,
         },
-        resumoProfissional: sumData.suggestion || "",
-        habilidades: certificacoes
-          ? certificacoes.split(",").map((c: string) => ({ text: c.trim() }))
-          : [{ text: experiencias[0].cargo }, { text: setor }],
+        resumoProfissional: generatedResumo,
+        habilidades: finalHabilidades.map((h: string) => ({ text: h })),
         experiencia: expWithBullets,
         formacao: [{ instituicao: "", curso: "", anoConclusao: "", tipo: "Técnico" }],
         cursosCertificacoes: certificacoes
@@ -259,6 +317,29 @@ export default function OperadorBR() {
         {/* LEFT — Form */}
         <div className="space-y-5">
 
+          {/* Resume drop-in */}
+          <div className="bg-white rounded-xl border p-6 space-y-3">
+            <h2 className="font-semibold text-neutral-700 text-sm uppercase tracking-wide">📎 Currículo Existente</h2>
+            <p className="text-xs text-neutral-500">Se o cliente enviou um currículo, suba aqui — os campos são preenchidos automaticamente pela IA.</p>
+            <div
+              onDragOver={e => e.preventDefault()}
+              onDrop={onFileDrop}
+              onClick={() => fileRef.current?.click()}
+              className="border-2 border-dashed border-neutral-300 hover:border-green-500 rounded-xl p-6 text-center cursor-pointer transition"
+            >
+              {parsing ? (
+                <p className="text-green-700 text-sm font-medium animate-pulse">Lendo currículo com IA…</p>
+              ) : (
+                <>
+                  <p className="text-neutral-500 text-sm">Arraste o PDF/DOCX aqui ou <span className="text-green-700 font-medium underline">clique para selecionar</span></p>
+                  <p className="text-neutral-400 text-xs mt-1">PDF ou Word • A IA extrai tudo automaticamente</p>
+                </>
+              )}
+            </div>
+            <input ref={fileRef} type="file" accept=".pdf,.docx" className="hidden"
+              onChange={e => { const f = e.target.files?.[0]; if (f) handleResumeUpload(f); }} />
+          </div>
+
           {/* Personal info */}
           <div className="bg-white rounded-xl border p-6 space-y-4">
             <h2 className="font-semibold text-neutral-700 text-sm uppercase tracking-wide">Dados Pessoais</h2>
@@ -299,6 +380,44 @@ export default function OperadorBR() {
               <div><label className="block text-xs font-medium mb-1 text-neutral-500">Certificações (vírgula)</label>
                 <input className="w-full border rounded-lg px-3 py-2 text-sm" placeholder="NR-10, NR-35, CNH B" value={certificacoes} onChange={e => setCertificacoes(e.target.value)} /></div>
             </div>
+          </div>
+
+          {/* Resumo / Objetivo */}
+          <div className="bg-white rounded-xl border p-6 space-y-3">
+            <h2 className="font-semibold text-neutral-700 text-sm uppercase tracking-wide">Resumo Profissional / Objetivo</h2>
+            <p className="text-xs text-neutral-500">Deixe em branco para gerar com IA, ou escreva aqui para usar como está.</p>
+            <textarea
+              className="w-full border rounded-lg px-3 py-2 text-sm resize-none h-28 focus:ring-2 focus:ring-green-500 focus:outline-none"
+              placeholder="Ex: Eletricista com 9 anos de experiência em instalações comerciais e residenciais. Especializado em NR-10..."
+              value={resumo}
+              onChange={e => setResumo(e.target.value)}
+            />
+          </div>
+
+          {/* Skills */}
+          <div className="bg-white rounded-xl border p-6 space-y-3">
+            <h2 className="font-semibold text-neutral-700 text-sm uppercase tracking-wide">Habilidades / Skills</h2>
+            <p className="text-xs text-neutral-500">Uma habilidade por linha. Serão listadas no currículo.</p>
+            <div className="space-y-2">
+              {habilidades.map((h, i) => (
+                <div key={i} className="flex gap-2">
+                  <input
+                    className="flex-1 border rounded-lg px-3 py-2 text-sm"
+                    placeholder={`Habilidade ${i + 1}...`}
+                    value={h}
+                    onChange={e => setHabilidades(prev => { const n = [...prev]; n[i] = e.target.value; return n; })}
+                  />
+                  {habilidades.length > 1 && (
+                    <button onClick={() => setHabilidades(prev => prev.filter((_, idx) => idx !== i))}
+                      className="px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg text-sm">✕</button>
+                  )}
+                </div>
+              ))}
+            </div>
+            <button onClick={() => setHabilidades(prev => [...prev, ""])}
+              className="w-full py-2 border-dashed border-2 border-neutral-300 rounded-lg text-sm text-neutral-500 hover:border-green-400 hover:text-green-700 transition">
+              + Adicionar Habilidade
+            </button>
           </div>
 
           {/* Experience entries */}
