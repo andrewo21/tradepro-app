@@ -1,12 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { getSupabase } from "@/lib/supabase";
+import { Suspense } from "react";
 
-export default function AuthCallbackPage() {
+function CallbackContent() {
   const router = useRouter();
-  const [status, setStatus] = useState("Verifying your login…");
+  const searchParams = useSearchParams();
+  const next = searchParams.get("next") || "/minhas-versoes";
+  const [status, setStatus] = useState("Verificando seu acesso…");
 
   useEffect(() => {
     const sb = getSupabase();
@@ -15,22 +18,17 @@ export default function AuthCallbackPage() {
       return;
     }
 
-    // Supabase automatically picks up the token from the URL hash.
-    // Listen for the session to be established then redirect.
     sb.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN" && session) {
-        setStatus("Logged in! Redirecting…");
-        router.replace("/minhas-versoes");
+        setStatus("Pronto! Redirecionando…");
+        router.replace(next);
       }
     });
 
-    // Also check if already have a session (in case event already fired)
     sb.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        router.replace("/minhas-versoes");
-      }
+      if (session) router.replace(next);
     });
-  }, [router]);
+  }, [router, next]);
 
   return (
     <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
@@ -39,5 +37,17 @@ export default function AuthCallbackPage() {
         <p className="text-neutral-600 text-sm">{status}</p>
       </div>
     </div>
+  );
+}
+
+export default function AuthCallbackPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
+        <div className="inline-block h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <CallbackContent />
+    </Suspense>
   );
 }

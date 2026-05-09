@@ -33,7 +33,7 @@ export default function BrLoginPage() {
     }
     const { error: err } = await sb.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+      options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=/br/meus-curriculos` },
     });
     setLoading(false);
     if (err) setError(err.message);
