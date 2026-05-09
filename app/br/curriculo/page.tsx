@@ -61,6 +61,13 @@ const SAMPLE_DATA = {
   cursosCertificacoes: [{ nome: "NR-10 Segurança em Instalações Elétricas", instituicao: "SENAI", ano: "2021" }],
 };
 
+const WA_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_BR || "";
+
+function waLink(templateName: string) {
+  const msg = encodeURIComponent(`Olá! Gostei do modelo "${templateName}" para meu currículo. Pode me ajudar?`);
+  return WA_NUMBER ? `https://wa.me/${WA_NUMBER}?text=${msg}` : "/br/contato";
+}
+
 export default function BrCurriculoSelectPage() {
   const { selectedTemplate, setField } = useBrResumeStore();
   const [hasAccess, setHasAccess] = useState<boolean | null>(null);
@@ -80,32 +87,12 @@ export default function BrCurriculoSelectPage() {
   return (
     <div className="min-h-screen bg-neutral-100 px-4 py-8 sm:p-10">
 
-      <div className="flex items-center justify-between mb-2 flex-wrap gap-3">
-        <div>
-          <Link href="/br" className="text-sm text-green-600 hover:underline">← Início</Link>
-          <h1 className="text-2xl font-semibold mt-1">Escolha seu Modelo</h1>
-        </div>
-        {!hasAccess && (
-          <Link href="/br/precos" className="px-5 py-2.5 bg-green-700 text-white rounded-lg text-sm font-semibold hover:bg-green-800">
-            Desbloquear — R$ 79
-          </Link>
-        )}
-      </div>
-
-      {!hasAccess && (
-        <p className="text-neutral-500 text-sm mb-5">Veja os modelos abaixo. Adquira para criar seu currículo.</p>
-      )}
-
-      {/* Resume Upload */}
-      <div className="mb-6 bg-white border border-neutral-200 rounded-xl p-5 shadow-sm">
-        <div className="flex items-center gap-2 mb-3">
-          <span className="text-lg">⚡</span>
-          <div>
-            <p className="font-semibold text-sm text-neutral-900">Já tem um currículo? Envie e a IA preenche tudo automaticamente.</p>
-            <p className="text-xs text-neutral-500">Envie seu PDF — extraímos seus dados e você ajusta o que precisar.</p>
-          </div>
-        </div>
-        <BrResumeUpload />
+      <div className="mb-6">
+        <Link href="/br" className="text-sm text-green-600 hover:underline">← Início</Link>
+        <h1 className="text-2xl font-semibold mt-1">Escolha seu Modelo</h1>
+        <p className="text-neutral-600 text-sm mt-1">
+          Veja todos os modelos abaixo. Gostou de um? <strong>Chame no WhatsApp</strong> com o nome do modelo — nós fazemos o currículo para você.
+        </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
@@ -113,59 +100,85 @@ export default function BrCurriculoSelectPage() {
         {/* Template list */}
         <div className="space-y-3">
           {TEMPLATES.map(t => (
-            <button
-              key={t.key}
-              onClick={() => setField("selectedTemplate", t.key)}
-              className={`w-full p-5 rounded-xl border text-left transition ${
+            <div key={t.key}
+              className={`rounded-xl border transition ${
                 selectedTemplate === t.key
                   ? "border-green-600 shadow-lg bg-green-50"
-                  : t.premium
-                  ? "border-neutral-300 bg-yellow-50 hover:border-yellow-500"
                   : "border-neutral-300 bg-white hover:border-green-400"
               }`}
             >
-              <div className="flex justify-between items-center">
-                <h3 className="text-base font-semibold text-neutral-900">{t.name}</h3>
-                {t.premium ? (
-                  <span className="text-xs bg-yellow-100 text-yellow-700 font-semibold px-2 py-1 rounded">Premium</span>
-                ) : (
-                  <span className="text-xs bg-green-100 text-green-700 font-semibold px-2 py-1 rounded">Padrão</span>
+              {/* Template info row */}
+              <button
+                onClick={() => setField("selectedTemplate", t.key)}
+                className="w-full p-4 text-left"
+              >
+                <div className="flex justify-between items-center">
+                  <h3 className="text-base font-semibold text-neutral-900">{t.name}</h3>
+                  <span className={`text-xs font-semibold px-2 py-1 rounded ${
+                    t.premium ? "bg-yellow-100 text-yellow-700" : "bg-green-100 text-green-700"
+                  }`}>
+                    {t.premium ? "Premium" : "Padrão"}
+                  </span>
+                </div>
+                <p className="text-neutral-500 text-xs mt-1">Clique para visualizar à direita</p>
+              </button>
+
+              {/* Action buttons — always visible */}
+              <div className="px-4 pb-4 flex gap-2 flex-wrap">
+                {/* WhatsApp — operator model */}
+                <a
+                  href={waLink(t.name)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white transition hover:opacity-90"
+                  style={{ backgroundColor: "#25D366" }}
+                >
+                  <svg viewBox="0 0 32 32" className="w-4 h-4" fill="white">
+                    <path d="M16 2C8.268 2 2 8.268 2 16c0 2.444.658 4.733 1.805 6.7L2 30l7.5-1.775A13.93 13.93 0 0 0 16 30c7.732 0 14-6.268 14-14S23.732 2 16 2zm0 25.5a11.43 11.43 0 0 1-5.82-1.593l-.418-.247-4.453 1.053 1.09-4.322-.274-.44A11.432 11.432 0 0 1 4.5 16C4.5 9.649 9.649 4.5 16 4.5S27.5 9.649 27.5 16 22.351 27.5 16 27.5zm6.29-8.47c-.345-.173-2.04-1.005-2.355-1.12-.315-.115-.545-.172-.774.173-.23.345-.89 1.12-1.09 1.348-.2.23-.4.258-.745.086-.345-.172-1.457-.537-2.775-1.713-1.025-.916-1.717-2.047-1.917-2.392-.2-.345-.021-.532.15-.703.154-.154.345-.4.518-.6.172-.2.23-.345.345-.575.115-.23.057-.43-.029-.603-.086-.172-.774-1.866-1.06-2.555-.28-.67-.564-.58-.774-.59-.2-.01-.43-.012-.66-.012-.23 0-.603.086-.918.43-.315.345-1.205 1.177-1.205 2.869s1.233 3.328 1.405 3.557c.172.23 2.427 3.71 5.88 5.204.822.355 1.463.567 1.963.725.824.263 1.575.226 2.168.137.66-.099 2.04-.834 2.327-1.638.287-.805.287-1.494.2-1.638-.085-.143-.315-.23-.66-.4z"/>
+                  </svg>
+                  Quero esse modelo
+                </a>
+
+                {/* Self-serve purchase */}
+                {!hasAccess && (
+                  <Link href="/br/precos"
+                    className="px-4 py-2 rounded-lg text-sm font-medium border border-green-600 text-green-700 hover:bg-green-50 transition">
+                    Fazer eu mesmo — {t.premium ? "R$ 99" : "R$ 79"}
+                  </Link>
+                )}
+                {hasAccess && (
+                  <button
+                    onClick={() => { setField("selectedTemplate", t.key); router.push("/br/curriculo/pessoal"); }}
+                    className="px-4 py-2 rounded-lg text-sm font-medium border border-green-600 text-green-700 hover:bg-green-50 transition">
+                    Usar este modelo →
+                  </button>
                 )}
               </div>
-              <div className="flex justify-between mt-1">
-                <p className="text-neutral-500 text-sm">Clique para visualizar</p>
-                <p className={`text-sm font-semibold ${t.premium ? "text-yellow-700" : "text-green-700"}`}>
-                  {t.premium ? "Pacote Premium — R$ 149" : "Desbloquear — R$ 79"}
-                </p>
-              </div>
-            </button>
+            </div>
           ))}
         </div>
 
-        {/* Preview */}
-        <div className="flex flex-col gap-4">
-          <div className="relative">
+        {/* Live preview — NO watermark so customers see exactly what they get */}
+        <div className="lg:sticky lg:top-6 lg:self-start">
+          <div className="bg-neutral-200 rounded-xl p-1 mb-2 text-center text-xs text-neutral-500 font-medium">
+            Visualizando: <span className="text-green-700 font-semibold">{activeTemplate.name}</span>
+          </div>
+          <div className="bg-white border border-neutral-300 rounded-xl shadow-xl overflow-hidden">
             <PreviewComponent data={SAMPLE_DATA} showWatermark={true} />
           </div>
-          {!hasAccess && (
-            <div className="mt-2 p-4 bg-green-50 border border-green-200 rounded-xl text-center">
-              <p className="text-green-800 font-semibold mb-2">Pronto para criar seu currículo?</p>
-              <p className="text-green-700 text-sm mb-3">Adquira para remover a marca d'água e inserir seus dados.</p>
-              <Link href="/br/precos" className="inline-block px-6 py-2 bg-green-700 text-white rounded-lg font-semibold hover:bg-green-800">
-                Começar — R$ 79
-              </Link>
-            </div>
-          )}
-        </div>
-      </div>
 
-      <div className="mt-10 flex justify-end">
-        <button
-          onClick={() => hasAccess ? router.push("/br/curriculo/pessoal") : router.push("/br/precos")}
-          className="px-6 py-3 bg-green-700 text-white rounded-lg font-semibold hover:bg-green-800"
-        >
-          {hasAccess ? "Continuar para o Passo 2 →" : "Adquirir para Continuar →"}
-        </button>
+          {/* WhatsApp CTA under preview */}
+          <a href={waLink(activeTemplate.name)}
+            target="_blank" rel="noopener noreferrer"
+            className="mt-4 flex items-center justify-center gap-3 w-full py-3 rounded-xl font-bold text-white text-sm transition hover:opacity-90 shadow-md"
+            style={{ backgroundColor: "#25D366" }}>
+            <svg viewBox="0 0 32 32" className="w-5 h-5" fill="white">
+              <path d="M16 2C8.268 2 2 8.268 2 16c0 2.444.658 4.733 1.805 6.7L2 30l7.5-1.775A13.93 13.93 0 0 0 16 30c7.732 0 14-6.268 14-14S23.732 2 16 2zm0 25.5a11.43 11.43 0 0 1-5.82-1.593l-.418-.247-4.453 1.053 1.09-4.322-.274-.44A11.432 11.432 0 0 1 4.5 16C4.5 9.649 9.649 4.5 16 4.5S27.5 9.649 27.5 16 22.351 27.5 16 27.5zm6.29-8.47c-.345-.173-2.04-1.005-2.355-1.12-.315-.115-.545-.172-.774.173-.23.345-.89 1.12-1.09 1.348-.2.23-.4.258-.745.086-.345-.172-1.457-.537-2.775-1.713-1.025-.916-1.717-2.047-1.917-2.392-.2-.345-.021-.532.15-.703.154-.154.345-.4.518-.6.172-.2.23-.345.345-.575.115-.23.057-.43-.029-.603-.086-.172-.774-1.866-1.06-2.555-.28-.67-.564-.58-.774-.59-.2-.01-.43-.012-.66-.012-.23 0-.603.086-.918.43-.315.345-1.205 1.177-1.205 2.869s1.233 3.328 1.405 3.557c.172.23 2.427 3.71 5.88 5.204.822.355 1.463.567 1.963.725.824.263 1.575.226 2.168.137.66-.099 2.04-.834 2.327-1.638.287-.805.287-1.494.2-1.638-.085-.143-.315-.23-.66-.4z"/>
+            </svg>
+            Quero o modelo "{activeTemplate.name}" — Chamar no WhatsApp
+          </a>
+          <p className="text-center text-xs text-neutral-500 mt-2">Respondemos em minutos • Sem compromisso</p>
+        </div>
       </div>
     </div>
   );
