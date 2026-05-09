@@ -129,10 +129,7 @@ const MainHeader = ({ title }: { title: string }) => (
 );
 
 const ExperienceBlock = ({ job }: { job: any }) => {
-  const location =
-    job.city && job.state
-      ? `${job.city}, ${job.state}`
-      : job.city || job.state || "";
+  const location = [job.city, job.state].filter(Boolean).join(", ");
 
   const dates =
     job.startDate && job.endDate

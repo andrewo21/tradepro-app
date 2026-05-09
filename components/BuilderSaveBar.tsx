@@ -3,10 +3,12 @@
 import { useState, useCallback, useRef } from "react";
 import { useResumeStore } from "@/app/store/useResumeStore";
 import { getSupabase } from "@/lib/supabase";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 export default function BuilderSaveBar() {
   const store = useResumeStore();
+  const router = useRouter();
   const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const resumeIdRef = useRef<string | null>(null);
 
@@ -58,14 +60,26 @@ export default function BuilderSaveBar() {
       if (json.resumeId) {
         resumeIdRef.current = json.resumeId;
         setStatus("saved");
+        setTimeout(() => setStatus("idle"), 3000);
+        return true;
       } else {
         setStatus("error");
+        setTimeout(() => setStatus("idle"), 3000);
+        return false;
       }
     } catch {
       setStatus("error");
+      setTimeout(() => setStatus("idle"), 3000);
+      return false;
     }
-    setTimeout(() => setStatus("idle"), 3000);
   }, [store]);
+
+  async function handleSaveAndExit() {
+    const success = await handleSave();
+    const sb = getSupabase();
+    if (sb) await sb.auth.signOut();
+    router.push("/");
+  }
 
   return (
     <div className="flex items-center justify-between px-4 py-2 bg-white border-b border-neutral-200 text-sm">
@@ -93,6 +107,13 @@ export default function BuilderSaveBar() {
           className="px-4 py-1.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition disabled:opacity-60"
         >
           {status === "saving" ? "Saving…" : "Save"}
+        </button>
+        <button
+          onClick={handleSaveAndExit}
+          disabled={status === "saving"}
+          className="px-4 py-1.5 bg-neutral-700 text-white rounded-lg text-sm font-medium hover:bg-neutral-900 transition disabled:opacity-60"
+        >
+          Save &amp; Exit
         </button>
       </div>
     </div>

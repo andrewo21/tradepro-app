@@ -20,9 +20,11 @@ const createExperienceItem = () => ({
   id: `${Date.now()}-${Math.random()}`, 
   jobTitle: "", 
   company: "", 
+  city: "",
+  state: "",
   startDate: "", 
   endDate: "", 
-  roleSummary: "",   // intro paragraph shown before bullets
+  roleSummary: "",
   responsibilities: [createBullet()], 
   achievements: [createBullet()] 
 });

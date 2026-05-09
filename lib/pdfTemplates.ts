@@ -94,7 +94,11 @@ function jobBlock(
   }
   doc.y = afterTitle;
   if (job.company) {
-    doc.font("Helvetica").fontSize(10).fillColor(companyColor).text(job.company, x, doc.y + 2, { width });
+    const companyLocation = [job.company, job.city, job.state].filter(Boolean);
+    const companyLine = job.city || job.state
+      ? `${job.company}  |  ${[job.city, job.state].filter(Boolean).join(", ")}`
+      : job.company;
+    doc.font("Helvetica").fontSize(10).fillColor(companyColor).text(companyLine, x, doc.y + 2, { width });
   }
 
   let curY = doc.y + 5;
@@ -551,63 +555,96 @@ export function drawExecutiveLuxePDF(doc: any, data: any) {
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // 8. MODERN ELITE (premium)
-// Grey header bar, two-column body (left: summary+skills, right: exp+edu)
+// Grey header bar, true two-column body.
+// Strategy: render right column first (with page overflow), then switchToPage(0)
+// to place left column — prevents left-column overflow from pushing experience down.
 // ═══════════════════════════════════════════════════════════════════════════════
 export function drawModernElitePDF(doc: any, data: any) {
   const { name, title, contact, summary, experience, education, certifications } = data;
   const skills = getSkills(data);
   const GREY = "#4B5563";
-  const LEFT_W = 160;
-  const RIGHT_X = L + LEFT_W + 20;
+  const LEFT_W = 158;
+  const RIGHT_X = L + LEFT_W + 18;
   const RIGHT_W = PAGE_W - RIGHT_X - MARGIN;
+  const BODY_TOP = 76;
+  const MAX_LEFT_Y = PAGE_H - MARGIN - 8; // hard limit for left column on page 1
 
+  // ── Header (page 1 only) ──────────────────────────────────────────────────
   doc.rect(0, 0, PAGE_W, 64).fill(GREY);
-  doc.font("Helvetica-Bold").fontSize(22).fillColor("#ffffff").text(name || "", L, 16);
-  if (title) doc.font("Helvetica").fontSize(12).fillColor("#e5e7eb").text(title, L, 38);
+  doc.font("Helvetica-Bold").fontSize(22).fillColor("#ffffff").text(name || "", L, 16, { lineBreak: false });
+  if (title) doc.font("Helvetica").fontSize(12).fillColor("#e5e7eb").text(title, L, 39, { lineBreak: false });
   const cp = [contact?.location, contact?.email, contact?.phone].filter(Boolean);
-  doc.font("Helvetica").fontSize(10).fillColor("#d1d5db").text(cp.join("  |  "), L, 20, { width: CONTENT_W, align: "right" });
+  if (cp.length) doc.font("Helvetica").fontSize(10).fillColor("#d1d5db")
+    .text(cp.join("  |  "), L, 20, { width: CONTENT_W, align: "right", lineBreak: false });
 
-  let leftY = 78; let rightY = 78;
+  // Thin vertical divider between columns on page 1
+  doc.moveTo(RIGHT_X - 10, BODY_TOP).lineTo(RIGHT_X - 10, PAGE_H - MARGIN).lineWidth(0.3).stroke("#e5e7eb");
 
-  if (summary?.trim()) {
-    doc.font("Helvetica-Bold").fontSize(10).fillColor("#374151").text("SUMMARY", L, leftY, { characterSpacing: 0.5 });
-    leftY = doc.y + 4;
-    doc.moveTo(L, leftY).lineTo(L + LEFT_W, leftY).lineWidth(0.5).stroke("#d1d5db"); leftY += 5;
-    doc.font("Helvetica").fontSize(11).fillColor("#374151").text(summary, L, leftY, { width: LEFT_W, lineGap: 2 }); leftY = doc.y + 10;
-  }
-  if (skills.length) {
-    doc.font("Helvetica-Bold").fontSize(10).fillColor("#374151").text("SKILLS", L, leftY, { characterSpacing: 0.5 });
-    leftY = doc.y + 4;
-    doc.moveTo(L, leftY).lineTo(L + LEFT_W, leftY).lineWidth(0.5).stroke("#d1d5db"); leftY += 5;
-    skills.forEach(s => {
-      doc.circle(L + 5, leftY + 5, 1.8).fill("#6b7280");
-      doc.font("Helvetica").fontSize(10).fillColor("#374151").text(s, L + 13, leftY, { width: LEFT_W - 18 }); leftY = doc.y + 3;
-    });
-  }
-  if ((certifications || []).length) {
-    leftY += 8;
-    doc.font("Helvetica-Bold").fontSize(10).fillColor("#374151").text("CERTIFICATIONS", L, leftY, { characterSpacing: 0.5 });
-    leftY = doc.y + 4;
-    doc.moveTo(L, leftY).lineTo(L + LEFT_W, leftY).lineWidth(0.5).stroke("#d1d5db"); leftY += 5;
-    certifications.forEach((c: string) => {
-      doc.circle(L + 5, leftY + 5, 1.8).fill("#6b7280");
-      doc.font("Helvetica").fontSize(10).fillColor("#374151").text(c, L + 13, leftY, { width: LEFT_W - 18 }); leftY = doc.y + 3;
-    });
-  }
+  // ── STEP 1: Right column — render with full page overflow ─────────────────
+  let rightY = BODY_TOP;
 
   if (experience?.length) {
-    doc.font("Helvetica-Bold").fontSize(10).fillColor("#374151").text("EXPERIENCE", RIGHT_X, rightY, { characterSpacing: 0.5 });
+    doc.font("Helvetica-Bold").fontSize(11).fillColor("#374151")
+      .text("EXPERIENCE", RIGHT_X, rightY, { characterSpacing: 0.5, lineBreak: false });
     rightY = doc.y + 4;
-    doc.moveTo(RIGHT_X, rightY).lineTo(PAGE_W - MARGIN, rightY).lineWidth(0.5).stroke("#d1d5db"); rightY += 5;
-    experience.forEach((job: any) => { rightY = jobBlock(doc, job, RIGHT_X, rightY, RIGHT_W); });
+    doc.moveTo(RIGHT_X, rightY).lineTo(PAGE_W - MARGIN, rightY).lineWidth(0.5).stroke("#d1d5db");
+    rightY += 6;
+    experience.forEach((job: any) => {
+      rightY = jobBlock(doc, job, RIGHT_X, rightY, RIGHT_W);
+    });
   }
   if (education?.length) {
     rightY = checkPageBreak(doc, rightY, 50);
-    doc.font("Helvetica-Bold").fontSize(10).fillColor("#374151").text("EDUCATION", RIGHT_X, rightY, { characterSpacing: 0.5 });
+    doc.font("Helvetica-Bold").fontSize(11).fillColor("#374151")
+      .text("EDUCATION", RIGHT_X, rightY, { characterSpacing: 0.5, lineBreak: false });
     rightY = doc.y + 4;
-    doc.moveTo(RIGHT_X, rightY).lineTo(PAGE_W - MARGIN, rightY).lineWidth(0.5).stroke("#d1d5db"); rightY += 5;
+    doc.moveTo(RIGHT_X, rightY).lineTo(PAGE_W - MARGIN, rightY).lineWidth(0.5).stroke("#d1d5db");
+    rightY += 6;
     education.forEach((edu: any) => {
-      doc.font("Helvetica").fontSize(11).fillColor("#374151").text([edu.degree, edu.school].filter(Boolean).join(" | "), RIGHT_X, rightY, { width: RIGHT_W }); rightY = doc.y + 5;
+      doc.font("Helvetica").fontSize(11).fillColor("#374151")
+        .text([edu.degree, edu.school].filter(Boolean).join(" — "), RIGHT_X, rightY, { width: RIGHT_W });
+      rightY = doc.y + 5;
+    });
+  }
+
+  // ── STEP 2: Switch to page 1, render left column within page 1 bounds ─────
+  doc.switchToPage(0);
+  let leftY = BODY_TOP;
+
+  function leftSection(label: string) {
+    if (leftY >= MAX_LEFT_Y) return false;
+    doc.font("Helvetica-Bold").fontSize(10).fillColor("#374151")
+      .text(label, L, leftY, { characterSpacing: 0.5, lineBreak: false });
+    leftY = Math.min(doc.y + 3, MAX_LEFT_Y);
+    if (leftY < MAX_LEFT_Y) {
+      doc.moveTo(L, leftY).lineTo(L + LEFT_W, leftY).lineWidth(0.5).stroke("#d1d5db");
+      leftY += 5;
+    }
+    return true;
+  }
+
+  if (summary?.trim() && leftSection("SUMMARY")) {
+    const remaining = MAX_LEFT_Y - leftY;
+    doc.font("Helvetica").fontSize(10.5).fillColor("#374151")
+      .text(summary, L, leftY, { width: LEFT_W, lineGap: 1.5, height: remaining });
+    leftY = Math.min(doc.y + 10, MAX_LEFT_Y);
+  }
+  if (skills.length && leftSection("SKILLS")) {
+    skills.forEach(s => {
+      if (leftY >= MAX_LEFT_Y - 13) return;
+      doc.circle(L + 5, leftY + 5, 1.8).fill("#6b7280");
+      doc.font("Helvetica").fontSize(10).fillColor("#374151")
+        .text(s, L + 13, leftY, { width: LEFT_W - 18, lineBreak: false });
+      leftY = doc.y + 3;
+    });
+  }
+  if ((certifications || []).length && leftSection("CERTIFICATIONS")) {
+    certifications.forEach((c: string) => {
+      if (leftY >= MAX_LEFT_Y - 13) return;
+      doc.circle(L + 5, leftY + 5, 1.8).fill("#6b7280");
+      doc.font("Helvetica").fontSize(10).fillColor("#374151")
+        .text(c, L + 13, leftY, { width: LEFT_W - 18, lineBreak: false });
+      leftY = doc.y + 3;
     });
   }
 }

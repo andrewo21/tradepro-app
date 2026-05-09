@@ -124,11 +124,33 @@ export default function ExperiencePage() {
                 <label className="block text-sm font-medium mb-1">Company</label>
                 <input
                   type="text"
-                  spellCheck={true}   // ⭐ ENABLED
+                  spellCheck={true}
                   value={job.company}
-                  onChange={(e) =>
-                    updateExperience(job.id, "company", e.target.value)
-                  }
+                  onChange={(e) => updateExperience(job.id, "company", e.target.value)}
+                  className="w-full border border-neutral-300 rounded-md px-3 py-2 text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">City</label>
+                <input
+                  type="text"
+                  spellCheck={false}
+                  value={job.city || ""}
+                  onChange={(e) => updateExperience(job.id, "city", e.target.value)}
+                  placeholder="e.g. Fort Lauderdale"
+                  className="w-full border border-neutral-300 rounded-md px-3 py-2 text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">State</label>
+                <input
+                  type="text"
+                  spellCheck={false}
+                  value={job.state || ""}
+                  onChange={(e) => updateExperience(job.id, "state", e.target.value)}
+                  placeholder="e.g. FL"
                   className="w-full border border-neutral-300 rounded-md px-3 py-2 text-sm"
                 />
               </div>

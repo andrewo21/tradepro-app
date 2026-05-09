@@ -68,6 +68,8 @@ export function transformResumeData(input: any) {
   const experience = (input.experience || []).map((job: any) => ({
     jobTitle: job.jobTitle || "",
     company: job.company || "",
+    city: job.city || "",
+    state: job.state || "",
     startDate: job.startDate || "",
     endDate: job.endDate || "",
     roleSummary: job.roleSummary || "",

@@ -167,10 +167,12 @@ const ExperienceBlock = ({ job }: { job: any }) => {
       <div className="flex justify-between items-baseline">
         <div>
           <div className="font-semibold text-[11px]">{job.jobTitle}</div>
-          <div className="text-[10px] text-gray-700">{job.company}</div>
+          <div className="text-[10px] text-gray-600">
+            {job.company}{(job.city || job.state) ? ` · ${[job.city, job.state].filter(Boolean).join(", ")}` : ""}
+          </div>
         </div>
         {dates && (
-          <div className="text-[10px] text-gray-700 whitespace-nowrap">
+          <div className="text-[10px] text-gray-500 whitespace-nowrap ml-2">
             {dates}
           </div>
         )}
