@@ -72,6 +72,10 @@ export default function OperadorBR() {
   const [habilidades, setHabilidades] = useState<string[]>([""]);
   const [resumo, setResumo] = useState("");
 
+  // Formação + idiomas
+  const [formacao, setFormacao] = useState([{ curso: "", instituicao: "" }]);
+  const [idiomas, setIdiomas] = useState<string[]>([]);
+
   const [loading, setLoading] = useState(false);
   const [parsing, setParsing] = useState(false);
   const [resumeData, setResumeData] = useState<any>(null);
@@ -102,6 +106,7 @@ export default function OperadorBR() {
       if (d.summary) setResumo(d.summary);
       if (d.skills?.length) setHabilidades(d.skills.filter(Boolean));
       if (d.certifications?.length) setCertificacoes(d.certifications.join(", "));
+      if (d.education?.length) setFormacao(d.education.map((e: any) => ({ curso: e.degree || "", instituicao: e.school || "" })));
       if (d.experience?.length) {
         setExperiencias(d.experience.map((exp: any) => ({
           id: Date.now().toString() + Math.random(),
@@ -215,10 +220,13 @@ export default function OperadorBR() {
         resumoProfissional: generatedResumo,
         habilidades: finalHabilidades.map((h: string) => ({ text: h })),
         experiencia: expWithBullets,
-        formacao: [{ instituicao: "", curso: "", anoConclusao: "", tipo: "Técnico" }],
-        cursosCertificacoes: certificacoes
-          ? certificacoes.split(",").map((c: string) => ({ nome: c.trim(), instituicao: "", ano: "" }))
-          : [],
+        formacao: formacao.filter(f => f.curso || f.instituicao).map(f => ({
+          instituicao: f.instituicao, curso: f.curso, anoConclusao: "", tipo: "Técnico",
+        })),
+        cursosCertificacoes: [
+          ...certificacoes.split(",").filter(Boolean).map((c: string) => ({ nome: c.trim(), instituicao: "", ano: "" })),
+          ...idiomas.filter(Boolean).map((lang: string) => ({ nome: `Idioma: ${lang}`, instituicao: "", ano: "" })),
+        ],
       });
     } catch (err: any) {
       setError(err?.message || "Erro ao gerar currículo.");
@@ -417,6 +425,66 @@ export default function OperadorBR() {
             <button onClick={() => setHabilidades(prev => [...prev, ""])}
               className="w-full py-2 border-dashed border-2 border-neutral-300 rounded-lg text-sm text-neutral-500 hover:border-green-400 hover:text-green-700 transition">
               + Adicionar Habilidade
+            </button>
+          </div>
+
+          {/* Formação */}
+          <div className="bg-white rounded-xl border p-6 space-y-3">
+            <h2 className="font-semibold text-neutral-700 text-sm uppercase tracking-wide">Formação Acadêmica</h2>
+            <div className="space-y-3">
+              {formacao.map((f, i) => (
+                <div key={i} className="grid grid-cols-2 gap-3 items-end">
+                  <div>
+                    <label className="block text-xs font-medium mb-1 text-neutral-500">Curso / Área</label>
+                    <input className="w-full border rounded-lg px-3 py-2 text-sm"
+                      placeholder="Técnico em Eletrotécnica, MBA..."
+                      value={f.curso}
+                      onChange={e => setFormacao(prev => { const n = [...prev]; n[i] = { ...n[i], curso: e.target.value }; return n; })} />
+                  </div>
+                  <div className="flex gap-2">
+                    <div className="flex-1">
+                      <label className="block text-xs font-medium mb-1 text-neutral-500">Instituição</label>
+                      <input className="w-full border rounded-lg px-3 py-2 text-sm"
+                        placeholder="SENAI, ETEC, USP..."
+                        value={f.instituicao}
+                        onChange={e => setFormacao(prev => { const n = [...prev]; n[i] = { ...n[i], instituicao: e.target.value }; return n; })} />
+                    </div>
+                    {formacao.length > 1 && (
+                      <button onClick={() => setFormacao(prev => prev.filter((_, idx) => idx !== i))}
+                        className="mt-5 px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg text-sm self-end">✕</button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <button onClick={() => setFormacao(prev => [...prev, { curso: "", instituicao: "" }])}
+              className="w-full py-2 border-dashed border-2 border-neutral-300 rounded-lg text-sm text-neutral-500 hover:border-green-400 hover:text-green-700 transition">
+              + Adicionar Formação
+            </button>
+          </div>
+
+          {/* Idiomas */}
+          <div className="bg-white rounded-xl border p-6 space-y-3">
+            <h2 className="font-semibold text-neutral-700 text-sm uppercase tracking-wide">Idiomas</h2>
+            <p className="text-xs text-neutral-500">Ex: Português (nativo), Inglês (básico), Espanhol (intermediário)</p>
+            <div className="space-y-2">
+              {idiomas.length === 0 && (
+                <p className="text-xs text-neutral-400 italic">Nenhum idioma adicionado.</p>
+              )}
+              {idiomas.map((lang, i) => (
+                <div key={i} className="flex gap-2">
+                  <input className="flex-1 border rounded-lg px-3 py-2 text-sm"
+                    placeholder="Ex: Inglês (intermediário)"
+                    value={lang}
+                    onChange={e => setIdiomas(prev => { const n = [...prev]; n[i] = e.target.value; return n; })} />
+                  <button onClick={() => setIdiomas(prev => prev.filter((_, idx) => idx !== i))}
+                    className="px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg text-sm">✕</button>
+                </div>
+              ))}
+            </div>
+            <button onClick={() => setIdiomas(prev => [...prev, ""])}
+              className="w-full py-2 border-dashed border-2 border-neutral-300 rounded-lg text-sm text-neutral-500 hover:border-green-400 hover:text-green-700 transition">
+              + Adicionar Idioma
             </button>
           </div>
 
