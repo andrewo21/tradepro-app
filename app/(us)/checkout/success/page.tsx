@@ -63,21 +63,20 @@ function CheckoutSuccessContent() {
         return;
       }
 
-      setStatus(isBrazil ? "Redirecionando para suas ferramentas…" : "Redirecting you to your tools…");
-
-      // Detect Brazil purchase by productId prefix
-      const isBrazil = productId?.startsWith("br_");
-
-      // Give them 3 seconds to see the success message before redirecting
-      setTimeout(() => {
-        if (data.entitlements.bundle) {
-          router.push(isBrazil ? "/br/curriculo" : "/resume");
-        } else if (data.entitlements.coverLetter) {
-          router.push(isBrazil ? "/br/carta" : "/cover-letter");
-        } else if (data.entitlements.resume) {
-          router.push(isBrazil ? "/br/curriculo" : "/resume");
-        }
-      }, 3000);
+      // Bundle: stay on this page and show the tool menu
+      // Single product: redirect after 3 seconds
+      if (!data.entitlements.bundle) {
+        setStatus(isBrazil ? "Redirecionando para suas ferramentas…" : "Redirecting you to your tools…");
+        setTimeout(() => {
+          if (data.entitlements.coverLetter) {
+            router.push(isBrazil ? "/br/carta" : "/cover-letter");
+          } else if (data.entitlements.resume) {
+            router.push(isBrazil ? "/br/curriculo" : "/resume");
+          }
+        }, 3000);
+      } else {
+        setStatus(isBrazil ? "Tudo pronto! Escolha por onde começar." : "All set! Choose where to start.");
+      }
     }
 
     load();
@@ -115,6 +114,32 @@ function CheckoutSuccessContent() {
             {entitlements.bundle && t.allFeatures}
             {entitlements.resume && !entitlements.bundle && t.resumeUnlocked}
             {entitlements.coverLetter && !entitlements.bundle && t.coverLetterUnlocked}
+          </div>
+        )}
+
+        {/* Bundle sub-menu */}
+        {entitlements?.bundle && !grantError && (
+          <div className="grid grid-cols-1 gap-3 mt-4 mb-6 text-left">
+            <p className="text-sm font-semibold text-gray-700 mb-1">
+              {isBrazil ? "O que você quer criar primeiro?" : "What would you like to create first?"}
+            </p>
+            <a href={isBrazil ? "/br/curriculo" : "/resume"}
+              className="flex items-center gap-3 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium text-sm">
+              <span className="text-xl">📄</span>
+              {isBrazil ? "Criar Currículo" : "Build My Resume"}
+            </a>
+            <a href={isBrazil ? "/br/carta" : "/cover-letter"}
+              className="flex items-center gap-3 px-4 py-3 bg-white border border-gray-300 text-gray-800 rounded-lg hover:bg-gray-50 transition font-medium text-sm">
+              <span className="text-xl">✉️</span>
+              {isBrazil ? "Criar Carta de Apresentação" : "Write a Cover Letter"}
+            </a>
+            {!isBrazil && (
+              <a href="/projects"
+                className="flex items-center gap-3 px-4 py-3 bg-white border border-gray-300 text-gray-800 rounded-lg hover:bg-gray-50 transition font-medium text-sm">
+                <span className="text-xl">🏗️</span>
+                Build a Project Portfolio
+              </a>
+            )}
           </div>
         )}
 

@@ -10,7 +10,6 @@ import Link from "next/link";
 import { getOrCreateUserId } from "@/lib/userId";
 import ResumeUpload from "@/components/ResumeUpload";
 import InstallPrompt from "@/components/InstallPrompt";
-import TargetedResumeBuilder from "@/components/TargetedResumeBuilder";
 
 export default function SelectPage() {
   const selectedTemplate = useResumeStore((s) => s.selectedTemplate);
@@ -90,55 +89,18 @@ export default function SelectPage() {
 
       <InstallPrompt />
 
-      {/* Upload options — visually differentiated */}
-      <div className="mb-8 space-y-3">
-
-        {/* PRIMARY: Targeted resume (job-specific) */}
-        <div className="relative rounded-2xl overflow-hidden shadow-md border-2 border-blue-500">
-          {/* Header band */}
-          <div className="bg-gradient-to-r from-blue-700 to-blue-600 px-5 py-3 flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <span className="text-xl">🎯</span>
-              <div>
-                <p className="font-bold text-white text-sm leading-tight">Build a Resume for a Specific Job</p>
-                <p className="text-blue-200 text-xs">AI-optimized for your target role</p>
-              </div>
-            </div>
-            <span className="bg-white text-blue-700 text-xs font-bold px-2.5 py-1 rounded-full whitespace-nowrap">
-              Best Results
-            </span>
-          </div>
-
-          {/* Feature pills */}
-          <div className="bg-blue-50 px-5 py-2.5 flex flex-wrap gap-2 border-b border-blue-100">
-            {["Matches job requirements", "Rewrites every bullet", "ATS score tracker", "Preserves all experience"].map(f => (
-              <span key={f} className="text-xs bg-white border border-blue-200 text-blue-700 px-2.5 py-0.5 rounded-full font-medium">{f}</span>
-            ))}
-          </div>
-
-          {/* Form */}
-          <div className="bg-white px-5 py-5">
-            <TargetedResumeBuilder />
+      {/* Upload existing resume */}
+      <div className="mb-8 rounded-2xl overflow-hidden border border-neutral-200 shadow-sm bg-white">
+        <div className="bg-neutral-50 px-5 py-4 border-b border-neutral-200 flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-neutral-200 flex items-center justify-center flex-shrink-0 text-lg">📋</div>
+          <div>
+            <p className="font-semibold text-sm text-neutral-900">Already have a resume? Drop it in.</p>
+            <p className="text-xs text-neutral-500">Upload a PDF or Word file — AI extracts your info and pre-fills the builder so you can edit and download.</p>
           </div>
         </div>
-
-        {/* SECONDARY: Simple clean-up */}
-        <details className="rounded-2xl overflow-hidden border border-neutral-200 shadow-sm bg-white group">
-          <summary className="px-5 py-4 cursor-pointer list-none flex items-center gap-3 hover:bg-neutral-50 transition">
-            <div className="w-9 h-9 rounded-xl bg-neutral-100 flex items-center justify-center flex-shrink-0 text-lg">📋</div>
-            <div className="flex-1 min-w-0">
-              <p className="font-semibold text-sm text-neutral-900">Clean Up an Existing Resume</p>
-              <p className="text-xs text-neutral-500 truncate">Upload your resume — we pre-fill the builder so you can edit and download.</p>
-            </div>
-            <span className="text-neutral-300 text-xs font-medium group-open:hidden">TAP TO EXPAND</span>
-            <span className="text-neutral-400 text-sm hidden group-open:block">▲</span>
-          </summary>
-          <div className="px-5 pb-5 pt-1 border-t border-neutral-100">
-            <p className="text-xs text-neutral-500 mb-3">No job description needed. Your info gets extracted and dropped into the builder — you review and edit everything.</p>
-            <ResumeUpload />
-          </div>
-        </details>
-
+        <div className="px-5 py-5">
+          <ResumeUpload />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">

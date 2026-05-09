@@ -4,7 +4,33 @@ import Link from "next/link";
 import { useResumeStore } from "@/app/store/useResumeStore";
 import ExperienceBullet from "./ExperienceBullet";
 import { Plus, ChevronDown, ChevronUp, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
+const MONTHS = [
+  "January","February","March","April","May","June",
+  "July","August","September","October","November","December",
+];
+const YEARS: string[] = Array.from({ length: 50 }, (_, i) => String(new Date().getFullYear() - i));
+
+function parseDateStr(str: string) {
+  if (!str) return { month: "", year: "", present: false };
+  if (str === "Present") return { month: "", year: "", present: true };
+  const parts = str.trim().split(" ");
+  if (parts.length >= 2) return { month: parts[0], year: parts[1], present: false };
+  return { month: "", year: parts[0] || "", present: false };
+}
+
+function buildDateStr(month: string, year: string): string {
+  if (!month && !year) return "";
+  if (month && year) return `${month} ${year}`;
+  return year || month;
+}
+
+interface DateState {
+  startMonth: string; startYear: string;
+  endMonth: string; endYear: string;
+  present: boolean;
+}
 
 export default function ExperiencePage() {
   const experience = useResumeStore((s) => s.experience);
@@ -22,9 +48,40 @@ export default function ExperiencePage() {
   const updateAchievement = useResumeStore((s) => s.updateAchievement);
   const removeAchievement = useResumeStore((s) => s.removeAchievement);
 
-  const [openAchievements, setOpenAchievements] = useState<Record<string, boolean>>(
-    {}
-  );
+  const [openAchievements, setOpenAchievements] = useState<Record<string, boolean>>({});
+  const [dates, setDates] = useState<Record<string, DateState>>(() => {
+    const init: Record<string, DateState> = {};
+    experience.forEach((job: any) => {
+      const s = parseDateStr(job.startDate);
+      const e = parseDateStr(job.endDate);
+      init[job.id] = { startMonth: s.month, startYear: s.year, endMonth: e.month, endYear: e.year, present: e.present };
+    });
+    return init;
+  });
+
+  // Sync new jobs added after mount
+  useEffect(() => {
+    setDates(prev => {
+      const next = { ...prev };
+      experience.forEach((job: any) => {
+        if (!next[job.id]) {
+          next[job.id] = { startMonth: "", startYear: "", endMonth: "", endYear: "", present: false };
+        }
+      });
+      return next;
+    });
+  }, [experience]);
+
+  function setDate(jobId: string, field: keyof DateState, value: string | boolean) {
+    setDates(prev => {
+      const cur = prev[jobId] || { startMonth: "", startYear: "", endMonth: "", endYear: "", present: false };
+      const next = { ...cur, [field]: value };
+      // Sync to store
+      updateExperience(jobId, "startDate", buildDateStr(next.startMonth, next.startYear));
+      updateExperience(jobId, "endDate", next.present ? "Present" : buildDateStr(next.endMonth, next.endYear));
+      return { ...prev, [jobId]: next };
+    });
+  }
 
   function toggleAchievements(jobId: string) {
     setOpenAchievements((prev) => ({
@@ -75,30 +132,66 @@ export default function ExperiencePage() {
                 />
               </div>
 
+              {/* Start Date */}
               <div>
                 <label className="block text-sm font-medium mb-1">Start Date</label>
-                <input
-                  type="text"
-                  spellCheck={true}   // ⭐ ENABLED
-                  value={job.startDate}
-                  onChange={(e) =>
-                    updateExperience(job.id, "startDate", e.target.value)
-                  }
-                  className="w-full border border-neutral-300 rounded-md px-3 py-2 text-sm"
-                />
+                <div className="flex gap-2">
+                  <select
+                    value={dates[job.id]?.startMonth || ""}
+                    onChange={e => setDate(job.id, "startMonth", e.target.value)}
+                    className="flex-1 border border-neutral-300 rounded-md px-2 py-2 text-sm bg-white"
+                  >
+                    <option value="">Month</option>
+                    {MONTHS.map(m => <option key={m} value={m}>{m}</option>)}
+                  </select>
+                  <select
+                    value={dates[job.id]?.startYear || ""}
+                    onChange={e => setDate(job.id, "startYear", e.target.value)}
+                    className="w-24 border border-neutral-300 rounded-md px-2 py-2 text-sm bg-white"
+                  >
+                    <option value="">Year</option>
+                    {YEARS.map(y => <option key={y} value={y}>{y}</option>)}
+                  </select>
+                </div>
               </div>
 
+              {/* End Date */}
               <div>
                 <label className="block text-sm font-medium mb-1">End Date</label>
-                <input
-                  type="text"
-                  spellCheck={true}   // ⭐ ENABLED
-                  value={job.endDate}
-                  onChange={(e) =>
-                    updateExperience(job.id, "endDate", e.target.value)
-                  }
-                  className="w-full border border-neutral-300 rounded-md px-3 py-2 text-sm"
-                />
+                {dates[job.id]?.present ? (
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-sm text-neutral-600 font-medium">Present</span>
+                    <button onClick={() => setDate(job.id, "present", false)} className="text-xs text-blue-600 underline">Change</button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <select
+                      value={dates[job.id]?.endMonth || ""}
+                      onChange={e => setDate(job.id, "endMonth", e.target.value)}
+                      className="flex-1 border border-neutral-300 rounded-md px-2 py-2 text-sm bg-white"
+                    >
+                      <option value="">Month</option>
+                      {MONTHS.map(m => <option key={m} value={m}>{m}</option>)}
+                    </select>
+                    <select
+                      value={dates[job.id]?.endYear || ""}
+                      onChange={e => setDate(job.id, "endYear", e.target.value)}
+                      className="w-24 border border-neutral-300 rounded-md px-2 py-2 text-sm bg-white"
+                    >
+                      <option value="">Year</option>
+                      {YEARS.map(y => <option key={y} value={y}>{y}</option>)}
+                    </select>
+                  </div>
+                )}
+                <label className="flex items-center gap-2 mt-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={dates[job.id]?.present || false}
+                    onChange={e => setDate(job.id, "present", e.target.checked)}
+                    className="rounded"
+                  />
+                  <span className="text-sm text-neutral-600">I currently work here</span>
+                </label>
               </div>
             </div>
 

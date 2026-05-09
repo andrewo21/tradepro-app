@@ -55,15 +55,6 @@ export default function EducationPage() {
             <input
               type="text"
               spellCheck={true}          // ⭐ ENABLED
-              value={edu.year}
-              onChange={(e) => updateEducation(index, "year", e.target.value)}
-              placeholder="Graduation Year"
-              className="w-full border border-neutral-300 rounded-md px-3 py-2 text-sm mb-3"
-            />
-
-            <input
-              type="text"
-              spellCheck={true}          // ⭐ ENABLED
               value={edu.gpa || ""}
               onChange={(e) => updateEducation(index, "gpa", e.target.value)}
               placeholder="GPA (optional)"

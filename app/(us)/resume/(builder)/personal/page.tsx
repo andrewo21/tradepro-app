@@ -103,6 +103,19 @@ export default function PersonalPage() {
           />
         </div>
 
+        {/* LinkedIn */}
+        <div className="sm:col-span-2">
+          <label className="block text-sm font-medium mb-1">LinkedIn Profile <span className="text-neutral-400 font-normal">(optional)</span></label>
+          <input
+            type="url"
+            spellCheck={false}
+            value={personalInfo.linkedin || ""}
+            onChange={(e) => updatePersonalInfo("linkedin", e.target.value)}
+            placeholder="https://linkedin.com/in/yourname"
+            className="w-full border border-neutral-300 rounded-md px-3 py-2 text-sm"
+          />
+        </div>
+
       </div>
 
       {/* Navigation Buttons */}

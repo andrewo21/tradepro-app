@@ -28,14 +28,15 @@ const createExperienceItem = () => ({
 
 export const useResumeStore = create<any>()(
   persist((set, get) => ({
-    personalInfo: { firstName: "", lastName: "", tradeTitle: "", phone: "", email: "", city: "", state: "" },
+    personalInfo: { firstName: "", lastName: "", tradeTitle: "", phone: "", email: "", city: "", state: "", linkedin: "" },
     summary: "", 
     summarySuggestion: null, 
     summaryLoading: false, 
     summaryError: null,
     skills: [], 
     experience: [createExperienceItem()], 
-    education: [{ school: "", degree: "", year: "", gpa: "" }], 
+    education: [{ school: "", degree: "", gpa: "" }], 
+    certifications: [] as { id: string; text: string }[],
     selectedTemplate: "sidebar-green",
     premiumUnlocked: false,
     showWatermark: true,
@@ -49,9 +50,20 @@ export const useResumeStore = create<any>()(
     setField: (field: string, value: any) => set({ [field]: value }),
     setSelectedTemplate: (val: string) => set({ selectedTemplate: val }),
 
+    // --- CERTIFICATION ACTIONS ---
+    addCertification: () => set((state: any) => ({
+      certifications: [...state.certifications, { id: `${Date.now()}-${Math.random()}`, text: "" }],
+    })),
+    updateCertification: (id: string, text: string) => set((state: any) => ({
+      certifications: state.certifications.map((c: any) => c.id === id ? { ...c, text } : c),
+    })),
+    removeCertification: (id: string) => set((state: any) => ({
+      certifications: state.certifications.filter((c: any) => c.id !== id),
+    })),
+
     // --- EDUCATION ACTIONS ---
     addEducation: () => set((state: any) => ({
-      education: [...state.education, { school: "", degree: "", year: "", gpa: "" }],
+      education: [...state.education, { school: "", degree: "", gpa: "" }],
     })),
     updateEducation: (index: number, field: string, value: string) =>
       set((state: any) => {
@@ -231,14 +243,15 @@ export const useResumeStore = create<any>()(
 
     // Clears all resume data from localStorage — called when downloads are exhausted
     clearAll: () => set({
-      personalInfo: { firstName: "", lastName: "", tradeTitle: "", phone: "", email: "", city: "", state: "" },
+      personalInfo: { firstName: "", lastName: "", tradeTitle: "", phone: "", email: "", city: "", state: "", linkedin: "" },
       summary: "",
       summarySuggestion: null,
       summaryLoading: false,
       summaryError: null,
       skills: [],
       experience: [createExperienceItem()],
-      education: [{ school: "", degree: "", year: "", gpa: "" }],
+      education: [{ school: "", degree: "", gpa: "" }],
+      certifications: [],
       selectedTemplate: "sidebar-green",
       premiumUnlocked: false,
       showWatermark: true,
@@ -250,23 +263,38 @@ export const useResumeStore = create<any>()(
     }),
   }), {
     name: "resume-storage",
-    version: 3,
+    version: 4,
     migrate: (persistedState: any, version: number) => {
+      let s = { ...persistedState };
       if (version < 2) {
-        return { ...persistedState, showWatermark: true };
+        s = { ...s, showWatermark: true };
       }
       if (version < 3) {
-        // Add new ATS fields for existing users
-        return {
-          ...persistedState,
-          atsPresent: persistedState.atsPresent || [],
-          atsMissing: persistedState.atsMissing || [],
-          atsBaseScore: persistedState.atsBaseScore || 0,
-          atsBulletSuggestions: persistedState.atsBulletSuggestions || [],
-          jobDescription: persistedState.jobDescription || "",
+        s = {
+          ...s,
+          atsPresent: s.atsPresent || [],
+          atsMissing: s.atsMissing || [],
+          atsBaseScore: s.atsBaseScore || 0,
+          atsBulletSuggestions: s.atsBulletSuggestions || [],
+          jobDescription: s.jobDescription || "",
         };
       }
-      return persistedState;
+      if (version < 4) {
+        s = {
+          ...s,
+          certifications: s.certifications || [],
+          personalInfo: {
+            ...(s.personalInfo || {}),
+            linkedin: s.personalInfo?.linkedin || "",
+          },
+          // strip year field from education entries
+          education: (s.education || []).map((e: any) => {
+            const { year, ...rest } = e;
+            return rest;
+          }),
+        };
+      }
+      return s;
     },
   })
 );

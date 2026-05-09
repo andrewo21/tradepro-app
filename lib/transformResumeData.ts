@@ -90,10 +90,12 @@ export function transformResumeData(input: any) {
 
   // -----------------------------
   // 6. CERTIFICATIONS
+  // Reads from either input.certifications or input.certifications (store field)
   // -----------------------------
-  const certifications = (input.certifications || []).map((c: any) =>
-    typeof c === "string" ? c : c.text || ""
-  );
+  const rawCerts = input.certifications || [];
+  const certifications = rawCerts
+    .map((c: any) => typeof c === "string" ? c : (c.text || ""))
+    .filter(Boolean);
 
   // -----------------------------
   // FINAL TEMPLATE-FRIENDLY SHAPE

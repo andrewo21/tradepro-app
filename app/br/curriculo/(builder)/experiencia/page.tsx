@@ -1,13 +1,64 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useBrResumeStore } from "@/app/store/useBrResumeStore";
 import Link from "next/link";
+
+const MESES = [
+  "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
+  "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro",
+];
+const ANOS: string[] = Array.from({ length: 50 }, (_, i) => String(new Date().getFullYear() - i));
+
+function parseDataStr(str: string) {
+  if (!str) return { mes: "", ano: "", atual: false };
+  if (str === "Atual") return { mes: "", ano: "", atual: true };
+  const parts = str.trim().split("/");
+  if (parts.length >= 2) return { mes: parts[0], ano: parts[1], atual: false };
+  return { mes: "", ano: parts[0] || "", atual: false };
+}
+
+function buildDataStr(mes: string, ano: string): string {
+  if (!mes && !ano) return "";
+  if (mes && ano) return `${mes}/${ano}`;
+  return ano || mes;
+}
+
+interface DataState { mesInicio: string; anoInicio: string; mesFim: string; anoFim: string; atual: boolean; }
 
 export default function BrExperienciaPage() {
   const { experiencia, addExperiencia, removeExperiencia, updateExperienciaField, addResponsabilidade, updateResponsabilidade, setField } = useBrResumeStore();
   const [rewriting, setRewriting] = useState<{ id: string; idx: number } | null>(null);
   const [suggestions, setSuggestions] = useState<Record<string, string>>({});
+  const [datas, setDatas] = useState<Record<string, DataState>>(() => {
+    const init: Record<string, DataState> = {};
+    experiencia.forEach((exp: any) => {
+      const s = parseDataStr(exp.dataInicio);
+      const e = parseDataStr(exp.dataFim);
+      init[exp.id] = { mesInicio: s.mes, anoInicio: s.ano, mesFim: e.mes, anoFim: e.ano, atual: e.atual };
+    });
+    return init;
+  });
+
+  useEffect(() => {
+    setDatas(prev => {
+      const next = { ...prev };
+      experiencia.forEach((exp: any) => {
+        if (!next[exp.id]) next[exp.id] = { mesInicio: "", anoInicio: "", mesFim: "", anoFim: "", atual: false };
+      });
+      return next;
+    });
+  }, [experiencia]);
+
+  function setData(expId: string, field: keyof DataState, value: string | boolean) {
+    setDatas(prev => {
+      const cur = prev[expId] || { mesInicio: "", anoInicio: "", mesFim: "", anoFim: "", atual: false };
+      const next = { ...cur, [field]: value };
+      updateExperienciaField(expId, "dataInicio", buildDataStr(next.mesInicio, next.anoInicio));
+      updateExperienciaField(expId, "dataFim", next.atual ? "Atual" : buildDataStr(next.mesFim, next.anoFim));
+      return { ...prev, [expId]: next };
+    });
+  }
 
   async function handleRewrite(expId: string, idx: number, text: string) {
     if (!text.trim()) return;
@@ -66,13 +117,49 @@ export default function BrExperienciaPage() {
                 <label className="block text-xs font-medium mb-1 text-neutral-500">Empresa</label>
                 <input className="w-full border rounded-lg px-3 py-2 text-sm" placeholder="Nome da empresa" value={exp.empresa} onChange={e => updateExperienciaField(exp.id, "empresa", e.target.value)} />
               </div>
+              {/* Data de Início */}
               <div>
                 <label className="block text-xs font-medium mb-1 text-neutral-500">Data de Início</label>
-                <input className="w-full border rounded-lg px-3 py-2 text-sm" placeholder="03/2020" value={exp.dataInicio} onChange={e => updateExperienciaField(exp.id, "dataInicio", e.target.value)} />
+                <div className="flex gap-2">
+                  <select value={datas[exp.id]?.mesInicio || ""} onChange={e => setData(exp.id, "mesInicio", e.target.value)}
+                    className="flex-1 border rounded-lg px-2 py-2 text-sm bg-white">
+                    <option value="">Mês</option>
+                    {MESES.map(m => <option key={m} value={m}>{m}</option>)}
+                  </select>
+                  <select value={datas[exp.id]?.anoInicio || ""} onChange={e => setData(exp.id, "anoInicio", e.target.value)}
+                    className="w-24 border rounded-lg px-2 py-2 text-sm bg-white">
+                    <option value="">Ano</option>
+                    {ANOS.map(a => <option key={a} value={a}>{a}</option>)}
+                  </select>
+                </div>
               </div>
+              {/* Data de Saída */}
               <div>
                 <label className="block text-xs font-medium mb-1 text-neutral-500">Data de Saída</label>
-                <input className="w-full border rounded-lg px-3 py-2 text-sm" placeholder="Atual" value={exp.dataFim} onChange={e => updateExperienciaField(exp.id, "dataFim", e.target.value)} />
+                {datas[exp.id]?.atual ? (
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-sm text-neutral-600 font-medium">Atual</span>
+                    <button onClick={() => setData(exp.id, "atual", false)} className="text-xs text-green-700 underline">Alterar</button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <select value={datas[exp.id]?.mesFim || ""} onChange={e => setData(exp.id, "mesFim", e.target.value)}
+                      className="flex-1 border rounded-lg px-2 py-2 text-sm bg-white">
+                      <option value="">Mês</option>
+                      {MESES.map(m => <option key={m} value={m}>{m}</option>)}
+                    </select>
+                    <select value={datas[exp.id]?.anoFim || ""} onChange={e => setData(exp.id, "anoFim", e.target.value)}
+                      className="w-24 border rounded-lg px-2 py-2 text-sm bg-white">
+                      <option value="">Ano</option>
+                      {ANOS.map(a => <option key={a} value={a}>{a}</option>)}
+                    </select>
+                  </div>
+                )}
+                <label className="flex items-center gap-2 mt-2 cursor-pointer">
+                  <input type="checkbox" checked={datas[exp.id]?.atual || false}
+                    onChange={e => setData(exp.id, "atual", e.target.checked)} className="rounded" />
+                  <span className="text-xs text-neutral-600">Trabalho aqui atualmente</span>
+                </label>
               </div>
             </div>
 

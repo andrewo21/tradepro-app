@@ -43,8 +43,6 @@ export default function BrFormacaoPage() {
               <input className="w-full border rounded-lg px-3 py-2 text-sm" placeholder="Técnico em Eletrotécnica" value={f.curso} onChange={e => updateFormacao(i, "curso", e.target.value)} /></div>
             <div><label className="block text-xs font-medium mb-1 text-neutral-500">Instituição</label>
               <input className="w-full border rounded-lg px-3 py-2 text-sm" placeholder="SENAI, SENAC, ETEC..." value={f.instituicao} onChange={e => updateFormacao(i, "instituicao", e.target.value)} /></div>
-            <div><label className="block text-xs font-medium mb-1 text-neutral-500">Ano de Conclusão</label>
-              <input className="w-full border rounded-lg px-3 py-2 text-sm" placeholder="2019" value={f.anoConclusao} onChange={e => updateFormacao(i, "anoConclusao", e.target.value)} /></div>
             <div><label className="block text-xs font-medium mb-1 text-neutral-500">Tipo</label>
               <select className="w-full border rounded-lg px-3 py-2 text-sm bg-white" value={f.tipo} onChange={e => updateFormacao(i, "tipo", e.target.value)}>
                 {TIPOS.map(t => <option key={t}>{t}</option>)}
