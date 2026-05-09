@@ -331,13 +331,18 @@ export default function OperadorBR() {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify(pdfPayload),
       });
-      if (!pdfRes.ok) throw new Error("Falha ao gerar PDF");
+      if (!pdfRes.ok) {
+        const errData = await pdfRes.json().catch(() => ({}));
+        throw new Error(errData.detail || errData.error || `Erro ${pdfRes.status} ao gerar PDF`);
+      }
       const blob = await pdfRes.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a"); a.href = url;
       a.download = `Curriculo-${nome}-${sobrenome}.pdf`; a.click();
       window.URL.revokeObjectURL(url);
-    } catch { alert("Erro ao baixar PDF. Tente novamente."); }
+    } catch (e: any) {
+      setError(e.message || "Erro ao baixar PDF. Tente novamente.");
+    }
     finally { setDownloading(false); }
   }
 

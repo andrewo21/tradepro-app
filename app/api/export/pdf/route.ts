@@ -2,6 +2,8 @@ export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from "next/server";
 import { PDF_TEMPLATE_REGISTRY, addPageNumbers } from "@/lib/pdfTemplates";
+import path from "path";
+import fs from "fs";
 
 // ── Template registry (mirrors server.js) ────────────────────────────────────
 
@@ -240,19 +242,19 @@ export async function POST(req: NextRequest) {
     const isProjectList = data.type === "project-list";
 
     const PDFDocument = (await import("pdfkit")).default;
-    const path = await import("path");
-    const FONT_DIR = path.join(process.cwd(), "public", "fonts");
-    const FONT_REGULAR = path.join(FONT_DIR, "Carlito-Regular.ttf");
-    const FONT_BOLD = path.join(FONT_DIR, "Carlito-Bold.ttf");
-
     const doc = new PDFDocument({ size: "LETTER", margin: 0, autoFirstPage: true, bufferPages: true });
 
-    // Register Carlito (Calibri-compatible open-source font)
+    // Register Carlito (Calibri-compatible) — only if font files exist
     try {
-      doc.registerFont("Helvetica", FONT_REGULAR);
-      doc.registerFont("Helvetica-Bold", FONT_BOLD);
+      const fontDir = path.join(process.cwd(), "public", "fonts");
+      const regularPath = path.join(fontDir, "Carlito-Regular.ttf");
+      const boldPath = path.join(fontDir, "Carlito-Bold.ttf");
+      if (fs.existsSync(regularPath) && fs.existsSync(boldPath)) {
+        doc.registerFont("Helvetica", fs.readFileSync(regularPath));
+        doc.registerFont("Helvetica-Bold", fs.readFileSync(boldPath));
+      }
     } catch {
-      // fall back to built-in Helvetica if font files unavailable
+      // fall back to built-in Helvetica
     }
 
     const chunks: Buffer[] = [];

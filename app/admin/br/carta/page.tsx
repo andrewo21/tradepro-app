@@ -126,7 +126,10 @@ export default function OperadorCartaBR() {
           letter: carta,
         }),
       });
-      if (!res.ok) throw new Error("Falha ao gerar PDF");
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.detail || errData.error || `Erro ${res.status} ao gerar PDF`);
+      }
       const blob = await res.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -134,7 +137,7 @@ export default function OperadorCartaBR() {
       a.download = `Carta-${nome.replace(/\s+/g, "-")}.pdf`;
       a.click();
       window.URL.revokeObjectURL(url);
-    } catch { alert("Erro ao baixar PDF."); }
+    } catch (e: any) { alert(e.message || "Erro ao baixar PDF."); }
     finally { setDownloading(false); }
   }
 
