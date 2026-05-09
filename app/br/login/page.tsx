@@ -31,9 +31,12 @@ export default function BrLoginPage() {
       setLoading(false);
       return;
     }
+    // Use the canonical production URL so it always matches Supabase allowed list
+    // regardless of whether the user is on tradeprotech.ai or tradeprotech.com.br
+    const callbackBase = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
     const { error: err } = await sb.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback-br` },
+      options: { emailRedirectTo: `${callbackBase}/auth/callback-br` },
     });
     setLoading(false);
     if (err) setError(err.message);
