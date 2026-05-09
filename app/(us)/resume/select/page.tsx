@@ -45,21 +45,7 @@ export default function SelectPage() {
 
       <div className="flex items-center justify-between mb-2">
         <h1 className="text-2xl font-semibold">Choose Your Template</h1>
-        {!hasAccess && (
-          <Link
-            href="/pricing"
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition"
-          >
-            Unlock Builder — from $14.99
-          </Link>
-        )}
       </div>
-
-      {!hasAccess && (
-        <p className="text-neutral-500 text-sm mb-6">
-          Browse all templates below. Purchase to start building your resume.
-        </p>
-      )}
 
       {/* Premium notice banner */}
       {showPremiumNotice && (

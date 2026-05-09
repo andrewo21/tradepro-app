@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from "next/server";
-import { PDF_TEMPLATE_REGISTRY } from "@/lib/pdfTemplates";
+import { PDF_TEMPLATE_REGISTRY, addPageNumbers } from "@/lib/pdfTemplates";
 
 // ── Template registry (mirrors server.js) ────────────────────────────────────
 
@@ -241,7 +241,7 @@ export async function POST(req: NextRequest) {
 
     const PDFDocument = (await import("pdfkit")).default;
     // margin: 0 — templates handle their own margins/padding
-    const doc = new PDFDocument({ size: "LETTER", margin: 0, autoFirstPage: true });
+    const doc = new PDFDocument({ size: "LETTER", margin: 0, autoFirstPage: true, bufferPages: true });
 
     const chunks: Buffer[] = [];
     doc.on("data", (chunk: Buffer) => chunks.push(chunk));
@@ -259,6 +259,8 @@ export async function POST(req: NextRequest) {
         const legacyDraw = templateRegistry[templateId] || drawStandardContemporary;
         const draw = vectorDraw || legacyDraw;
         draw(doc, data);
+        // Add page numbers to every page after content is rendered
+        addPageNumbers(doc);
       } else {
         // Cover letter — choose style based on template param
         const clTemplate = data.coverLetterTemplate || "modern-blue";
@@ -304,6 +306,7 @@ export async function POST(req: NextRequest) {
         }
       }
 
+      doc.flushPages();
       doc.end();
     });
 

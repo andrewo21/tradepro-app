@@ -8,7 +8,18 @@ const L = MARGIN;
 const R = PAGE_W - MARGIN;
 const CONTENT_W = R - L;    // 468pt
 
-const FOOTER_Y = PAGE_H - 36; // bottom-center page number position
+const FOOTER_Y = PAGE_H - 40; // bottom-center page number position
+
+/** Add page numbers to every page after content is fully rendered.
+ *  Requires bufferPages:true on the PDFDocument. */
+export function addPageNumbers(doc: any) {
+  const range = doc.bufferedPageRange();
+  for (let i = 0; i < range.count; i++) {
+    doc.switchToPage(range.start + i);
+    doc.font("Helvetica").fontSize(10).fillColor("#777777")
+      .text(String(i + 1), 0, FOOTER_Y, { width: PAGE_W, align: "center" });
+  }
+}
 
 // ── Shared helpers ────────────────────────────────────────────────────────────
 
@@ -37,10 +48,6 @@ function checkPageBreak(doc: any, y: number, neededHeight: number, margin = MARG
   return y;
 }
 
-function drawPageNumber(doc: any, pageNum: number) {
-  doc.font("Helvetica").fontSize(10).fillColor("#777777")
-    .text(String(pageNum), 0, FOOTER_Y, { width: PAGE_W, align: "center" });
-}
 
 /** Draw bullet and return new Y */
 function drawBullet(doc: any, text: string, x: number, y: number, width: number, dotColor = "#374151", onNewPage?: () => void): number {
@@ -127,7 +134,6 @@ function skillsGrid(doc: any, skills: string[], x: number, y: number, width: num
 export function drawStandardContemporaryPDF(doc: any, data: any) {
   const { name, title, contact, summary, experience, education, certifications } = data;
   const skills = getSkills(data);
-  let pageNum = 1;
 
   doc.font("Helvetica-Bold").fontSize(22).fillColor("#111827").text(name || "", L, 36);
   const afterName = doc.y + 3;
@@ -171,7 +177,6 @@ export function drawStandardContemporaryPDF(doc: any, data: any) {
       y = doc.y + 3;
     });
   }
-  drawPageNumber(doc, pageNum);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -180,7 +185,6 @@ export function drawStandardContemporaryPDF(doc: any, data: any) {
 export function drawStandardClassicPDF(doc: any, data: any) {
   const { name, title, contact, summary, experience, education, certifications } = data;
   const skills = getSkills(data);
-  let pageNum = 1;
 
   doc.rect(0, 0, PAGE_W, 68).fill("#111827");
   doc.font("Helvetica-Bold").fontSize(22).fillColor("#ffffff").text(name || "", L, 18);
@@ -219,7 +223,6 @@ export function drawStandardClassicPDF(doc: any, data: any) {
       y = doc.y + 3;
     });
   }
-  drawPageNumber(doc, pageNum);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -229,7 +232,6 @@ export function drawModernBluePDF(doc: any, data: any) {
   const { name, title, contact, summary, experience, education, certifications } = data;
   const skills = getSkills(data);
   const BLUE = "#1d4ed8";
-  let pageNum = 1;
 
   doc.rect(0, 0, PAGE_W, 86).fill(BLUE);
   doc.font("Helvetica-Bold").fontSize(22).fillColor("#ffffff").text(name || "", L, 18);
@@ -260,7 +262,6 @@ export function drawModernBluePDF(doc: any, data: any) {
       y = doc.y + 3;
     });
   }
-  drawPageNumber(doc, pageNum);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -273,7 +274,6 @@ export function drawBasicTwoColumnPDF(doc: any, data: any) {
   const SIDE_W = 170;
   const MAIN_X = SIDE_W + 20;
   const MAIN_W = PAGE_W - MAIN_X - 30;
-  let pageNum = 1;
 
   const drawSidebar4 = () => {
     doc.rect(0, 0, SIDE_W, doc.page.height).fill("#f3f4f6");
@@ -322,7 +322,6 @@ export function drawBasicTwoColumnPDF(doc: any, data: any) {
     doc.moveTo(MAIN_X, mY).lineTo(PAGE_W - 30, mY).lineWidth(0.5).stroke("#d1d5db"); mY += 6;
     experience.forEach((job: any) => { mY = jobBlock(doc, job, MAIN_X, mY, MAIN_W, "#374151", "#111827", "#4b5563", "#6b7280", drawSidebar4); });
   }
-  drawPageNumber(doc, pageNum);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -337,21 +336,15 @@ export function drawSidebarGreenPDF(doc: any, data: any) {
   const SIDE_W = 185;
   const MAIN_X = SIDE_W + 18;
   const MAIN_W = PAGE_W - MAIN_X - 36;
-  let pageNum = 1;
 
-  const drawSidebar5 = () => {
+  // Draw sidebar background — called on every page
+  const drawSidebarBg = () => {
     doc.rect(0, 0, SIDE_W, doc.page.height).fill(GREEN_BG);
-    drawPageNumber(doc, pageNum);
-    pageNum++;
   };
-  drawSidebar5();
-  // first page number was incremented, reset to 1 for subsequent logic
-  pageNum = 1;
+  drawSidebarBg();
 
   const onNewPage5 = () => {
-    doc.rect(0, 0, SIDE_W, doc.page.height).fill(GREEN_BG);
-    pageNum++;
-    drawPageNumber(doc, pageNum);
+    drawSidebarBg();
   };
 
   // Draw page 1 footer separately (happens at end)
@@ -418,8 +411,6 @@ export function drawSidebarGreenPDF(doc: any, data: any) {
     });
   }
 
-  // Page 1 number (drawn after content so it sits on top of sidebar)
-  drawPageNumber(doc, 1);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -430,7 +421,6 @@ export function drawExecutiveClassicPDF(doc: any, data: any) {
   const { name, title, contact, summary, experience, education, certifications } = data;
   const skills = getSkills(data);
   const NAVY = "#003A70"; const ORANGE = "#F28C28";
-  let pageNum = 1;
 
   doc.rect(0, 0, PAGE_W, 58).fill(NAVY);
   doc.font("Helvetica-Bold").fontSize(22).fillColor("#ffffff").text(name || "", L, 18);
@@ -476,7 +466,6 @@ export function drawExecutiveClassicPDF(doc: any, data: any) {
       y = doc.y + 3;
     });
   }
-  drawPageNumber(doc, pageNum);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -490,20 +479,14 @@ export function drawExecutiveLuxePDF(doc: any, data: any) {
   const SIDE_W = 170;
   const MAIN_X = SIDE_W + 22;
   const MAIN_W = PAGE_W - MAIN_X - 34;
-  let pageNum = 1;
 
-  const drawSidebar7 = () => {
+  const drawSidebarBg7 = () => {
     doc.rect(0, 0, SIDE_W, doc.page.height).fill(GOLD_BG);
-    pageNum++;
-    drawPageNumber(doc, pageNum - 1);
   };
-  drawSidebar7();
-  pageNum = 1;
+  drawSidebarBg7();
 
   const onNewPage7 = () => {
-    doc.rect(0, 0, SIDE_W, doc.page.height).fill(GOLD_BG);
-    pageNum++;
-    drawPageNumber(doc, pageNum);
+    drawSidebarBg7();
   };
 
   let sY = 28;
@@ -553,8 +536,6 @@ export function drawExecutiveLuxePDF(doc: any, data: any) {
       doc.font("Helvetica").fontSize(11).fillColor("#374151").text([edu.degree, edu.school].filter(Boolean).join(" | "), MAIN_X, mY, { width: MAIN_W }); mY = doc.y + 5;
     });
   }
-
-  drawPageNumber(doc, 1);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -568,7 +549,6 @@ export function drawModernElitePDF(doc: any, data: any) {
   const LEFT_W = 160;
   const RIGHT_X = L + LEFT_W + 20;
   const RIGHT_W = PAGE_W - RIGHT_X - MARGIN;
-  let pageNum = 1;
 
   doc.rect(0, 0, PAGE_W, 64).fill(GREY);
   doc.font("Helvetica-Bold").fontSize(22).fillColor("#ffffff").text(name || "", L, 16);
@@ -619,7 +599,6 @@ export function drawModernElitePDF(doc: any, data: any) {
       doc.font("Helvetica").fontSize(11).fillColor("#374151").text([edu.degree, edu.school].filter(Boolean).join(" | "), RIGHT_X, rightY, { width: RIGHT_W }); rightY = doc.y + 5;
     });
   }
-  drawPageNumber(doc, pageNum);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -630,7 +609,6 @@ export function drawModernProfessionalPDF(doc: any, data: any) {
   const { name, title, contact, summary, experience, education, certifications } = data;
   const skills = getSkills(data);
   const W = CONTENT_W;
-  let pageNum = 1;
 
   const mpSection = (label: string, y: number): number => {
     doc.font("Helvetica-Bold").fontSize(12).fillColor("#374151")
@@ -704,7 +682,6 @@ export function drawModernProfessionalPDF(doc: any, data: any) {
       y = doc.y + 3;
     });
   }
-  drawPageNumber(doc, pageNum);
 }
 
 // ── Brazil field mapper ───────────────────────────────────────────────────────
