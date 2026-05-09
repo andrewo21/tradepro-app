@@ -39,6 +39,9 @@ export default function HeaderBR() {
               <Link href="/br/precos" className="block px-4 py-2 text-neutral-800 hover:bg-neutral-100">{nav.pricing}</Link>
               <Link href="/br/contato" className="block px-4 py-2 text-neutral-800 hover:bg-neutral-100">{nav.contact}</Link>
               <div className="border-t border-neutral-100 mt-1 pt-1">
+                <Link href="/br/meus-curriculos" className="block px-4 py-2 text-green-700 font-medium hover:bg-green-50">Minha Conta / Currículos Salvos</Link>
+              </div>
+              <div className="border-t border-neutral-100 mt-1 pt-1">
                 <Link href="/" className="block px-4 py-2 text-neutral-500 hover:bg-neutral-100 text-xs">🇺🇸 English Version</Link>
               </div>
             </div>

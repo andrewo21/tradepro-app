@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ReactNode } from "react";
 import HeaderBR from "@/components/HeaderBR";
+import WhatsAppFloat from "@/components/WhatsAppFloat";
 
 export const metadata: Metadata = {
   title: {
@@ -35,6 +36,7 @@ export default function BrazilLayout({ children }: { children: ReactNode }) {
       </head>
       <HeaderBR />
       {children}
+      <WhatsAppFloat />
     </>
   );
 }

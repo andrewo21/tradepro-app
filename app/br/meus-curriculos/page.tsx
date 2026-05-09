@@ -4,20 +4,20 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabase } from "@/lib/supabase";
 import { useBrResumeStore } from "@/app/store/useBrResumeStore";
+import { getOrCreateUserId } from "@/lib/userId";
 import Link from "next/link";
 
-interface Resume {
-  id: string;
-  title: string;
-  locale: string;
-  updated_at: string;
-}
+interface Resume { id: string; title: string; locale: string; updated_at: string; }
+interface Profile { nome: string; sobrenome: string; telefone: string; cidade: string; estado: string; }
 
 export default function MeusCurriculosPage() {
   const router = useRouter();
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
+  const [profile, setProfile] = useState<Profile>({ nome: "", sobrenome: "", telefone: "", cidade: "", estado: "" });
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
   const setField = useBrResumeStore((s: any) => s.setField);
 
   useEffect(() => {
@@ -26,6 +26,14 @@ export default function MeusCurriculosPage() {
     sb.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) { router.replace("/br/login"); return; }
       setUser(session.user);
+      const meta = session.user.user_metadata || {};
+      setProfile({
+        nome: meta.nome || meta.firstName || "",
+        sobrenome: meta.sobrenome || meta.lastName || "",
+        telefone: meta.telefone || meta.phone || "",
+        cidade: meta.cidade || "",
+        estado: meta.estado || "",
+      });
       const res = await fetch("/api/resume/list", {
         headers: { Authorization: `Bearer ${session.access_token}` },
       });
@@ -35,69 +43,185 @@ export default function MeusCurriculosPage() {
     });
   }, [router]);
 
+  async function handleSaveProfile() {
+    const sb = getSupabase();
+    if (!sb) return;
+    setSaving(true);
+    await sb.auth.updateUser({ data: profile });
+    setSaving(false);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 3000);
+  }
+
   async function loadResume(id: string) {
     const sb = getSupabase();
     if (!sb) return;
     const { data: { session } } = await sb.auth.getSession();
     if (!session) return;
+
     const res = await fetch(`/api/resume/load?id=${id}`, {
       headers: { Authorization: `Bearer ${session.access_token}` },
     });
     const json = await res.json();
-    if (json.resume?.data) {
-      const d = json.resume.data;
-      Object.keys(d).forEach(k => setField(k, d[k]));
-      router.push("/br/curriculo/pessoal");
-    }
+    if (!json.resume?.data) return;
+
+    // Restore entitlement — saved resume = proof of purchase
+    const userId = getOrCreateUserId();
+    await fetch("/api/resume/grant-access", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
+      body: JSON.stringify({ userId }),
+    });
+
+    const d = json.resume.data;
+    Object.keys(d).forEach(k => setField(k, d[k]));
+    setField("showWatermark", false);
+
+    router.push("/br/curriculo/pessoal");
   }
 
-  async function handleLogout() {
+  async function handleSignOut() {
     const sb = getSupabase();
     if (!sb) return;
     await sb.auth.signOut();
     router.replace("/br");
   }
 
+  const mostRecent = resumes[0];
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
+        <div className="h-8 w-8 border-4 border-green-700 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-neutral-50 px-4 py-10">
-      <div className="max-w-2xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-2xl font-semibold">Meus Currículos</h1>
-            {user && <p className="text-sm text-neutral-500 mt-1">{user.email}</p>}
-          </div>
-          <div className="flex gap-3">
-            <Link href="/br/curriculo" className="px-4 py-2 bg-green-700 text-white rounded-lg text-sm font-medium hover:bg-green-800 transition">
-              + Novo Currículo
-            </Link>
-            <button onClick={handleLogout} className="px-4 py-2 bg-neutral-200 text-neutral-700 rounded-lg text-sm hover:bg-neutral-300 transition">
-              Sair
-            </button>
-          </div>
+      <div className="max-w-2xl mx-auto space-y-8">
+
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-semibold text-neutral-900">Minha Conta</h1>
+          <button onClick={handleSignOut} className="text-sm text-red-600 hover:text-red-800 transition">
+            Sair
+          </button>
         </div>
 
-        {loading ? (
-          <div className="text-neutral-500 text-sm">Carregando seus currículos…</div>
-        ) : resumes.length === 0 ? (
-          <div className="bg-white border border-neutral-200 rounded-2xl p-10 text-center">
-            <p className="text-neutral-500 mb-4">Nenhum currículo salvo ainda.</p>
-            <Link href="/br/curriculo" className="px-6 py-3 bg-green-700 text-white rounded-lg text-sm font-semibold hover:bg-green-800 transition">
-              Criar Meu Primeiro Currículo
-            </Link>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {resumes.map(r => (
-              <button key={r.id} onClick={() => loadResume(r.id)}
-                className="w-full text-left bg-white border border-neutral-200 rounded-xl p-5 hover:border-green-500 hover:shadow-sm transition">
-                <p className="font-medium text-neutral-900">{r.title}</p>
-                <p className="text-xs text-neutral-400 mt-1">
-                  Atualizado em: {new Date(r.updated_at).toLocaleDateString("pt-BR", { day: "numeric", month: "short", year: "numeric" })}
-                </p>
+        {/* Resume CTA */}
+        <div className="rounded-2xl p-6 text-white" style={{ backgroundColor: "#166534" }}>
+          {mostRecent ? (
+            <div>
+              <p className="text-green-200 text-sm mb-1">
+                Atualizado em: {new Date(mostRecent.updated_at).toLocaleDateString("pt-BR", { day: "numeric", month: "short", year: "numeric" })}
+              </p>
+              <p className="font-semibold text-lg mb-4">{mostRecent.title}</p>
+              <button onClick={() => loadResume(mostRecent.id)}
+                className="px-6 py-2.5 bg-white text-green-800 rounded-lg font-semibold text-sm hover:bg-green-50 transition">
+                Continuar com seu Currículo →
               </button>
-            ))}
+            </div>
+          ) : (
+            <div>
+              <p className="font-semibold text-lg mb-2">Você ainda não criou um currículo.</p>
+              <Link href="/br/curriculo"
+                className="inline-block px-6 py-2.5 bg-white text-green-800 rounded-lg font-semibold text-sm hover:bg-green-50 transition">
+                Criar meu Currículo →
+              </Link>
+            </div>
+          )}
+        </div>
+
+        {/* Saved Resumes */}
+        {resumes.length > 0 && (
+          <div className="bg-white border border-neutral-200 rounded-2xl p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-semibold text-neutral-900">Currículos Salvos</h2>
+              <Link href="/br/curriculo" className="text-sm text-green-700 hover:text-green-900">+ Novo Currículo</Link>
+            </div>
+            <div className="space-y-2">
+              {resumes.map(r => (
+                <button key={r.id} onClick={() => loadResume(r.id)}
+                  className="w-full text-left px-4 py-3 bg-neutral-50 hover:bg-green-50 border border-neutral-200 hover:border-green-400 rounded-xl transition">
+                  <p className="font-medium text-sm text-neutral-900">{r.title}</p>
+                  <p className="text-xs text-neutral-400 mt-0.5">
+                    Atualizado em {new Date(r.updated_at).toLocaleDateString("pt-BR", { day: "numeric", month: "short", year: "numeric" })}
+                  </p>
+                </button>
+              ))}
+            </div>
           </div>
         )}
+
+        {/* Account Info */}
+        <div className="bg-white border border-neutral-200 rounded-2xl p-6">
+          <h2 className="font-semibold text-neutral-900 mb-5">Informações da Conta</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label className="block text-xs font-medium text-neutral-500 mb-1">Nome</label>
+              <input type="text" value={profile.nome}
+                onChange={e => setProfile(p => ({ ...p, nome: e.target.value }))}
+                className="w-full border border-neutral-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-neutral-500 mb-1">Sobrenome</label>
+              <input type="text" value={profile.sobrenome}
+                onChange={e => setProfile(p => ({ ...p, sobrenome: e.target.value }))}
+                className="w-full border border-neutral-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-neutral-500 mb-1">E-mail</label>
+              <input type="email" value={user?.email || ""} disabled
+                className="w-full border border-neutral-200 rounded-lg px-3 py-2 text-sm bg-neutral-50 text-neutral-400 cursor-not-allowed" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-neutral-500 mb-1">Telefone / WhatsApp</label>
+              <input type="tel" value={profile.telefone}
+                onChange={e => setProfile(p => ({ ...p, telefone: e.target.value }))}
+                placeholder="(11) 99999-9999"
+                className="w-full border border-neutral-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-neutral-500 mb-1">Cidade</label>
+              <input type="text" value={profile.cidade}
+                onChange={e => setProfile(p => ({ ...p, cidade: e.target.value }))}
+                placeholder="São Paulo"
+                className="w-full border border-neutral-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-neutral-500 mb-1">Estado</label>
+              <input type="text" value={profile.estado}
+                onChange={e => setProfile(p => ({ ...p, estado: e.target.value }))}
+                placeholder="SP"
+                className="w-full border border-neutral-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600" />
+            </div>
+          </div>
+          <button onClick={handleSaveProfile} disabled={saving}
+            className="px-5 py-2 bg-green-700 text-white rounded-lg text-sm font-medium hover:bg-green-800 transition disabled:opacity-60">
+            {saving ? "Salvando…" : saved ? "✓ Salvo" : "Salvar Perfil"}
+          </button>
+        </div>
+
+        {/* WhatsApp help */}
+        {process.env.NEXT_PUBLIC_WHATSAPP_BR && (
+          <div className="bg-green-50 border border-green-200 rounded-2xl p-5 flex items-center gap-4">
+            <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center" style={{ backgroundColor: "#25D366" }}>
+              <svg viewBox="0 0 32 32" className="w-6 h-6" fill="white">
+                <path d="M16 2C8.268 2 2 8.268 2 16c0 2.444.658 4.733 1.805 6.7L2 30l7.5-1.775A13.93 13.93 0 0 0 16 30c7.732 0 14-6.268 14-14S23.732 2 16 2zm0 25.5a11.43 11.43 0 0 1-5.82-1.593l-.418-.247-4.453 1.053 1.09-4.322-.274-.44A11.432 11.432 0 0 1 4.5 16C4.5 9.649 9.649 4.5 16 4.5S27.5 9.649 27.5 16 22.351 27.5 16 27.5zm6.29-8.47c-.345-.173-2.04-1.005-2.355-1.12-.315-.115-.545-.172-.774.173-.23.345-.89 1.12-1.09 1.348-.2.23-.4.258-.745.086-.345-.172-1.457-.537-2.775-1.713-1.025-.916-1.717-2.047-1.917-2.392-.2-.345-.021-.532.15-.703.154-.154.345-.4.518-.6.172-.2.23-.345.345-.575.115-.23.057-.43-.029-.603-.086-.172-.774-1.866-1.06-2.555-.28-.67-.564-.58-.774-.59-.2-.01-.43-.012-.66-.012-.23 0-.603.086-.918.43-.315.345-1.205 1.177-1.205 2.869s1.233 3.328 1.405 3.557c.172.23 2.427 3.71 5.88 5.204.822.355 1.463.567 1.963.725.824.263 1.575.226 2.168.137.66-.099 2.04-.834 2.327-1.638.287-.805.287-1.494.2-1.638-.085-.143-.315-.23-.66-.4z"/>
+              </svg>
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-green-900">Precisa de ajuda?</p>
+              <a href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_BR}?text=${encodeURIComponent("Olá! Preciso de ajuda com meu currículo na TradePro.")}`}
+                target="_blank" rel="noopener noreferrer"
+                className="text-xs text-green-700 hover:text-green-900 underline">
+                Fale conosco pelo WhatsApp →
+              </a>
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );

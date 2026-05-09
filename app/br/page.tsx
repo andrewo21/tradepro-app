@@ -57,6 +57,52 @@ function NewsletterBR() {
   );
 }
 
+const WA_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_BR || "";
+const WA_MESSAGE = encodeURIComponent("Olá! Gostaria de criar meu currículo profissional com a TradePro. Pode me ajudar?");
+const WA_URL = WA_NUMBER ? `https://wa.me/${WA_NUMBER}?text=${WA_MESSAGE}` : "/br/contato";
+
+function WhatsAppSection() {
+  return (
+    <section className="w-full py-16 px-4" style={{ backgroundColor: "#0d3320" }}>
+      <div className="max-w-2xl mx-auto text-center">
+        {/* WhatsApp logo */}
+        <div className="flex justify-center mb-5">
+          <div className="w-16 h-16 rounded-full flex items-center justify-center shadow-lg" style={{ backgroundColor: "#25D366" }}>
+            <svg viewBox="0 0 32 32" className="w-9 h-9" fill="white" xmlns="http://www.w3.org/2000/svg">
+              <path d="M16 2C8.268 2 2 8.268 2 16c0 2.444.658 4.733 1.805 6.7L2 30l7.5-1.775A13.93 13.93 0 0 0 16 30c7.732 0 14-6.268 14-14S23.732 2 16 2zm0 25.5a11.43 11.43 0 0 1-5.82-1.593l-.418-.247-4.453 1.053 1.09-4.322-.274-.44A11.432 11.432 0 0 1 4.5 16C4.5 9.649 9.649 4.5 16 4.5S27.5 9.649 27.5 16 22.351 27.5 16 27.5zm6.29-8.47c-.345-.173-2.04-1.005-2.355-1.12-.315-.115-.545-.172-.774.173-.23.345-.89 1.12-1.09 1.348-.2.23-.4.258-.745.086-.345-.172-1.457-.537-2.775-1.713-1.025-.916-1.717-2.047-1.917-2.392-.2-.345-.021-.532.15-.703.154-.154.345-.4.518-.6.172-.2.23-.345.345-.575.115-.23.057-.43-.029-.603-.086-.172-.774-1.866-1.06-2.555-.28-.67-.564-.58-.774-.59-.2-.01-.43-.012-.66-.012-.23 0-.603.086-.918.43-.315.345-1.205 1.177-1.205 2.869s1.233 3.328 1.405 3.557c.172.23 2.427 3.71 5.88 5.204.822.355 1.463.567 1.963.725.824.263 1.575.226 2.168.137.66-.099 2.04-.834 2.327-1.638.287-.805.287-1.494.2-1.638-.085-.143-.315-.23-.66-.4z"/>
+            </svg>
+          </div>
+        </div>
+
+        <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">
+          Prefere que a gente faça por você?
+        </h2>
+        <p className="text-green-200 text-base mb-2">
+          Manda uma mensagem no WhatsApp com seu nome e profissão.
+        </p>
+        <p className="text-green-300 text-sm mb-8">
+          Nós cuidamos do resto — você recebe seu currículo profissional pronto.
+        </p>
+
+        <a
+          href={WA_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-3 px-8 py-4 rounded-xl font-bold text-white text-lg shadow-xl transition-all hover:scale-105 hover:shadow-2xl"
+          style={{ backgroundColor: "#25D366" }}
+        >
+          <svg viewBox="0 0 32 32" className="w-6 h-6" fill="white">
+            <path d="M16 2C8.268 2 2 8.268 2 16c0 2.444.658 4.733 1.805 6.7L2 30l7.5-1.775A13.93 13.93 0 0 0 16 30c7.732 0 14-6.268 14-14S23.732 2 16 2zm0 25.5a11.43 11.43 0 0 1-5.82-1.593l-.418-.247-4.453 1.053 1.09-4.322-.274-.44A11.432 11.432 0 0 1 4.5 16C4.5 9.649 9.649 4.5 16 4.5S27.5 9.649 27.5 16 22.351 27.5 16 27.5zm6.29-8.47c-.345-.173-2.04-1.005-2.355-1.12-.315-.115-.545-.172-.774.173-.23.345-.89 1.12-1.09 1.348-.2.23-.4.258-.745.086-.345-.172-1.457-.537-2.775-1.713-1.025-.916-1.717-2.047-1.917-2.392-.2-.345-.021-.532.15-.703.154-.154.345-.4.518-.6.172-.2.23-.345.345-.575.115-.23.057-.43-.029-.603-.086-.172-.774-1.866-1.06-2.555-.28-.67-.564-.58-.774-.59-.2-.01-.43-.012-.66-.012-.23 0-.603.086-.918.43-.315.345-1.205 1.177-1.205 2.869s1.233 3.328 1.405 3.557c.172.23 2.427 3.71 5.88 5.204.822.355 1.463.567 1.963.725.824.263 1.575.226 2.168.137.66-.099 2.04-.834 2.327-1.638.287-.805.287-1.494.2-1.638-.085-.143-.315-.23-.66-.4z"/>
+          </svg>
+          Chamar no WhatsApp
+        </a>
+
+        <p className="text-green-400 text-xs mt-4">Respondemos em minutos • Sem compromisso</p>
+      </div>
+    </section>
+  );
+}
+
 export default function BrazilHomePage() {
   const [lineIndex, setLineIndex] = useState(0);
   const [charIndex, setCharIndex] = useState(0);
@@ -174,6 +220,9 @@ export default function BrazilHomePage() {
         </div>
       </section>
 
+      {/* WHATSAPP CTA */}
+      <WhatsAppSection />
+
       {/* PRICING PREVIEW */}
       <section className="w-full bg-neutral-50 border-t border-neutral-300 py-16 px-4">
         <div className="max-w-5xl mx-auto text-center">
@@ -209,6 +258,15 @@ export default function BrazilHomePage() {
             <Link href="/br/privacidade" className="hover:text-neutral-300 transition">{ptBR.legal.privacy}</Link>
             <Link href="/br/reembolso" className="hover:text-neutral-300 transition">{ptBR.legal.refunds}</Link>
             <Link href="/br/contato" className="hover:text-neutral-300 transition">{ptBR.legal.contact}</Link>
+            {WA_NUMBER && (
+              <a href={WA_URL} target="_blank" rel="noopener noreferrer"
+                className="hover:text-green-400 transition flex items-center gap-1.5">
+                <svg viewBox="0 0 32 32" className="w-3.5 h-3.5" fill="currentColor">
+                  <path d="M16 2C8.268 2 2 8.268 2 16c0 2.444.658 4.733 1.805 6.7L2 30l7.5-1.775A13.93 13.93 0 0 0 16 30c7.732 0 14-6.268 14-14S23.732 2 16 2zm0 25.5a11.43 11.43 0 0 1-5.82-1.593l-.418-.247-4.453 1.053 1.09-4.322-.274-.44A11.432 11.432 0 0 1 4.5 16C4.5 9.649 9.649 4.5 16 4.5S27.5 9.649 27.5 16 22.351 27.5 16 27.5zm6.29-8.47c-.345-.173-2.04-1.005-2.355-1.12-.315-.115-.545-.172-.774.173-.23.345-.89 1.12-1.09 1.348-.2.23-.4.258-.745.086-.345-.172-1.457-.537-2.775-1.713-1.025-.916-1.717-2.047-1.917-2.392-.2-.345-.021-.532.15-.703.154-.154.345-.4.518-.6.172-.2.23-.345.345-.575.115-.23.057-.43-.029-.603-.086-.172-.774-1.866-1.06-2.555-.28-.67-.564-.58-.774-.59-.2-.01-.43-.012-.66-.012-.23 0-.603.086-.918.43-.315.345-1.205 1.177-1.205 2.869s1.233 3.328 1.405 3.557c.172.23 2.427 3.71 5.88 5.204.822.355 1.463.567 1.963.725.824.263 1.575.226 2.168.137.66-.099 2.04-.834 2.327-1.638.287-.805.287-1.494.2-1.638-.085-.143-.315-.23-.66-.4z"/>
+                </svg>
+                WhatsApp
+              </a>
+            )}
           </div>
           <span className="text-neutral-600 text-center">© {new Date().getFullYear()} TradePro Technologies. Todos os direitos reservados.</span>
         </div>

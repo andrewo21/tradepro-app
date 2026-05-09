@@ -117,6 +117,14 @@ export default function BrExperienciaPage() {
                 <label className="block text-xs font-medium mb-1 text-neutral-500">Empresa</label>
                 <input className="w-full border rounded-lg px-3 py-2 text-sm" placeholder="Nome da empresa" value={exp.empresa} onChange={e => updateExperienciaField(exp.id, "empresa", e.target.value)} />
               </div>
+              <div>
+                <label className="block text-xs font-medium mb-1 text-neutral-500">Cidade</label>
+                <input className="w-full border rounded-lg px-3 py-2 text-sm" placeholder="ex: São Paulo" value={exp.cidade || ""} onChange={e => updateExperienciaField(exp.id, "cidade", e.target.value)} />
+              </div>
+              <div>
+                <label className="block text-xs font-medium mb-1 text-neutral-500">Estado</label>
+                <input className="w-full border rounded-lg px-3 py-2 text-sm" placeholder="ex: SP" value={exp.estado || ""} onChange={e => updateExperienciaField(exp.id, "estado", e.target.value)} />
+              </div>
               {/* Data de Início */}
               <div>
                 <label className="block text-xs font-medium mb-1 text-neutral-500">Data de Início</label>

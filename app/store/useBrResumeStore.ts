@@ -14,8 +14,11 @@ const createExperience = () => ({
   id: `${Date.now()}-${Math.random()}`,
   cargo: "",
   empresa: "",
+  cidade: "",
+  estado: "",
   dataInicio: "",
   dataFim: "",
+  roleSummary: "",
   responsabilidades: [createBullet()],
 });
 

@@ -6,6 +6,7 @@ import { getServerUserId } from "@/lib/userId";
 import { overrides } from "@/config/overrides";
 import UpsellModal from "@/components/UpsellModal";
 import { ProductId } from "@/lib/pricing";
+import BrBuilderSaveBar from "@/components/BrBuilderSaveBar";
 
 async function BrBuilderGate({ children }: { children: ReactNode }) {
   const userId = await getServerUserId();
@@ -21,7 +22,12 @@ async function BrBuilderGate({ children }: { children: ReactNode }) {
     );
   }
 
-  return <div className="min-h-screen bg-neutral-50">{children}</div>;
+  return (
+    <div className="min-h-screen bg-neutral-50">
+      <BrBuilderSaveBar />
+      {children}
+    </div>
+  );
 }
 
 export default function BrBuilderLayout({ children }: { children: ReactNode }) {
