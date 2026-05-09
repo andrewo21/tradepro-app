@@ -83,6 +83,7 @@ export default function BrPreviewPage() {
     selectedTemplate: BR_TO_PDF_TEMPLATE[store.selectedTemplate] || "standard-contemporary",
     name: `${store.personalInfo.nome || ""} ${store.personalInfo.sobrenome || ""}`.trim(),
     title: store.personalInfo.tituloProfissional || "",
+    photo: store.personalInfo.foto || undefined,
     contact: {
       phone: store.personalInfo.telefone || store.personalInfo.whatsapp || "",
       email: store.personalInfo.email || "",

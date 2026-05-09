@@ -34,6 +34,21 @@ function getLabels(locale?: string) {
 
 const FOOTER_Y = PAGE_H - 40; // bottom-center page number position
 
+/** Draw a circular photo from base64 string */
+function drawPhoto(doc: any, photo: string, x: number, y: number, size: number): void {
+  if (!photo) return;
+  try {
+    const base64 = photo.includes("base64,") ? photo.split("base64,")[1] : photo;
+    const buf = Buffer.from(base64, "base64");
+    doc.save();
+    doc.circle(x + size / 2, y + size / 2, size / 2).clip();
+    doc.image(buf, x, y, { width: size, height: size, cover: [size, size] });
+    doc.restore();
+    // border circle
+    doc.circle(x + size / 2, y + size / 2, size / 2).lineWidth(1).stroke("#d1d5db");
+  } catch { /* skip if image invalid */ }
+}
+
 /** Add page numbers to every page after content is fully rendered.
  *  Requires bufferPages:true on the PDFDocument. */
 export function addPageNumbers(doc: any) {
@@ -391,8 +406,13 @@ export function drawSidebarGreenPDF(doc: any, data: any) {
     drawSidebarBg();
   };
 
-  // Draw page 1 footer separately (happens at end)
-  let sY = 24;
+  let sY = 16;
+  // Photo at top of sidebar
+  if (data.photo) {
+    const photoSize = 60;
+    drawPhoto(doc, data.photo, (SIDE_W - photoSize) / 2, sY, photoSize);
+    sY += photoSize + 8;
+  }
   doc.font("Helvetica-Bold").fontSize(17).fillColor("#111827")
     .text(name || "", 16, sY, { width: SIDE_W - 22 }); sY = doc.y + 4;
   if (title) {
@@ -535,7 +555,12 @@ export function drawExecutiveLuxePDF(doc: any, data: any) {
     drawSidebarBg7();
   };
 
-  let sY = 28;
+  let sY = 16;
+  if (data.photo) {
+    const ps = 60;
+    drawPhoto(doc, data.photo, (SIDE_W - ps) / 2, sY, ps);
+    sY += ps + 8;
+  }
   doc.font("Helvetica-Bold").fontSize(17).fillColor("#111827").text(name || "", 16, sY, { width: SIDE_W - 22 }); sY = doc.y + 3;
   if (title) { doc.font("Helvetica").fontSize(10).fillColor("#374151").text(title, 16, sY, { width: SIDE_W - 22 }); sY = doc.y + 8; }
   [contact?.location, contact?.email, contact?.phone].filter(Boolean).forEach(c => {
@@ -771,6 +796,7 @@ export function mapBrDataToUsFormat(brData: any): any {
   return {
     name: `${p.nome || ""} ${p.sobrenome || ""}`.trim(),
     title: p.tituloProfissional || "",
+    photo: p.foto || undefined,
     contact: {
       phone: p.telefone || p.whatsapp || "",
       email: p.email || "",

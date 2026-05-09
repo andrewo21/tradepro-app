@@ -304,6 +304,7 @@ export default function OperadorBR() {
         selectedTemplate: templateMap[selectedTemplate] || "standard-contemporary",
         name: `${nome} ${sobrenome}`.trim(),
         title: resumeData.personalInfo?.tituloProfissional || "",
+        photo: resumeData.personalInfo?.foto || undefined,
         contact: {
           phone: telefone || whatsapp || "",
           email: email || "",
