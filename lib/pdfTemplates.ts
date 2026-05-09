@@ -34,19 +34,19 @@ function getLabels(locale?: string) {
 
 const FOOTER_Y = PAGE_H - 40; // bottom-center page number position
 
-/** Draw a circular photo from base64 string */
+/** Draw a square photo from base64 string with a subtle border */
 function drawPhoto(doc: any, photo: string, x: number, y: number, size: number): void {
   if (!photo) return;
   try {
     const base64 = photo.includes("base64,") ? photo.split("base64,")[1] : photo;
     const buf = Buffer.from(base64, "base64");
-    doc.save();
-    doc.circle(x + size / 2, y + size / 2, size / 2).clip();
-    doc.image(buf, x, y, { width: size, height: size, cover: [size, size] });
-    doc.restore();
-    // border circle
-    doc.circle(x + size / 2, y + size / 2, size / 2).lineWidth(1).stroke("#d1d5db");
-  } catch { /* skip if image invalid */ }
+    // Draw image — fit within the square
+    doc.image(buf, x, y, { fit: [size, size], align: "center", valign: "center" });
+    // Subtle border
+    doc.rect(x, y, size, size).lineWidth(0.5).stroke("#d1d5db");
+  } catch (e) {
+    // Photo rendering failed silently
+  }
 }
 
 /** Add page numbers to every page after content is fully rendered.
@@ -338,7 +338,12 @@ export function drawBasicTwoColumnPDF(doc: any, data: any) {
   };
   drawSidebar4();
 
-  let sY = 28;
+  let sY = 16;
+  if (data.photo) {
+    const ps = 56;
+    drawPhoto(doc, data.photo, (SIDE_W - ps) / 2, sY, ps);
+    sY += ps + 8;
+  }
   doc.font("Helvetica-Bold").fontSize(16).fillColor("#111827").text(name || "", 15, sY, { width: SIDE_W - 20 }); sY = doc.y + 3;
   if (title) { doc.font("Helvetica").fontSize(10).fillColor("#6b7280").text(title, 15, sY, { width: SIDE_W - 20 }); sY = doc.y + 10; }
   doc.font("Helvetica-Bold").fontSize(9).fillColor("#6b7280").text("CONTACT", 15, sY, { characterSpacing: 0.5 }); sY = doc.y + 4;
