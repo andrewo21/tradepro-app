@@ -186,6 +186,100 @@ export default function BrazilHomePage() {
         </p>
       </div>
 
+      {/* ATS SECTION */}
+      <section className="w-full bg-white border-t border-neutral-200 py-16 px-4">
+        <div className="max-w-5xl mx-auto">
+
+          {/* Header */}
+          <div className="text-center mb-12">
+            <span className="inline-block bg-green-100 text-green-800 text-xs font-bold px-3 py-1 rounded-full mb-4 uppercase tracking-wide">
+              Tecnologia ATS
+            </span>
+            <h2 className="text-3xl md:text-4xl font-bold text-neutral-900 mb-4">
+              Seu currículo passa pelo filtro das empresas?
+            </h2>
+            <p className="text-neutral-600 text-lg max-w-2xl mx-auto">
+              Antes de um humano ver o seu currículo, um sistema automático (ATS) já fez a triagem.
+              A maioria dos candidatos é eliminada nessa etapa — sem nem saber.
+            </p>
+          </div>
+
+          {/* What is ATS */}
+          <div className="grid md:grid-cols-2 gap-10 items-center mb-14">
+            <div className="space-y-5">
+              <div className="flex gap-4 items-start">
+                <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0 text-red-600 font-bold text-lg">✗</div>
+                <div>
+                  <p className="font-semibold text-neutral-900">Sem análise ATS</p>
+                  <p className="text-neutral-500 text-sm">Você envia o currículo e nunca recebe resposta. O sistema descarta automaticamente porque as palavras certas não estão lá.</p>
+                </div>
+              </div>
+              <div className="flex gap-4 items-start">
+                <div className="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center flex-shrink-0 text-green-700 font-bold text-lg">✓</div>
+                <div>
+                  <p className="font-semibold text-neutral-900">Com a TradePro ATS</p>
+                  <p className="text-neutral-500 text-sm">Você sabe exatamente onde está e o que ajustar antes de enviar. Mais chances de chegar até a entrevista.</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Score preview card */}
+            <div className="bg-neutral-50 border border-neutral-200 rounded-2xl p-6 shadow-sm">
+              <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wide mb-4">Exemplo de resultado ATS</p>
+              <div className="flex items-center gap-4 mb-5">
+                <div className="text-5xl font-bold text-green-700">78</div>
+                <div>
+                  <span className="inline-block bg-amber-100 text-amber-700 text-sm font-bold px-3 py-1 rounded-full">Mediano</span>
+                  <p className="text-xs text-neutral-500 mt-1">Bom começo — com ajustes chega no Forte</p>
+                </div>
+              </div>
+              <div className="space-y-3">
+                {[
+                  { label: "Cobertura de habilidades", value: 65, color: "bg-amber-400" },
+                  { label: "Alinhamento com a vaga", value: 82, color: "bg-green-500" },
+                  { label: "Estrutura do currículo", value: 90, color: "bg-green-600" },
+                ].map(({ label, value, color }) => (
+                  <div key={label}>
+                    <div className="flex justify-between text-xs text-neutral-600 mb-1">
+                      <span>{label}</span><span className="font-semibold">{value}%</span>
+                    </div>
+                    <div className="h-2 bg-neutral-200 rounded-full overflow-hidden">
+                      <div className={`h-full ${color} rounded-full`} style={{ width: `${value}%` }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 bg-green-50 rounded-lg p-3 text-xs text-green-800">
+                <strong>Sugestão da IA:</strong> Adicione "gestão de projetos" e "Excel avançado" na seção de habilidades para aumentar sua pontuação.
+              </div>
+            </div>
+          </div>
+
+          {/* 3 benefit pillars */}
+          <div className="grid md:grid-cols-3 gap-6 mb-10">
+            {[
+              { icon: "🎯", title: "Análise contra a vaga", desc: "Cole a descrição da vaga e veja se seu currículo está alinhado com os requisitos exatos." },
+              { icon: "🛠️", title: "Sugestões em português", desc: "Receba recomendações claras, diretas e em português — sem jargão técnico." },
+              { icon: "📊", title: "Pontuação determinista", desc: "Mesma entrada, mesma saída. Pontuação baseada em fórmulas, não em aleatoriedade." },
+            ].map(({ icon, title, desc }) => (
+              <div key={title} className="bg-neutral-50 border border-neutral-200 rounded-xl p-5">
+                <div className="text-3xl mb-3">{icon}</div>
+                <h3 className="font-semibold text-neutral-900 mb-2">{title}</h3>
+                <p className="text-neutral-600 text-sm">{desc}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="text-center">
+            <Link href="/br/curriculo"
+              className="inline-block px-8 py-3 bg-green-700 text-white font-semibold rounded-xl hover:bg-green-800 transition shadow-md">
+              Criar meu currículo e analisar →
+            </Link>
+            <p className="text-xs text-neutral-400 mt-3">A análise ATS está incluída no pacote R$ 49</p>
+          </div>
+        </div>
+      </section>
+
       {/* TESTIMONIALS */}
       <section className="w-full bg-neutral-100 border-t border-neutral-300 pt-20 pb-12 px-4">
         <div className="max-w-5xl mx-auto">
@@ -209,7 +303,7 @@ export default function BrazilHomePage() {
             {[
               { key: "resume", href: "/br/curriculo" },
               { key: "coverLetter", href: "/br/carta" },
-              { key: "projects", href: "/br/portfolios" },
+              { key: "ats", href: "/br/curriculo" },
             ].map(({ key, href }) => (
               <Link key={key} href={href} className="border border-neutral-200 rounded-md p-4 bg-neutral-50 hover:shadow-md transition">
                 <h3 className="font-semibold mb-2">{ptBR.landing.features[key as keyof typeof ptBR.landing.features].title}</h3>

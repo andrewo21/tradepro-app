@@ -16,7 +16,7 @@ export const ptBR = {
 
   // Landing page
   landing: {
-    tagline: "Para todo profissional brasileiro — de qualquer área.",
+    tagline: "Para todo profissional — de qualquer área.",
     mission: "A TradePro transforma sua experiência real em um currículo profissional que abre portas — para profissionais de marketing, saúde, tecnologia, educação, administração, serviços, obras e muito mais.",
     hero: "Bem-vindo à TradePro Technologies",
     cta: "Criar Meu Currículo",
@@ -37,7 +37,7 @@ export const ptBR = {
       title: "Suas ferramentas para ser contratado",
       resume: { title: "Criador de Currículo", desc: "Para qualquer área e setor — não modelos genéricos. Seu perfil real, apresentado com profissionalismo." },
       coverLetter: { title: "Carta de Apresentação", desc: "Cartas honestas e diretas escritas na sua voz, em português." },
-      projects: { title: "Portfólio Profissional", desc: "Mostre os projetos e resultados que provam o que você é capaz." },
+      ats: { title: "Análise ATS com IA", desc: "Descubra se seu currículo passa pelo filtro automático das empresas — e o que melhorar." },
     },
     pricing: {
       title: "Preço Único e Transparente",
