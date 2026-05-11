@@ -314,7 +314,7 @@ export default function BrazilHomePage() {
             <p className="text-lg font-semibold text-neutral-900 leading-relaxed">
               Você não vai encontrar essa ferramenta em nenhum outro lugar.<br />
               <span className="text-green-700 font-bold">
-                A análise ATS completa para o mercado brasileiro — exclusiva da TradePro Technologies.
+                A análise ATS completa para o mercado de trabalho — exclusiva da TradePro Technologies.
               </span>
             </p>
           </div>
