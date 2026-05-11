@@ -181,8 +181,8 @@ export default function BrazilHomePage() {
       {/* SALE BANNER */}
       <div className="w-full bg-red-600 text-white py-3 px-4 text-center">
         <p className="text-sm font-semibold">
-          🔥 <strong>Oferta por tempo limitado:</strong> Pacote Premium por apenas <strong>R$ 99</strong> (de R$ 149) — economize R$ 50!{" "}
-          <a href="/br/precos" className="underline font-bold hover:text-red-100">Ver planos →</a>
+          🔥 <strong>Oferta por tempo limitado:</strong> Pacote Completo com tudo incluído por apenas <strong>R$ 49</strong> (de R$ 149){" "}
+          <a href="/br/precos" className="underline font-bold hover:text-red-100">Adquirir agora →</a>
         </p>
       </div>
 
@@ -227,18 +227,19 @@ export default function BrazilHomePage() {
       <section className="w-full bg-neutral-50 border-t border-neutral-300 py-16 px-4">
         <div className="max-w-5xl mx-auto text-center">
           <h2 className="text-2xl font-semibold mb-8">{ptBR.landing.pricing.title}</h2>
-          <div className="grid gap-6 md:grid-cols-3 text-sm">
-            {[
-              { name: ptBR.pricing.resume.name, price: ptBR.pricing.resume.price, desc: ptBR.pricing.resume.desc },
-              { name: ptBR.pricing.coverLetter.name, price: ptBR.pricing.coverLetter.price, desc: ptBR.pricing.coverLetter.desc },
-              { name: ptBR.pricing.bundle.name, price: ptBR.pricing.bundle.price, desc: ptBR.pricing.bundle.desc },
-            ].map((p, i) => (
-              <div key={i} className="border border-neutral-200 rounded-md p-6 bg-white shadow-sm">
-                <h3 className="font-semibold mb-2">{p.name}</h3>
-                <p className="text-neutral-700 mb-4">{p.desc}</p>
-                <div className="text-3xl font-bold mb-2">{p.price}</div>
+          <div className="max-w-sm mx-auto text-sm">
+            <div className="border-2 border-green-500 rounded-xl p-8 bg-white shadow-lg text-center">
+              <span className="bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full mb-4 inline-block">
+                🔥 Oferta por Tempo Limitado
+              </span>
+              <h3 className="text-xl font-bold mb-2">{ptBR.pricing.bundle.name}</h3>
+              <p className="text-neutral-600 mb-4">{ptBR.pricing.bundle.desc}</p>
+              <div className="flex items-center justify-center gap-3 mb-2">
+                <div className="text-5xl font-bold text-green-700">{ptBR.pricing.bundle.price}</div>
+                <div className="text-xl text-neutral-400 line-through">{ptBR.pricing.bundle.originalPrice}</div>
               </div>
-            ))}
+              <p className="text-xs text-neutral-500 mb-4">Todos os 9 modelos incluídos · Pagamento único</p>
+            </div>
           </div>
           <Link href="/br/precos" className="inline-block mt-8 px-8 py-3 rounded-md bg-neutral-900 text-neutral-50 text-sm font-semibold shadow-md hover:bg-neutral-800">
             {ptBR.landing.pricing.cta}

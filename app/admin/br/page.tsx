@@ -69,8 +69,9 @@ export default function OperadorBR() {
   // Multiple experiences
   const [experiencias, setExperiencias] = useState<Experiencia[]>([newExp()]);
 
-  // Skills + summary
-  const [habilidades, setHabilidades] = useState<string[]>([""]);
+  // Skills split into técnicas + comportamentais
+  const [habilidadesTecnicas, setHabilidadesTecnicas] = useState<string[]>([""]);
+  const [habilidadesComportamentais, setHabilidadesComportamentais] = useState<string[]>([""]);
   const [resumo, setResumo] = useState("");
 
   // Formação + idiomas
@@ -108,7 +109,8 @@ export default function OperadorBR() {
         setLinkedin(d.personalInfo.linkedin || "");
       }
       if (d.summary) setResumo(d.summary);
-      if (d.skills?.length) setHabilidades(d.skills.filter(Boolean));
+      if (d.skills?.length) setHabilidadesTecnicas(d.skills.filter(Boolean));
+      // soft skills not parsed — leave empty for operator to fill
       if (d.certifications?.length) setCertificacoes(d.certifications.join(", "));
       if (d.education?.length) setFormacao(d.education.map((e: any) => ({ curso: e.degree || "", instituicao: e.school || "" })));
       if (d.experience?.length) {
@@ -213,8 +215,8 @@ export default function OperadorBR() {
       }
       if (generatedResumo && !resumo) setResumo(generatedResumo);
 
-      const finalHabilidades = habilidades.filter(Boolean).length > 0
-        ? habilidades.filter(Boolean)
+      const finalTecnicas = habilidadesTecnicas.filter(Boolean).length > 0
+        ? habilidadesTecnicas.filter(Boolean)
         : certificacoes
           ? certificacoes.split(",").map((c: string) => c.trim()).filter(Boolean)
           : [experiencias[0].cargo, setor].filter(Boolean);
@@ -227,7 +229,9 @@ export default function OperadorBR() {
           cpf: "", linkedin, foto,
         },
         resumoProfissional: generatedResumo,
-        habilidades: finalHabilidades.map((h: string) => ({ text: h })),
+        habilidades: finalTecnicas.map((h: string) => ({ text: h })),
+        habilidadesTecnicas: finalTecnicas.map((h: string) => ({ text: h })),
+        habilidadesComportamentais: habilidadesComportamentais.filter(Boolean).map((h: string) => ({ text: h })),
         experiencia: expWithBullets,
         formacao: formacao.filter(f => f.curso || f.instituicao).map(f => ({
           instituicao: f.instituicao, curso: f.curso, anoConclusao: "", tipo: "Técnico",
@@ -317,7 +321,8 @@ export default function OperadorBR() {
           linkedin: linkedin || "",
         },
         summary: resumeData.resumoProfissional || "",
-        skills: (resumeData.habilidades || []).map((h: any) => h.text || h).filter(Boolean),
+        skills: (resumeData.habilidadesTecnicas || resumeData.habilidades || []).map((h: any) => h.text || h).filter(Boolean),
+        softSkills: (resumeData.habilidadesComportamentais || []).map((h: any) => h.text || h).filter(Boolean),
         experience: (resumeData.experiencia || []).map((exp: any) => ({
           jobTitle: exp.cargo || "",
           company: exp.empresa || "",
@@ -468,29 +473,53 @@ export default function OperadorBR() {
             />
           </div>
 
-          {/* Skills */}
+          {/* Habilidades Técnicas */}
           <div className="bg-white rounded-xl border p-6 space-y-3">
-            <h2 className="font-semibold text-neutral-700 text-sm uppercase tracking-wide">Habilidades / Skills</h2>
-            <p className="text-xs text-neutral-500">Uma habilidade por linha. Serão listadas no currículo.</p>
+            <h2 className="font-semibold text-neutral-700 text-sm uppercase tracking-wide">Habilidades Técnicas</h2>
+            <p className="text-xs text-neutral-500">Ferramentas, softwares, sistemas, idiomas, certificações — o que a pessoa sabe fazer tecnicamente.</p>
             <div className="space-y-2">
-              {habilidades.map((h, i) => (
+              {habilidadesTecnicas.map((h, i) => (
                 <div key={i} className="flex gap-2">
-                  <input
-                    className="flex-1 border rounded-lg px-3 py-2 text-sm"
-                    placeholder={`Habilidade ${i + 1}...`}
+                  <input className="flex-1 border rounded-lg px-3 py-2 text-sm"
+                    placeholder="ex: Excel avançado, Python, NR-10, inglês básico..."
                     value={h}
-                    onChange={e => setHabilidades(prev => { const n = [...prev]; n[i] = e.target.value; return n; })}
+                    onChange={e => setHabilidadesTecnicas(prev => { const n = [...prev]; n[i] = e.target.value; return n; })}
                   />
-                  {habilidades.length > 1 && (
-                    <button onClick={() => setHabilidades(prev => prev.filter((_, idx) => idx !== i))}
+                  {habilidadesTecnicas.length > 1 && (
+                    <button onClick={() => setHabilidadesTecnicas(prev => prev.filter((_, idx) => idx !== i))}
                       className="px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg text-sm">✕</button>
                   )}
                 </div>
               ))}
             </div>
-            <button onClick={() => setHabilidades(prev => [...prev, ""])}
+            <button onClick={() => setHabilidadesTecnicas(prev => [...prev, ""])}
               className="w-full py-2 border-dashed border-2 border-neutral-300 rounded-lg text-sm text-neutral-500 hover:border-green-400 hover:text-green-700 transition">
-              + Adicionar Habilidade
+              + Adicionar Habilidade Técnica
+            </button>
+          </div>
+
+          {/* Habilidades Comportamentais */}
+          <div className="bg-white rounded-xl border p-6 space-y-3">
+            <h2 className="font-semibold text-neutral-700 text-sm uppercase tracking-wide">Habilidades Comportamentais</h2>
+            <p className="text-xs text-neutral-500">Comunicação, liderança, trabalho em equipe — as qualidades pessoais do candidato.</p>
+            <div className="space-y-2">
+              {habilidadesComportamentais.map((h, i) => (
+                <div key={i} className="flex gap-2">
+                  <input className="flex-1 border rounded-lg px-3 py-2 text-sm"
+                    placeholder="ex: trabalho bem em equipe, organizado, comunicativo..."
+                    value={h}
+                    onChange={e => setHabilidadesComportamentais(prev => { const n = [...prev]; n[i] = e.target.value; return n; })}
+                  />
+                  {habilidadesComportamentais.length > 1 && (
+                    <button onClick={() => setHabilidadesComportamentais(prev => prev.filter((_, idx) => idx !== i))}
+                      className="px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg text-sm">✕</button>
+                  )}
+                </div>
+              ))}
+            </div>
+            <button onClick={() => setHabilidadesComportamentais(prev => [...prev, ""])}
+              className="w-full py-2 border-dashed border-2 border-neutral-300 rounded-lg text-sm text-neutral-500 hover:border-green-400 hover:text-green-700 transition">
+              + Adicionar Habilidade Comportamental
             </button>
           </div>
 

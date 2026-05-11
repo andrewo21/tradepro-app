@@ -17,14 +17,16 @@ const LABELS = {
     education: "EDUCATION",
     certifications: "CERTIFICATIONS & LICENSES",
     competencies: "CORE COMPETENCIES",
+    softSkills: "SOFT SKILLS",
   },
   "pt-BR": {
     summary: "RESUMO PROFISSIONAL",
-    skills: "HABILIDADES",
+    skills: "HABILIDADES TÉCNICAS",
     experience: "EXPERIÊNCIA",
     education: "FORMAÇÃO",
     certifications: "CERTIFICAÇÕES",
     competencies: "COMPETÊNCIAS-CHAVE",
+    softSkills: "HABILIDADES COMPORTAMENTAIS",
   },
 } as const;
 
@@ -64,6 +66,10 @@ export function addPageNumbers(doc: any) {
 
 function getSkills(data: any): string[] {
   return (data.skills || []).map((s: any) => typeof s === "string" ? s : (s.text || "")).filter(Boolean);
+}
+
+function getSoftSkills(data: any): string[] {
+  return (data.softSkills || []).map((s: any) => typeof s === "string" ? s : (s.text || "")).filter(Boolean);
 }
 
 function getBullets(job: any): string[] {
@@ -188,6 +194,7 @@ function skillsGrid(doc: any, skills: string[], x: number, y: number, width: num
 export function drawStandardContemporaryPDF(doc: any, data: any) {
   const { name, title, contact, summary, experience, education, certifications } = data;
   const skills = getSkills(data);
+  const softSkills = getSoftSkills(data);
   const L$ = getLabels(data.locale);
   const PHOTO_SIZE = 54;
 
@@ -211,6 +218,10 @@ export function drawStandardContemporaryPDF(doc: any, data: any) {
   if (skills.length) {
     y = sectionRule(doc, L$.skills, L, y, CONTENT_W);
     y = skillsGrid(doc, skills, L, y, CONTENT_W);
+  }
+  if (softSkills.length) {
+    y = sectionRule(doc, L$.softSkills, L, y, CONTENT_W);
+    y = skillsGrid(doc, softSkills, L, y, CONTENT_W);
   }
   if (experience?.length) {
     y = sectionRule(doc, L$.experience, L, y, CONTENT_W);
@@ -826,7 +837,10 @@ export function mapBrDataToUsFormat(brData: any): any {
       linkedin: p.linkedin || "",
     },
     summary: brData.resumoProfissional || "",
-    skills: (brData.habilidades || []).map((h: any) => h.text || h).filter(Boolean),
+    skills: [
+      ...(brData.habilidadesTecnicas || brData.habilidades || []).map((h: any) => h.text || h),
+    ].filter(Boolean),
+    softSkills: (brData.habilidadesComportamentais || []).map((h: any) => h.text || h).filter(Boolean),
     experience: (brData.experiencia || []).map((exp: any) => ({
       jobTitle: exp.cargo || exp.jobTitle || "",
       company: exp.empresa || exp.company || "",
