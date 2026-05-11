@@ -101,9 +101,9 @@ export function buildOutputGeneral(input: GeneralOutputInput) {
 
     structure_score: Math.round(structureScore),
 
-    suggestions_pt_br:        suggestions,
-    specific_recommendations: specific_recommendations,
-    specific_enhancements:    specificEnhancements,
+    suggestions_pt_br:          suggestions,
+    role_recommendations_pt_br: specific_recommendations,
+    specific_enhancements:      specificEnhancements,
 
     raw_extraction: {
       resume_skills:             resumeExtraction.resume_skills,

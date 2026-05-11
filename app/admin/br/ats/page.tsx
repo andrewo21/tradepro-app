@@ -16,9 +16,10 @@ interface ATSResult {
   skills_found?: string[];
   skills_missing?: string[];
   suggestions_pt_br: string[];
-  specific_recommendations?: string[];
+  role_recommendations_pt_br?: string[];
   specific_enhancements?: string[];
   profession?: string | null;
+  raw_extraction?: { resume_titles?: string[]; [key: string]: any };
   raw_extraction?: any;
 }
 
@@ -351,34 +352,32 @@ export default function AdminATSPage() {
                 </div>
               )}
 
-              {/* Profession-specific recommendations */}
-              {result.specific_recommendations?.length > 0 && (
+              {/* 2. Recomendações para o cargo */}
+              {result.role_recommendations_pt_br?.length > 0 && (
                 <div className="bg-white border border-green-200 rounded-2xl p-5 shadow-sm">
                   <h3 className="font-semibold text-neutral-800 text-sm mb-1">
-                    🎯 Para {result.profession || "a profissão"} — recomendações específicas
+                    🎯 Recomendações para {result.raw_extraction?.resume_titles?.[0] || result.profession || "a área"}
                   </h3>
                   <p className="text-xs text-neutral-500 mb-3">
-                    Comparando o currículo com o que é esperado para esta área no mercado.
+                    O que profissionais desta área costumam apresentar — comparado ao currículo analisado.
                   </p>
-                  <ol className="space-y-3">
-                    {result.specific_recommendations.map((s, i) => (
-                      <li key={i} className="flex gap-3 text-sm text-neutral-700">
-                        <span className="text-green-700 font-bold flex-shrink-0 w-5">{i + 1}.</span>{s}
-                      </li>
+                  <ol className="list-decimal pl-5 space-y-2">
+                    {result.role_recommendations_pt_br.map((s, i) => (
+                      <li key={i} className="text-sm text-neutral-700">{s}</li>
                     ))}
                   </ol>
                 </div>
               )}
 
-              {/* General hints */}
+              {/* 3. Dicas gerais de estrutura */}
               {result.suggestions_pt_br?.length > 0 && (
                 <div className="bg-white border rounded-2xl p-5 shadow-sm">
-                  <h3 className="font-semibold text-neutral-800 text-sm mb-3">💡 Dicas gerais de estrutura</h3>
-                  <ol className="space-y-3">
+                  <h3 className="font-semibold text-neutral-800 text-sm mb-3 flex items-center gap-2">
+                    <span>💡 Dicas gerais de estrutura</span>
+                  </h3>
+                  <ol className="list-decimal pl-5 space-y-2">
                     {result.suggestions_pt_br.map((s, i) => (
-                      <li key={i} className="flex gap-3 text-sm text-neutral-700">
-                        <span className="text-neutral-400 font-bold flex-shrink-0 w-5">{i + 1}.</span>{s}
-                      </li>
+                      <li key={i} className="text-sm text-neutral-700">{s}</li>
                     ))}
                   </ol>
                 </div>

@@ -16,9 +16,10 @@ interface ATSResult {
   skills_found?: string[];
   skills_missing?: string[];
   suggestions_pt_br: string[];
-  specific_recommendations?: string[];
+  role_recommendations_pt_br?: string[];
   specific_enhancements?: string[];
   profession?: string | null;
+  raw_extraction?: { resume_titles?: string[]; [key: string]: any };
 }
 
 function labelStyle(label: string) {
@@ -251,49 +252,47 @@ export default function BrATSStepPage() {
             </div>
           )}
 
-          {/* Specific enhancements — deterministic, quantified */}
+          {/* 1. Melhorias Específicas — deterministic, quantified, score-linked */}
           {result.specific_enhancements?.length > 0 && (
             <div className="bg-blue-50 border border-blue-200 rounded-xl p-5">
-              <h3 className="font-semibold text-blue-900 mb-1 text-sm">📈 Melhorias Específicas</h3>
+              <h3 className="font-semibold text-blue-900 flex items-center gap-2 mb-1 text-sm">
+                <span>📈 Melhorias Específicas</span>
+              </h3>
               <p className="text-xs text-blue-700 mb-3">Ações concretas com impacto estimado na sua pontuação.</p>
-              <ul className="space-y-2">
+              <ul className="list-disc pl-5 space-y-2">
                 {result.specific_enhancements.map((s, i) => (
-                  <li key={i} className="flex gap-2 text-sm text-blue-900">
-                    <span className="flex-shrink-0 mt-0.5">•</span>{s}
-                  </li>
+                  <li key={i} className="text-sm text-blue-900">{s}</li>
                 ))}
               </ul>
             </div>
           )}
 
-          {/* Profession-specific recommendations */}
-          {result.specific_recommendations?.length > 0 && (
+          {/* 2. Recomendações para o cargo */}
+          {result.role_recommendations_pt_br?.length > 0 && (
             <div className="bg-white border border-green-200 rounded-xl p-5">
-              <h3 className="font-semibold text-neutral-800 mb-1 text-sm">
-                🎯 Recomendações para {result.profession || "sua profissão"}
+              <h3 className="font-semibold text-neutral-800 flex items-center gap-2 mb-1 text-sm">
+                <span>🎯 Recomendações para {result.raw_extraction?.resume_titles?.[0] || result.profession || "sua área"}</span>
               </h3>
               <p className="text-xs text-neutral-500 mb-3">
                 O que profissionais da sua área costumam apresentar — comparado ao que está no seu currículo.
               </p>
-              <ol className="space-y-3">
-                {result.specific_recommendations.map((s, i) => (
-                  <li key={i} className="flex gap-3 text-sm text-neutral-700">
-                    <span className="text-green-700 font-bold flex-shrink-0">{i + 1}.</span>{s}
-                  </li>
+              <ol className="list-decimal pl-5 space-y-2">
+                {result.role_recommendations_pt_br.map((s, i) => (
+                  <li key={i} className="text-sm text-neutral-700">{s}</li>
                 ))}
               </ol>
             </div>
           )}
 
-          {/* General structure hints */}
+          {/* 3. Dicas gerais de estrutura */}
           {result.suggestions_pt_br?.length > 0 && (
             <div className="bg-white border border-neutral-200 rounded-xl p-5">
-              <h3 className="font-semibold text-neutral-800 mb-3 text-sm">💡 Dicas gerais de estrutura</h3>
-              <ol className="space-y-3">
+              <h3 className="font-semibold text-neutral-800 flex items-center gap-2 mb-3 text-sm">
+                <span>💡 Dicas gerais de estrutura</span>
+              </h3>
+              <ol className="list-decimal pl-5 space-y-2">
                 {result.suggestions_pt_br.map((s, i) => (
-                  <li key={i} className="flex gap-3 text-sm text-neutral-700">
-                    <span className="text-neutral-400 font-bold flex-shrink-0">{i + 1}.</span>{s}
-                  </li>
+                  <li key={i} className="text-sm text-neutral-700">{s}</li>
                 ))}
               </ol>
             </div>

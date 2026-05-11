@@ -343,7 +343,10 @@ function drawATSReport(doc: any, data: any) {
     });
   }
 
-  // Profession-specific recommendations
+  // Role recommendations
+  if ((data.role_recommendations_pt_br || data.specific_recommendations)?.length) {
+    data.specific_recommendations = data.role_recommendations_pt_br || data.specific_recommendations;
+  }
   if (data.specific_recommendations?.length) {
     if (y + 80 > doc.page.height - 60) { doc.addPage(); y = 50; }
     doc.moveTo(L, y).lineTo(R, y).lineWidth(0.5).stroke("#d1d5db"); y += 14;

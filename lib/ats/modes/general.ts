@@ -31,6 +31,7 @@ export async function runGeneral(client: OpenAI, input: GeneralInput) {
   const specificEnhancements = computeSpecificEnhancements({
     resumeExtraction,
     mode: "general",
+    profession: profession || null,
   });
 
   // ── Step 4: Two-tiered suggestions ────────────────────────────────────────
