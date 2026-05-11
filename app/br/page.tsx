@@ -284,6 +284,54 @@ export default function BrazilHomePage() {
         </div>
       </section>
 
+      {/* ATS COMPETITIVE POSITIONING */}
+      <section className="py-20 bg-white border-t border-neutral-100">
+        <div className="max-w-4xl mx-auto text-center px-6">
+          <h2 className="text-3xl font-bold text-neutral-900 mb-4">
+            Análise ATS Profissional Incluída no Seu Pacote
+          </h2>
+          <p className="text-lg text-neutral-700 mb-8">
+            A única análise ATS completa para candidatos no Brasil — funcionando com ou sem descrição de vaga.
+          </p>
+
+          <ul className="text-left max-w-2xl mx-auto space-y-3 text-neutral-800 mb-10">
+            {[
+              "Pontuação ATS quando houver vaga",
+              "Análise geral do currículo quando não houver vaga",
+              "Habilidades encontradas e faltantes",
+              "Alinhamento com a vaga (match score)",
+              "Sugestões claras e objetivas em português",
+              "Relatório PDF completo",
+            ].map((item, i) => (
+              <li key={i} className="flex items-start gap-3">
+                <span className="mt-0.5 w-5 h-5 rounded-full bg-green-100 text-green-700 flex items-center justify-center flex-shrink-0 font-bold text-xs">✓</span>
+                {item}
+              </li>
+            ))}
+          </ul>
+
+          <div className="bg-neutral-50 border border-neutral-200 p-6 rounded-2xl shadow-sm mb-10 max-w-2xl mx-auto">
+            <p className="text-lg font-semibold text-neutral-900 leading-relaxed">
+              Catho não oferece.<br />
+              Trampos não oferece.<br />
+              Gupy não oferece.<br />
+              <span className="text-green-700 font-bold">
+                Só a TradePro entrega uma análise ATS completa — feita para o Brasil.
+              </span>
+            </p>
+          </div>
+
+          <p className="text-lg font-medium text-neutral-900 mb-6">
+            Incluído automaticamente no seu pacote — sem assinatura, sem mensalidade.
+          </p>
+
+          <Link href="/br/ats"
+            className="inline-block px-8 py-3 bg-green-700 text-white font-semibold rounded-xl hover:bg-green-800 transition shadow-md">
+            Testar análise ATS agora →
+          </Link>
+        </div>
+      </section>
+
       {/* TESTIMONIALS */}
       <section className="w-full bg-neutral-100 border-t border-neutral-300 pt-20 pb-12 px-4">
         <div className="max-w-5xl mx-auto">
