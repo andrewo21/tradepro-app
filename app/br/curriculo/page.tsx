@@ -7,6 +7,7 @@ import Link from "next/link";
 import { getOrCreateUserId } from "@/lib/userId";
 import Watermark from "@/components/Watermark";
 import BrResumeUpload from "@/components/BrResumeUpload";
+import InstallPrompt from "@/components/InstallPrompt";
 import BrModernoAzul from "@/components/templates/brazil/BrModernoAzul";
 import BrClasicoProfissional from "@/components/templates/brazil/BrClasicoProfissional";
 import BrVerdeTecnico from "@/components/templates/brazil/BrVerdeTecnico";
@@ -87,10 +88,25 @@ export default function BrCurriculoSelectPage() {
 
       <div className="mb-6">
         <Link href="/br" className="text-sm text-green-600 hover:underline">← Início</Link>
-        <h1 className="text-2xl font-semibold mt-1">Escolha seu Modelo</h1>
+        <h1 className="text-2xl font-semibold mt-1">Passo 1 — Escolha seu Modelo</h1>
         <p className="text-neutral-600 text-sm mt-1">
-          Veja todos os modelos abaixo. Gostou de um? <strong>Chame no WhatsApp</strong> com o nome do modelo — nós fazemos o currículo para você.
+          Selecione o modelo que preferir, visualize ao lado e avance. Gostou de um?{" "}
+          <strong>Chame no WhatsApp</strong> e nós fazemos para você.
         </p>
+      </div>
+
+      {/* Resume drop-in */}
+      <div className="mb-8 bg-white border border-neutral-200 rounded-xl shadow-sm overflow-hidden">
+        <div className="bg-green-50 border-b border-green-100 px-5 py-4 flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-green-700 flex items-center justify-center flex-shrink-0 text-white text-lg">📎</div>
+          <div>
+            <p className="font-semibold text-sm text-neutral-900">Já tem um currículo? Envie aqui e preenchemos tudo automaticamente.</p>
+            <p className="text-xs text-neutral-500">Envie seu PDF ou Word — a IA extrai seus dados, você escolhe o modelo e avança para o próximo passo.</p>
+          </div>
+        </div>
+        <div className="px-5 py-5">
+          <BrResumeUpload />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
