@@ -7,6 +7,7 @@ export default function BrHabilidadesPage() {
   const store = useBrResumeStore();
   const tecnicas = store.habilidadesTecnicas || [];
   const comportamentais = store.habilidadesComportamentais || [];
+  const idiomas = store.idiomas || [];
 
   function updateTecnica(index: number, text: string) {
     const updated = [...tecnicas];
@@ -34,6 +35,20 @@ export default function BrHabilidadesPage() {
 
   function addComportamental() {
     store.setField("habilidadesComportamentais", [...comportamentais, { text: "" }]);
+  }
+
+  function updateIdioma(index: number, text: string) {
+    const updated = [...idiomas];
+    if (updated[index]) updated[index] = { ...updated[index], text };
+    store.setField("idiomas", updated);
+  }
+
+  function removeIdioma(index: number) {
+    store.setField("idiomas", idiomas.filter((_: any, i: number) => i !== index));
+  }
+
+  function addIdioma() {
+    store.setField("idiomas", [...idiomas, { text: "" }]);
   }
 
   return (
@@ -111,6 +126,40 @@ export default function BrHabilidadesPage() {
             className="mt-3 w-full py-2 border-2 border-dashed border-neutral-300 rounded-lg text-sm text-neutral-500 hover:border-green-500 hover:text-green-700 transition"
           >
             + Adicionar Habilidade Comportamental
+          </button>
+        </div>
+
+        {/* Idiomas */}
+        <div className="bg-white border rounded-xl p-6">
+          <h2 className="text-base font-semibold text-neutral-800 mb-1">Idiomas</h2>
+          <p className="text-xs text-neutral-500 mb-4">
+            Inclua o idioma e o nível — ex: Inglês (intermediário), Espanhol (básico).
+          </p>
+          <div className="space-y-2">
+            {idiomas.map((s: any, i: number) => (
+              <div key={i} className="flex gap-2">
+                <input
+                  className="flex-1 border border-neutral-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                  placeholder="ex: Inglês (intermediário), Espanhol (básico)..."
+                  value={s.text || ""}
+                  onChange={e => updateIdioma(i, e.target.value)}
+                />
+                {idiomas.length > 1 && (
+                  <button
+                    onClick={() => removeIdioma(i)}
+                    className="px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg text-sm flex-shrink-0"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+          <button
+            onClick={addIdioma}
+            className="mt-3 w-full py-2 border-2 border-dashed border-neutral-300 rounded-lg text-sm text-neutral-500 hover:border-green-500 hover:text-green-700 transition"
+          >
+            + Adicionar Idioma
           </button>
         </div>
 

@@ -40,8 +40,9 @@ export const useBrResumeStore = create<any>()(
         foto: "", // base64 or URL
       },
       resumoProfissional: "",
-      habilidadesTecnicas: [],   // Habilidades Técnicas (ferramentas, sistemas, certificações)
-      habilidadesComportamentais: [], // Habilidades Comportamentais (soft skills)
+      habilidadesTecnicas: [],
+      habilidadesComportamentais: [],
+      idiomas: [],               // ex: [{text: "Inglês (intermediário)"}]
       habilidades: [],           // kept for backwards compat migration
       experiencia: [createExperience()],
       formacao: [{ instituicao: "", curso: "", anoConclusao: "", tipo: "Técnico" }],
@@ -157,6 +158,7 @@ export const useBrResumeStore = create<any>()(
           habilidades: [],
           habilidadesTecnicas: [],
           habilidadesComportamentais: [],
+          idiomas: [],
           experiencia: [createExperience()],
           formacao: [{ instituicao: "", curso: "", anoConclusao: "", tipo: "Técnico" }],
           cursosCertificacoes: [{ nome: "", instituicao: "", ano: "" }],

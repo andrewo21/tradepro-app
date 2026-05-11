@@ -110,7 +110,10 @@ export default function BrPreviewPage() {
       school: f.instituicao || "",
       degree: f.curso || "",
     })),
-    certifications: (store.cursosCertificacoes || []).filter((c: any) => c.nome).map((c: any) => c.nome),
+    certifications: [
+      ...(store.cursosCertificacoes || []).filter((c: any) => c.nome).map((c: any) => c.nome),
+      ...(store.idiomas || []).map((i: any) => i.text || i).filter(Boolean).map((lang: string) => `Idioma: ${lang}`),
+    ],
   });
 
   async function handleDownload() {
