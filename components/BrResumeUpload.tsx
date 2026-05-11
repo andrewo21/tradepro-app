@@ -1,8 +1,15 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { useRouter } from "next/navigation";
 import { useBrResumeStore } from "@/app/store/useBrResumeStore";
+
+const LANGUAGE_KEYWORDS = ["inglês", "ingles", "english", "espanhol", "español", "francês", "frances",
+  "alemão", "alemao", "italiano", "idioma", "língua", "lingua", "language", "teens", "wizard"];
+
+function isLanguageEntry(degree: string, school: string): boolean {
+  const text = `${degree} ${school}`.toLowerCase();
+  return LANGUAGE_KEYWORDS.some(kw => text.includes(kw));
+}
 
 export default function BrResumeUpload() {
   const [dragging, setDragging] = useState(false);
@@ -10,7 +17,6 @@ export default function BrResumeUpload() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const router = useRouter();
   const store = useBrResumeStore();
 
   const ACCEPTED_TYPES = [
@@ -23,17 +29,10 @@ export default function BrResumeUpload() {
       file.name?.toLowerCase().endsWith(".pdf") ||
       file.name?.toLowerCase().endsWith(".docx");
 
-    if (!file || !isAccepted) {
-      setError("Por favor, envie um arquivo PDF ou Word (.docx).");
-      return;
-    }
-    if (file.size > 10 * 1024 * 1024) {
-      setError("Arquivo muito grande. Máximo 10MB.");
-      return;
-    }
+    if (!file || !isAccepted) { setError("Por favor, envie um arquivo PDF ou Word (.docx)."); return; }
+    if (file.size > 10 * 1024 * 1024) { setError("Arquivo muito grande. Máximo 10MB."); return; }
 
-    setLoading(true);
-    setError(null);
+    setLoading(true); setError(null);
 
     try {
       const formData = new FormData();
@@ -48,7 +47,7 @@ export default function BrResumeUpload() {
 
       const d = json.data;
 
-      // Pre-fill Brazilian store
+      // Personal info
       if (d.personalInfo) {
         const p = d.personalInfo;
         store.setPersonalField("nome", p.firstName || "");
@@ -58,21 +57,29 @@ export default function BrResumeUpload() {
         store.setPersonalField("email", p.email || "");
         store.setPersonalField("cidade", p.city || "");
         store.setPersonalField("estado", p.state || "");
+        store.setPersonalField("linkedin", p.linkedin || "");
       }
 
+      // Summary
       if (d.summary) store.updateResumo(d.summary);
 
+      // Skills → habilidades técnicas
       if (Array.isArray(d.skills) && d.skills.length > 0) {
-        store.setField("habilidades", d.skills.map((text: string) => ({ text, suggestion: null, loading: false })));
+        store.setField("habilidadesTecnicas", d.skills.map((text: string) => ({ text })));
+        store.setField("habilidades", d.skills.map((text: string) => ({ text })));
       }
 
+      // Experience
       if (Array.isArray(d.experience) && d.experience.length > 0) {
         store.setField("experiencia", d.experience.map((exp: any) => ({
           id: `${Date.now()}-${Math.random()}`,
           cargo: exp.jobTitle || "",
           empresa: exp.company || "",
+          cidade: exp.city || "",
+          estado: exp.state || "",
           dataInicio: exp.startDate || "",
           dataFim: exp.endDate || "",
+          roleSummary: exp.roleSummary || "",
           responsabilidades: (exp.responsibilities || []).map((text: string) => ({
             id: `${Date.now()}-${Math.random()}`,
             text,
@@ -80,17 +87,47 @@ export default function BrResumeUpload() {
         })));
       }
 
+      // Education — separate language entries from real education
       if (Array.isArray(d.education) && d.education.length > 0) {
-        store.setField("formacao", d.education.map((edu: any) => ({
-          instituicao: edu.school || "",
-          curso: edu.degree || "",
-          anoConclusao: edu.year || "",
-          tipo: "Técnico",
+        const realFormacao: any[] = [];
+        const langEntries: string[] = [];
+
+        d.education.forEach((edu: any) => {
+          const degree = edu.degree || "";
+          const school = edu.school || "";
+          if (isLanguageEntry(degree, school)) {
+            // It's a language course — goes to idiomas
+            const langText = [degree, school].filter(Boolean).join(" — ");
+            langEntries.push(langText);
+          } else {
+            realFormacao.push({
+              instituicao: school,
+              curso: degree,
+              anoConclusao: "",
+              tipo: "Técnico",
+            });
+          }
+        });
+
+        if (realFormacao.length > 0) store.setField("formacao", realFormacao);
+        if (langEntries.length > 0) {
+          const existing = store.idiomas || [];
+          store.setField("idiomas", [
+            ...existing,
+            ...langEntries.map(text => ({ text })),
+          ]);
+        }
+      }
+
+      // Certifications → cursosCertificacoes
+      if (Array.isArray(d.certifications) && d.certifications.length > 0) {
+        store.setField("cursosCertificacoes", d.certifications.map((nome: string) => ({
+          nome, instituicao: "", ano: "",
         })));
       }
 
+      // Done — show success, do NOT auto-advance
       setSuccess(true);
-      setTimeout(() => router.push("/br/curriculo/pessoal"), 1500);
     } catch (err: any) {
       setError(err?.message || "Erro de rede. Tente novamente.");
     } finally {
@@ -107,10 +144,15 @@ export default function BrResumeUpload() {
 
   if (success) {
     return (
-      <div className="border-2 border-green-400 bg-green-50 rounded-xl p-6 text-center">
+      <div className="border-2 border-green-400 bg-green-50 rounded-xl p-5 text-center">
         <div className="text-3xl mb-2">✓</div>
-        <p className="font-semibold text-green-800">Currículo enviado e processado!</p>
-        <p className="text-green-700 text-sm mt-1">Levando você para o editor — revise e ajuste seus dados.</p>
+        <p className="font-semibold text-green-800">Currículo lido com sucesso!</p>
+        <p className="text-green-700 text-sm mt-1 mb-4">
+          Seus dados foram preenchidos automaticamente. Escolha um modelo ao lado e clique em continuar.
+        </p>
+        <button onClick={() => setSuccess(false)} className="text-xs text-green-600 underline hover:text-green-800">
+          Enviar outro arquivo
+        </button>
       </div>
     );
   }
@@ -144,7 +186,6 @@ export default function BrResumeUpload() {
             <div className="text-4xl">📄</div>
             <p className="font-semibold text-neutral-800">Arraste seu currículo aqui ou clique para enviar</p>
             <p className="text-sm text-neutral-500">PDF ou Word (.docx) · Máximo 10MB</p>
-            <p className="text-xs text-neutral-400">A IA extrai suas informações e preenche o editor automaticamente</p>
           </div>
         )}
       </div>

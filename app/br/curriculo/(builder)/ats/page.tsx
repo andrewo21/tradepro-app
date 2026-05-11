@@ -95,21 +95,22 @@ export default function BrATSStepPage() {
     setLoading(true); setError(null); setResult(null);
 
     const resumeText = buildResumeText(store);
-    if (!resumeText.trim()) {
-      setError("Preencha pelo menos suas informações pessoais e experiência antes de analisar.");
+    const wordCount = resumeText.trim().split(/\s+/).filter(Boolean).length;
+
+    if (wordCount < 20) {
+      setError("Preencha mais informações no currículo antes de analisar — pelo menos experiência e habilidades.");
+      setLoading(false);
+      return;
+    }
+
+    if (mode === "with_job" && !jobText.trim()) {
+      setError("Cole a descrição da vaga para comparar.");
       setLoading(false);
       return;
     }
 
     const payload: any = { resumeText };
-    if (mode === "with_job") {
-      if (!jobText.trim()) {
-        setError("Cole a descrição da vaga para comparar.");
-        setLoading(false);
-        return;
-      }
-      payload.jobDescription = jobText;
-    }
+    if (mode === "with_job") payload.jobDescription = jobText;
 
     try {
       const res = await fetch("/api/ai/br/ats-analyze", {
@@ -118,7 +119,10 @@ export default function BrATSStepPage() {
         body: JSON.stringify(payload),
       });
       const json = await res.json();
-      if (!res.ok) throw new Error(json.error || "Análise falhou.");
+      if (!res.ok) {
+        // Show the real server error so we can debug
+        throw new Error(json.detail || json.error || `Erro ${res.status}`);
+      }
       setResult(json);
     } catch (e: any) {
       setError(e.message || "Erro ao analisar. Tente novamente.");
