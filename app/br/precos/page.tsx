@@ -85,8 +85,20 @@ export default function BrazilPricingPage() {
             </div>
             <p className="text-sm text-neutral-500 mb-8">Pagamento único · Sem mensalidade · Sem renovação</p>
 
+            {/* ATS Engine description */}
+            <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-5 text-left">
+              <p className="text-xs font-bold text-green-800 uppercase tracking-wide mb-2">TradePro ATS Engine™ — Análise Profissional Completa</p>
+              <ul className="space-y-1">
+                {["Relatório ATS completo em PDF","Pontuação de Estrutura","Pontuação ATS (quando houver vaga)","Habilidades faltantes","Ferramentas faltantes","Responsabilidades faltantes","Impacto estimado na pontuação","Recomendações específicas para o seu cargo","Dicas gerais de estrutura"].map((item, i) => (
+                  <li key={i} className="flex items-center gap-2 text-xs text-green-800">
+                    <span className="text-green-600 font-bold">✓</span>{item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
             {/* Features */}
-            <ul className="text-left space-y-3 mb-8">
+            <ul className="text-left space-y-3 mb-4">
               {b.features.map((f, i) => (
                 <li key={i} className="flex items-center gap-2 text-neutral-700">
                   <span className="text-green-600 font-bold text-lg flex-shrink-0">✓</span>
@@ -95,10 +107,45 @@ export default function BrazilPricingPage() {
               ))}
             </ul>
 
+            {/* Launch pricing note */}
+            <div className="text-center mb-6">
+              <p className="text-xs text-neutral-500">Preço de lançamento: <strong className="text-green-700">R$ 49</strong> · Preço após o lançamento: <strong className="text-neutral-600">R$ 99</strong></p>
+            </div>
+
             <BrCheckoutButton userId={userId} productId={BrProductId.BUNDLE} />
           </div>
 
           <p className="text-neutral-400 text-xs mt-8">{t.footer}</p>
+
+          {/* FAQ */}
+          <div className="mt-16 text-left max-w-2xl mx-auto">
+            <h2 className="text-xl font-bold text-neutral-900 mb-6 text-center">Perguntas Frequentes</h2>
+            <div className="space-y-6">
+              {[
+                {
+                  q: "O que é o TradePro ATS Engine™?",
+                  a: "É uma tecnologia proprietária desenvolvida pela TradePro Technologies que analisa seu currículo com base em habilidades, ferramentas e responsabilidades esperadas para o mercado de trabalho.",
+                },
+                {
+                  q: "Por que essa análise é melhor do que outras?",
+                  a: "Porque ela usa uma biblioteca proprietária de cargos do Brasil, um sistema exclusivo de pontuação e um formato único de relatório ATS — nenhum outro serviço oferece isso.",
+                },
+                {
+                  q: "O relatório realmente ajuda a conseguir entrevistas?",
+                  a: "Sim. Ele mostra exatamente o que está faltando no seu currículo e como aumentar sua pontuação ATS, que é usada por empresas e recrutadores na triagem de candidatos.",
+                },
+                {
+                  q: "O preço vai aumentar?",
+                  a: "Sim. O preço de lançamento é R$ 49 BRL. Após o período promocional, o valor será R$ 99 BRL.",
+                },
+              ].map(({ q, a }, i) => (
+                <div key={i} className="bg-white border border-neutral-200 rounded-xl p-5">
+                  <p className="font-semibold text-neutral-900 mb-2">❓ {q}</p>
+                  <p className="text-neutral-600 text-sm">{a}</p>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </main>
 

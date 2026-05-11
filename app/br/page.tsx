@@ -150,8 +150,13 @@ export default function BrazilHomePage() {
               </h1>
             </div>
 
-            <div className="max-w-2xl mx-auto text-center mb-6">
+            <div className="max-w-2xl mx-auto text-center mb-3">
               <p className="text-base md:text-lg text-neutral-200">{ptBR.landing.mission}</p>
+            </div>
+            <div className="max-w-2xl mx-auto text-center mb-6">
+              <p className="text-sm md:text-base text-green-300 font-medium">
+                O TradePro ATS Engine™ analisa seu currículo como um recrutador profissional — identificando habilidades faltantes, ferramentas essenciais, responsabilidades esperadas e melhorias que aumentam sua pontuação ATS.
+              </p>
             </div>
 
             <div className="max-w-xl mx-auto mb-8">
@@ -181,7 +186,8 @@ export default function BrazilHomePage() {
       {/* SALE BANNER */}
       <div className="w-full bg-red-600 text-white py-3 px-4 text-center">
         <p className="text-sm font-semibold">
-          🔥 <strong>Oferta por tempo limitado:</strong> Pacote Completo com tudo incluído por apenas <strong>R$ 49</strong> (de R$ 149){" "}
+          🚀 <strong>Oferta de Lançamento: R$ 49 BRL</strong> — Acesse o TradePro ATS Engine™, a tecnologia proprietária que analisa seu currículo como um recrutador profissional.{" "}
+          Preço após o lançamento: R$ 99 BRL.{" "}
           <a href="/br/precos" className="underline font-bold hover:text-red-100">Adquirir agora →</a>
         </p>
       </div>
@@ -320,6 +326,57 @@ export default function BrazilHomePage() {
         </div>
       </section>
 
+      {/* HOW IT WORKS — TradePro ATS Engine™ */}
+      <section className="w-full bg-neutral-900 py-16 px-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-10">
+            <span className="inline-block bg-green-800 text-green-200 text-xs font-bold px-3 py-1 rounded-full mb-4 uppercase tracking-wide">
+              Tecnologia Proprietária
+            </span>
+            <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">
+              🔍 TradePro ATS Engine™
+            </h2>
+            <p className="text-neutral-400 text-base max-w-2xl mx-auto">
+              Um sistema exclusivo desenvolvido pela TradePro Technologies para o mercado de trabalho. Ele identifica automaticamente:
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-4 mb-10">
+            {[
+              "Habilidades que estão faltando para o seu cargo",
+              "Ferramentas essenciais que aumentam sua empregabilidade",
+              "Responsabilidades esperadas que não aparecem no seu currículo",
+              "Resultados mensuráveis que você deveria destacar",
+              "Problemas estruturais que reduzem sua pontuação",
+              "O que profissionais da sua área realmente apresentam",
+            ].map((item, i) => (
+              <div key={i} className="flex items-start gap-3 bg-neutral-800 rounded-xl px-4 py-3">
+                <span className="text-green-400 font-bold flex-shrink-0 mt-0.5">✓</span>
+                <span className="text-neutral-200 text-sm">{item}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="bg-neutral-800 rounded-2xl p-6">
+            <p className="text-green-300 font-semibold mb-4 text-sm uppercase tracking-wide">Você recebe um relatório completo com:</p>
+            <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3">
+              {[
+                "Pontuação ATS",
+                "Melhorias Específicas com impacto estimado",
+                "Recomendações para o seu cargo",
+                "Dicas gerais de estrutura",
+                "Habilidades e ferramentas faltantes",
+                "PDF profissional pronto para enviar",
+              ].map((item, i) => (
+                <div key={i} className="flex items-center gap-2 text-sm text-neutral-300">
+                  <span className="text-green-500">→</span>{item}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* TESTIMONIALS */}
       <section className="w-full bg-neutral-100 border-t border-neutral-300 pt-20 pb-12 px-4">
         <div className="max-w-5xl mx-auto">
@@ -403,6 +460,7 @@ export default function BrazilHomePage() {
               </a>
             )}
           </div>
+          <span className="text-neutral-600 text-center">TradePro ATS Engine™ — Tecnologia Proprietária de Análise ATS</span>
           <span className="text-neutral-600 text-center">© {new Date().getFullYear()} TradePro Technologies. Todos os direitos reservados.</span>
         </div>
       </footer>

@@ -16,6 +16,19 @@ export default function TermosBR() {
           <section><h2 className="text-lg font-semibold text-neutral-900 mb-2">6. Conteúdo Gerado por IA</h2><p>A TradePro utiliza inteligência artificial para auxiliar na redação de currículos e cartas de apresentação. Todo conteúdo gerado pela IA é um ponto de partida e deve ser revisado pelo usuário antes do uso. A TradePro não garante resultados de emprego.</p></section>
           <section><h2 className="text-lg font-semibold text-neutral-900 mb-2">7. Lei Aplicável</h2><p>Estes termos são regidos pela legislação brasileira, incluindo o Código de Defesa do Consumidor (Lei nº 8.078/90) e a Lei Geral de Proteção de Dados (LGPD — Lei nº 13.709/2018).</p></section>
           <section><h2 className="text-lg font-semibold text-neutral-900 mb-2">8. Contato</h2><p>Dúvidas sobre estes termos? Entre em contato: <a href="mailto:andrew@tradeprotech.ai" className="text-green-600 hover:underline">andrew@tradeprotech.ai</a></p></section>
+
+          <section>
+            <h2 className="text-lg font-semibold text-neutral-900 mb-2">12. Tecnologia Proprietária</h2>
+            <p className="mb-3">O TradePro ATS Engine™ é uma tecnologia proprietária da TradePro Technologies. Ele inclui:</p>
+            <ul className="list-disc pl-5 space-y-1 mb-3">
+              <li>Sistema exclusivo de pontuação ATS</li>
+              <li>Biblioteca própria de cargos do mercado de trabalho</li>
+              <li>Lógica de análise de habilidades, ferramentas e responsabilidades</li>
+              <li>Formato único de relatório ATS</li>
+              <li>Estrutura de recomendações e melhorias específicas</li>
+            </ul>
+            <p>Todo o conteúdo, lógica, estrutura e dados utilizados pelo sistema são protegidos por direitos autorais, segredos comerciais e demais leis aplicáveis. É proibida a reprodução, engenharia reversa, redistribuição ou uso não autorizado do TradePro ATS Engine™ ou de qualquer componente da plataforma TradePro Technologies.</p>
+          </section>
         </div>
       </div>
     </div>
