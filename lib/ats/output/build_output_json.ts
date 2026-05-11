@@ -20,6 +20,7 @@ export interface WithJobOutputInput {
   skillsFound: string[];
   skillsMissing: string[];
   suggestions: string[];
+  specificEnhancements: string[];
   resumeExtraction: ResumeExtraction;
   jobExtraction: JobExtraction;
 }
@@ -28,7 +29,7 @@ export function buildOutputWithJob(input: WithJobOutputInput) {
   const {
     candidateName, jobTitle, companyName, date,
     finalResult, skillsCoverageScore, semanticMatchScore, structureScore,
-    skillsFound, skillsMissing, suggestions,
+    skillsFound, skillsMissing, suggestions, specificEnhancements,
     resumeExtraction, jobExtraction,
   } = input;
 
@@ -46,10 +47,11 @@ export function buildOutputWithJob(input: WithJobOutputInput) {
     semantic_match_score:  Math.round(semanticMatchScore),
     structure_score:       Math.round(structureScore),
 
-    skills_found:   skillsFound,
-    skills_missing: skillsMissing,
+      skills_found:   skillsFound,
+      skills_missing: skillsMissing,
 
-    suggestions_pt_br: suggestions,
+      suggestions_pt_br:    suggestions,
+      specific_enhancements: specificEnhancements,
 
     raw_extraction: {
       // Job description fields
@@ -82,11 +84,12 @@ export interface GeneralOutputInput {
   strengthLabel: StrengthLabel;
   suggestions: string[];
   specific_recommendations: string[];
+  specificEnhancements: string[];
   resumeExtraction: ResumeExtraction;
 }
 
 export function buildOutputGeneral(input: GeneralOutputInput) {
-  const { candidateName, profession, structureScore, strengthLabel, suggestions, specific_recommendations, resumeExtraction } = input;
+  const { candidateName, profession, structureScore, strengthLabel, suggestions, specific_recommendations, specificEnhancements, resumeExtraction } = input;
 
   return {
     mode:           "general" as const,
@@ -98,8 +101,9 @@ export function buildOutputGeneral(input: GeneralOutputInput) {
 
     structure_score: Math.round(structureScore),
 
-    suggestions_pt_br:       suggestions,
+    suggestions_pt_br:        suggestions,
     specific_recommendations: specific_recommendations,
+    specific_enhancements:    specificEnhancements,
 
     raw_extraction: {
       resume_skills:             resumeExtraction.resume_skills,

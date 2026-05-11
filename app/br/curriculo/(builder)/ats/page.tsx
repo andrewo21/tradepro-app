@@ -17,6 +17,7 @@ interface ATSResult {
   skills_missing?: string[];
   suggestions_pt_br: string[];
   specific_recommendations?: string[];
+  specific_enhancements?: string[];
   profession?: string | null;
 }
 
@@ -247,6 +248,21 @@ export default function BrATSStepPage() {
                   <ul className="space-y-1">{result.skills_missing.map((s, i) => <li key={i} className="text-xs text-amber-700">• {s}</li>)}</ul>
                 </div>
               ) : null}
+            </div>
+          )}
+
+          {/* Specific enhancements — deterministic, quantified */}
+          {result.specific_enhancements?.length > 0 && (
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-5">
+              <h3 className="font-semibold text-blue-900 mb-1 text-sm">📈 Melhorias Específicas</h3>
+              <p className="text-xs text-blue-700 mb-3">Ações concretas com impacto estimado na sua pontuação.</p>
+              <ul className="space-y-2">
+                {result.specific_enhancements.map((s, i) => (
+                  <li key={i} className="flex gap-2 text-sm text-blue-900">
+                    <span className="flex-shrink-0 mt-0.5">•</span>{s}
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
 

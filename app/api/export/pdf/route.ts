@@ -328,6 +328,21 @@ function drawATSReport(doc: any, data: any) {
     }
   }
 
+  // Specific enhancements (deterministic, quantified)
+  if (data.specific_enhancements?.length) {
+    if (y + 80 > doc.page.height - 60) { doc.addPage(); y = 50; }
+    doc.moveTo(L, y).lineTo(R, y).lineWidth(0.5).stroke("#d1d5db"); y += 14;
+    doc.font("Helvetica-Bold").fontSize(12).fillColor("#1d4ed8").text("📈 Melhorias Específicas", L, y); y = doc.y + 4;
+    doc.font("Helvetica").fontSize(9).fillColor("#6b7280")
+      .text("Ações concretas com impacto estimado na sua pontuação.", L, y, { width: CW }); y = doc.y + 8;
+    data.specific_enhancements.forEach((s: string) => {
+      if (y + 35 > doc.page.height - 60) { doc.addPage(); y = 50; }
+      doc.circle(L + 4, y + 5, 2).fill("#1d4ed8");
+      doc.font("Helvetica").fontSize(10).fillColor("#374151").text(s, L + 13, y, { width: CW - 13, lineGap: 2 });
+      y = doc.y + 8;
+    });
+  }
+
   // Profession-specific recommendations
   if (data.specific_recommendations?.length) {
     if (y + 80 > doc.page.height - 60) { doc.addPage(); y = 50; }

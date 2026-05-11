@@ -17,6 +17,7 @@ interface ATSResult {
   skills_missing?: string[];
   suggestions_pt_br: string[];
   specific_recommendations?: string[];
+  specific_enhancements?: string[];
   profession?: string | null;
   raw_extraction?: any;
 }
@@ -332,6 +333,21 @@ export default function AdminATSPage() {
                       </ul>
                     </div>
                   ) : null}
+                </div>
+              )}
+
+              {/* Specific enhancements */}
+              {result.specific_enhancements?.length > 0 && (
+                <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5 shadow-sm">
+                  <h3 className="font-semibold text-blue-900 text-sm mb-1">📈 Melhorias Específicas</h3>
+                  <p className="text-xs text-blue-700 mb-3">Ações concretas com impacto estimado na pontuação.</p>
+                  <ul className="space-y-2">
+                    {result.specific_enhancements.map((s, i) => (
+                      <li key={i} className="flex gap-2 text-sm text-blue-900">
+                        <span className="flex-shrink-0">•</span>{s}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               )}
 

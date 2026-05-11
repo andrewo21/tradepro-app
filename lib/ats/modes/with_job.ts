@@ -9,6 +9,7 @@ import { computeStructureScore } from "../scoring/structure_score";
 import { computeSkillsCoverage } from "../scoring/skills_coverage";
 import { computeSemanticMatch }  from "../scoring/semantic_match";
 import { computeFinalScore }     from "../scoring/final_score";
+import { computeSpecificEnhancements } from "../scoring/specific_enhancements";
 import { generateSuggestionsWithJob } from "./suggestions";
 import { buildOutputWithJob }    from "../output/build_output_json";
 
@@ -50,6 +51,15 @@ export async function runWithJob(client: OpenAI, input: WithJobInput) {
     structureResult.score
   );
 
+  // ── Step 7b: Specific enhancements — pure deterministic, no AI ───────────
+  const specificEnhancements = computeSpecificEnhancements({
+    resumeExtraction,
+    mode: "with_job",
+    jobExtraction,
+    skillsMissing: skillsCoverage.skills_missing,
+    skillsFound:   skillsCoverage.skills_found,
+  });
+
   // ── Step 8: Suggestions (AI for natural language only, scores are input) ──
   const suggestions = await generateSuggestionsWithJob(client, {
     finalScore:      finalResult.final_ats_score,
@@ -65,12 +75,13 @@ export async function runWithJob(client: OpenAI, input: WithJobInput) {
   return buildOutputWithJob({
     candidateName, jobTitle, companyName, date,
     finalResult,
-    skillsCoverageScore: skillsCoverage.score,
-    semanticMatchScore:  semanticMatch.score,
-    structureScore:      structureResult.score,
-    skillsFound:         skillsCoverage.skills_found,
-    skillsMissing:       skillsCoverage.skills_missing,
+    skillsCoverageScore:  skillsCoverage.score,
+    semanticMatchScore:   semanticMatch.score,
+    structureScore:       structureResult.score,
+    skillsFound:          skillsCoverage.skills_found,
+    skillsMissing:        skillsCoverage.skills_missing,
     suggestions,
+    specificEnhancements,
     resumeExtraction,
     jobExtraction,
   });
