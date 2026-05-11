@@ -40,7 +40,9 @@ export const useBrResumeStore = create<any>()(
         foto: "", // base64 or URL
       },
       resumoProfissional: "",
-      habilidades: [],
+      habilidadesTecnicas: [],   // Habilidades Técnicas (ferramentas, sistemas, certificações)
+      habilidadesComportamentais: [], // Habilidades Comportamentais (soft skills)
+      habilidades: [],           // kept for backwards compat migration
       experiencia: [createExperience()],
       formacao: [{ instituicao: "", curso: "", anoConclusao: "", tipo: "Técnico" }],
       cursosCertificacoes: [{ nome: "", instituicao: "", ano: "" }],
@@ -57,21 +59,52 @@ export const useBrResumeStore = create<any>()(
 
       updateResumo: (text: string) => set({ resumoProfissional: text }),
 
+      // Legacy habilidades actions (kept for compat)
       addHabilidade: () =>
         set((state: any) => ({
-          habilidades: [...state.habilidades, { text: "", suggestion: null, loading: false }],
+          habilidades: [...(state.habilidades || []), { text: "", suggestion: null, loading: false }],
         })),
-
       updateHabilidade: (index: number, text: string) =>
         set((state: any) => {
-          const h = [...state.habilidades];
+          const h = [...(state.habilidades || [])];
           if (h[index]) h[index] = { ...h[index], text, suggestion: null };
           return { habilidades: h };
         }),
-
       removeHabilidade: (index: number) =>
         set((state: any) => ({
-          habilidades: state.habilidades.filter((_: any, i: number) => i !== index),
+          habilidades: (state.habilidades || []).filter((_: any, i: number) => i !== index),
+        })),
+
+      // Habilidades Técnicas actions
+      addHabilidadeTecnica: () =>
+        set((state: any) => ({
+          habilidadesTecnicas: [...(state.habilidadesTecnicas || []), { text: "", suggestion: null, loading: false }],
+        })),
+      updateHabilidadeTecnica: (index: number, text: string) =>
+        set((state: any) => {
+          const h = [...(state.habilidadesTecnicas || [])];
+          if (h[index]) h[index] = { ...h[index], text, suggestion: null };
+          return { habilidadesTecnicas: h };
+        }),
+      removeHabilidadeTecnica: (index: number) =>
+        set((state: any) => ({
+          habilidadesTecnicas: (state.habilidadesTecnicas || []).filter((_: any, i: number) => i !== index),
+        })),
+
+      // Habilidades Comportamentais actions
+      addHabilidadeComportamental: () =>
+        set((state: any) => ({
+          habilidadesComportamentais: [...(state.habilidadesComportamentais || []), { text: "", suggestion: null, loading: false }],
+        })),
+      updateHabilidadeComportamental: (index: number, text: string) =>
+        set((state: any) => {
+          const h = [...(state.habilidadesComportamentais || [])];
+          if (h[index]) h[index] = { ...h[index], text, suggestion: null };
+          return { habilidadesComportamentais: h };
+        }),
+      removeHabilidadeComportamental: (index: number) =>
+        set((state: any) => ({
+          habilidadesComportamentais: (state.habilidadesComportamentais || []).filter((_: any, i: number) => i !== index),
         })),
 
       addExperiencia: () =>
@@ -122,6 +155,8 @@ export const useBrResumeStore = create<any>()(
           },
           resumoProfissional: "",
           habilidades: [],
+          habilidadesTecnicas: [],
+          habilidadesComportamentais: [],
           experiencia: [createExperience()],
           formacao: [{ instituicao: "", curso: "", anoConclusao: "", tipo: "Técnico" }],
           cursosCertificacoes: [{ nome: "", instituicao: "", ano: "" }],
@@ -129,6 +164,20 @@ export const useBrResumeStore = create<any>()(
           premiumUnlocked: false,
         }),
     }),
-    { name: "br-resume-storage" }
+    {
+      name: "br-resume-storage",
+      version: 2,
+      migrate: (persisted: any, version: number) => {
+        if (version < 2) {
+          // Migrate old habilidades into habilidadesTecnicas
+          return {
+            ...persisted,
+            habilidadesTecnicas: persisted.habilidades || [],
+            habilidadesComportamentais: [],
+          };
+        }
+        return persisted;
+      },
+    }
   )
 );

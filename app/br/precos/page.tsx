@@ -32,7 +32,7 @@ function BrCheckoutButton({ userId, productId, label }: { userId: string; produc
   return (
     <div className="space-y-1">
       <button onClick={handleCheckout} disabled={loading}
-        className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg disabled:opacity-50 transition"
+        className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg disabled:opacity-50 transition text-lg"
       >
         {loading ? "Redirecionando..." : (label || ptBR.pricing.buyNow)}
       </button>
@@ -50,87 +50,55 @@ export default function BrazilPricingPage() {
   }, []);
 
   const t = ptBR.pricing;
+  const b = t.bundle;
 
   return (
     <div className="min-h-screen bg-neutral-100 text-neutral-900 flex flex-col">
       <main className="flex-1 w-full">
-        <div className="max-w-5xl mx-auto px-4 py-16 text-center">
+        <div className="max-w-lg mx-auto px-4 py-16 text-center">
 
           <Link href="/br" className="text-sm text-green-600 hover:underline mb-8 inline-block">← {ptBR.common.backHome}</Link>
 
-          <h1 className="text-3xl font-semibold mb-4">{ptBR.pricing.title}</h1>
-          <p className="text-neutral-700 mb-4 max-w-xl mx-auto">{ptBR.pricing.subtitle}</p>
-          <p className="text-sm text-green-700 font-medium mb-12 max-w-xl mx-auto">
-            Para eletricistas, encanadores, técnicos, motoristas, cozinheiros, seguranças, enfermeiros e qualquer profissional que trabalha de verdade.
-          </p>
+          <h1 className="text-3xl font-semibold mb-3">{ptBR.pricing.title}</h1>
+          <p className="text-neutral-600 mb-12 max-w-sm mx-auto">{ptBR.pricing.subtitle}</p>
 
-          <div className="grid gap-8 md:grid-cols-3 items-stretch">
+          {/* Single bundle card */}
+          <div className="relative bg-white border-2 border-green-500 rounded-2xl shadow-lg p-8 flex flex-col">
 
-            {/* Currículo Padrão */}
-            <div className="bg-white border border-neutral-300 rounded-lg shadow-sm p-6 sm:p-8 flex flex-col">
-              <h2 className="text-2xl font-semibold mb-2 min-h-[4rem] flex items-center justify-center text-center">{t.resume.name}</h2>
-              <p className="text-neutral-600 mb-6 text-center min-h-[3rem]">{t.resume.desc}</p>
-              <div className="flex items-center justify-center mb-6">
-                <div className="text-5xl font-bold">{t.resume.price}</div>
-              </div>
-              <ul className="text-left text-neutral-700 space-y-3 mb-8 flex-1">
-                {t.resume.features.map((f, i) => <li key={i}>• {f}</li>)}
-                {t.resume.notIncluded.map((f, i) => <li key={i} className="opacity-60">• {f}</li>)}
-              </ul>
-              <div className="mt-auto">
-                <BrCheckoutButton userId={userId} productId={BrProductId.RESUME} />
-              </div>
+            {/* Badge */}
+            <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+              <span className="bg-red-600 text-white text-xs font-bold px-4 py-1.5 rounded-full shadow">
+                🔥 {b.badge}
+              </span>
             </div>
 
-            {/* Carta de Apresentação */}
-            <div className="bg-white border border-neutral-300 rounded-lg shadow-sm p-6 sm:p-8 flex flex-col">
-              <h2 className="text-2xl font-semibold mb-2 min-h-[4rem] flex items-center justify-center text-center">{t.coverLetter.name}</h2>
-              <p className="text-neutral-600 mb-6 text-center min-h-[3rem]">{t.coverLetter.desc}</p>
-              <div className="flex items-center justify-center mb-6">
-                <div className="text-5xl font-bold">{t.coverLetter.price}</div>
-              </div>
-              <ul className="text-left text-neutral-700 space-y-3 mb-8 flex-1">
-                {t.coverLetter.features.map((f, i) => <li key={i}>• {f}</li>)}
-                {t.coverLetter.notIncluded.map((f, i) => <li key={i} className="opacity-60">• {f}</li>)}
-              </ul>
-              <div className="mt-auto">
-                <BrCheckoutButton userId={userId} productId={BrProductId.COVER_LETTER} />
+            <h2 className="text-2xl font-bold mb-2 mt-2">{b.name}</h2>
+            <p className="text-neutral-600 mb-6">{b.desc}</p>
+
+            {/* Price */}
+            <div className="flex items-center justify-center gap-4 mb-2">
+              <div className="text-6xl font-bold text-green-700">{b.price}</div>
+              <div className="text-left">
+                <div className="text-2xl text-neutral-400 line-through">{b.originalPrice}</div>
+                <div className="text-sm text-red-600 font-bold">Economize R$ 100</div>
               </div>
             </div>
+            <p className="text-sm text-neutral-500 mb-8">Pagamento único · Sem mensalidade · Sem renovação</p>
 
-            {/* Pacote Premium */}
-            <div className="relative mt-4 md:mt-0 flex flex-col">
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-green-600 text-white text-xs font-semibold px-3 py-1 rounded-full shadow">
-                {t.popular}
-              </div>
-              <div className="bg-white border-2 border-green-500 rounded-lg shadow-sm p-6 sm:p-8 flex flex-col flex-1">
-                <h2 className="text-2xl font-semibold mb-2 min-h-[4rem] flex items-center justify-center text-center">{t.bundle.name}</h2>
-                <p className="text-neutral-600 mb-3 text-center min-h-[3rem]">{t.bundle.desc}</p>
-                <div className="flex justify-center mb-3">
-                  <span className="bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full">
-                    🔥 Oferta por tempo limitado
-                  </span>
-                </div>
-                <div className="flex items-center justify-center gap-3 mb-1">
-                  <div className="text-5xl font-bold text-green-700">R$ 99</div>
-                  <div className="text-center">
-                    <div className="text-xl font-semibold text-neutral-400 line-through">R$ 149</div>
-                    <div className="text-xs text-red-600 font-bold">Economize R$ 50</div>
-                  </div>
-                </div>
-                <p className="text-center text-xs text-neutral-500 mb-4">Pagamento único · Sem mensalidade</p>
-                <ul className="text-left text-neutral-700 space-y-3 mb-8 flex-1">
-                  {t.bundle.features.map((f, i) => <li key={i}>• {f}</li>)}
-                </ul>
-                <div className="mt-auto">
-                  <BrCheckoutButton userId={userId} productId={BrProductId.BUNDLE} label={`${t.buyNow} — ${t.bundle.price}`} />
-                </div>
-              </div>
-            </div>
+            {/* Features */}
+            <ul className="text-left space-y-3 mb-8">
+              {b.features.map((f, i) => (
+                <li key={i} className="flex items-center gap-2 text-neutral-700">
+                  <span className="text-green-600 font-bold text-lg flex-shrink-0">✓</span>
+                  {f}
+                </li>
+              ))}
+            </ul>
 
+            <BrCheckoutButton userId={userId} productId={BrProductId.BUNDLE} />
           </div>
 
-          <p className="text-neutral-500 text-xs mt-10">{t.footer}</p>
+          <p className="text-neutral-400 text-xs mt-8">{t.footer}</p>
         </div>
       </main>
 

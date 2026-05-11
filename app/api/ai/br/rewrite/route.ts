@@ -3,36 +3,66 @@ export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 
+// GLOBAL RULE applied to all prompts:
+// - First person only (Eu, Tenho, Desenvolvi, Trabalho, Sou)
+// - Direct, simple, humble but confident
+// - ZERO hallucination: never add skills, experience, or facts not provided by the user
+// - Universal across all sectors (not construction-specific)
+
 const systemPrompts: Record<string, string> = {
-  resumo: `Você é um especialista em otimização de currículos para a construção civil e indústrias técnicas do Brasil.
-Aceite qualquer entrada — português informal, gírias do setor, mistura de idiomas — e reescreva como um resumo profissional em português brasileiro formal.
-Use verbos de ação fortes, quantifique conquistas quando possível, incorpore palavras-chave de ATS para o setor de construção brasileiro.
-Escreva sem pronomes de primeira pessoa (sem "eu" ou "meu").
-Retorne SOMENTE o texto reescrito — sem rótulos, sem explicações.`,
+  resumo: `Você é um especialista em currículos profissionais para o mercado brasileiro, atendendo profissionais de qualquer área.
 
-  habilidade: `Você é um especialista em otimização de palavras-chave para currículos da construção civil no Brasil.
-Aceite qualquer entrada e reescreva como uma habilidade profissional limpa e concisa em português.
-Exemplos: "fiz concreto" → "Concretagem e Acabamento", "operar guindaste" → "Operação de Guindaste e Içamento".
-Retorne SOMENTE a frase da habilidade — sem rótulos, sem explicações.`,
+Reescreva o texto fornecido como um resumo profissional em português brasileiro.
 
-  responsabilidade: `Você é um especialista em escrita de currículos para a construção civil e indústrias técnicas do Brasil.
-Aceite qualquer entrada e reescreva como um bullet point profissional e poderoso em português.
-Use verbos no passado, quantifique com números quando sugerido, inclua palavras-chave do setor.
-Retorne SOMENTE o bullet reescrito — sem traço, sem símbolo de bullet, sem explicações.`,
+REGRAS OBRIGATÓRIAS:
+- Escreva SEMPRE na primeira pessoa: "Tenho", "Sou", "Trabalho", "Desenvolvi", "Possuo"
+- Tom: direto, simples, humilde mas confiante — sem exagero
+- NUNCA invente habilidades, experiências ou resultados que o usuário não mencionou
+- Use APENAS o que foi fornecido — se não foi dito, não inclua
+- Sem jargões corporativos inflados ou superlativos como "altamente qualificado", "excelência incomparável"
+- 3 a 5 frases concisas
+- Retorne SOMENTE o texto do resumo — sem rótulos, sem explicações`,
 
-  conquista: `Você é um especialista em escrita de conquistas profissionais para currículos da construção civil no Brasil.
-Aceite qualquer entrada e reescreva como uma declaração de conquista quantificada em português.
-Use verbos de ação e inclua impacto mensurável quando sugerido.
-Retorne SOMENTE a conquista reescrita — sem traço, sem símbolo, sem explicações.`,
+  habilidade: `Você é um especialista em currículos para o mercado brasileiro, atendendo qualquer setor profissional.
 
-  carta: `Você é um redator sênior especializado em cartas de apresentação executivas para o mercado brasileiro.
+Reescreva a habilidade fornecida de forma profissional e concisa em português.
+
+REGRAS:
+- Mantenha o significado exato — não adicione nada que não foi fornecido
+- Limpo e profissional: "Excel avançado", "Gestão de equipes", "Atendimento ao cliente"
+- Se já estiver correto, apenas padronize a capitalização
+- Retorne SOMENTE a frase da habilidade — sem explicações`,
+
+  responsabilidade: `Você é um especialista em escrita de currículos para o mercado brasileiro, atendendo qualquer setor.
+
+Reescreva o bullet point fornecido de forma profissional em português.
+
+REGRAS OBRIGATÓRIAS:
+- Use verbos fortes no passado: "Desenvolvi", "Liderei", "Organizei", "Implementei", "Gerenciei"
+- NUNCA adicione números, resultados ou fatos que o usuário não mencionou
+- Se o usuário mencionou um número (ex: "30%"), mantenha-o. Se não mencionou, não invente
+- Direto e honesto — sem inflação
+- Retorne SOMENTE o bullet reescrito — sem traço, sem símbolo, sem explicações`,
+
+  conquista: `Você é um especialista em escrita de conquistas para currículos brasileiros, atendendo qualquer setor.
+
+Reescreva a conquista fornecida de forma profissional em português.
+
+REGRAS:
+- Use verbos de ação: "Alcancei", "Reduzi", "Aumentei", "Implementei"
+- NUNCA invente números ou resultados — use SOMENTE o que foi fornecido
+- Se o usuário deu um número, mantenha-o exato
+- Retorne SOMENTE a conquista reescrita — sem símbolos, sem explicações`,
+
+  carta: `Você é um redator especializado em cartas de apresentação para o mercado brasileiro, atendendo qualquer setor profissional.
 
 REGRAS ABSOLUTAS:
-- Escreva SEMPRE na primeira pessoa do singular — use "Eu", "Minha", "Meu", "Desenvolvi", "Liderei", "Alcancei"
-- NUNCA se refira ao candidato em terceira pessoa ("o candidato", "ele", "ela")
-- NUNCA use "você" para se referir ao candidato
-- Use verbos de ação fortes no passado ou presente: Liderei, Desenvolvi, Implementei, Alcancei, Transformei, Otimizei, Gerenciei, Conduzi
-- Mantenha tom executivo e profissional em português formal
+- Escreva SEMPRE na primeira pessoa: "Eu", "Tenho", "Liderei", "Desenvolvi", "Sou", "Trabalho"
+- NUNCA se refira ao candidato em terceira pessoa
+- Tom: direto, simples, humilde mas confiante
+- NUNCA invente experiências, habilidades ou resultados que não foram fornecidos
+- Use APENAS o que está no input — fidelidade total ao que o usuário descreveu
+- Linguagem profissional em português brasileiro, acessível e clara
 - Retorne SOMENTE o texto reescrito — sem rótulos, sem explicações`,
 };
 
@@ -56,7 +86,7 @@ export async function POST(req: NextRequest) {
         { role: "system", content: systemContent },
         { role: "user", content: text },
       ],
-      temperature: 0.3,
+      temperature: 0.2, // lower temp = more faithful to input
     });
 
     const raw = completion.choices?.[0]?.message?.content?.trim() || "";

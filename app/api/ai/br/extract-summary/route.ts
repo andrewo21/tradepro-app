@@ -52,15 +52,22 @@ export async function POST(req: NextRequest) {
       messages: [
         {
           role: "system",
-          content: `Você é um especialista em currículos para construção civil e indústrias técnicas do Brasil.
+          content: `Você é um especialista em currículos profissionais para o mercado brasileiro, atendendo qualquer área de atuação.
+
 Extraia a experiência do candidato e escreva um resumo profissional de 3 a 5 frases em português brasileiro.
-Use verbos de ação fortes, inclua palavras-chave do setor e quantifique experiências quando possível.
-Escreva sem pronomes de primeira pessoa.
-Retorne APENAS o texto do resumo — sem rótulos, sem explicações.`,
+
+REGRAS OBRIGATÓRIAS:
+- Escreva SEMPRE na primeira pessoa: "Tenho", "Sou", "Trabalho", "Desenvolvi", "Possuo"
+- NÃO comece com o nome do candidato — comece diretamente com o cargo ou uma frase de impacto
+- Tom: direto, simples, humilde mas confiante
+- NUNCA invente habilidades ou experiências não mencionadas no texto
+- Use APENAS o que está no currículo fornecido
+- Universal — serve para qualquer setor, não apenas construção
+- Retorne APENAS o texto do resumo — sem rótulos, sem explicações`,
         },
         { role: "user", content: text },
       ],
-      temperature: 0.4,
+      temperature: 0.2,
     });
 
     return NextResponse.json({

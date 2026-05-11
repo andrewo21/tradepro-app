@@ -91,7 +91,10 @@ export default function BrPreviewPage() {
       linkedin: store.personalInfo.linkedin || "",
     },
     summary: store.resumoProfissional || "",
-    skills: (store.habilidades || []).map((h: any) => h.text || h).filter(Boolean),
+    skills: [
+      ...(store.habilidadesTecnicas || store.habilidades || []).map((h: any) => h.text || h),
+    ].filter(Boolean),
+    softSkills: (store.habilidadesComportamentais || []).map((h: any) => h.text || h).filter(Boolean),
     experience: (store.experiencia || []).map((exp: any) => ({
       jobTitle: exp.cargo || "",
       company: exp.empresa || "",

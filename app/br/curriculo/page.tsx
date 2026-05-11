@@ -17,19 +17,17 @@ import BrTecnicoModerno from "@/components/templates/brazil/BrTecnicoModerno";
 import BrPremiumDourado from "@/components/templates/brazil/BrPremiumDourado";
 import BrMinimalistaBR from "@/components/templates/brazil/BrMinimalistaBR";
 
-// 4 standard + 5 premium = 9 total
+// All 9 templates included — no standard vs premium distinction
 const TEMPLATES = [
-  // STANDARD (included with R$79)
-  { key: "br-moderno-azul", name: "Moderno Azul", premium: false, component: BrModernoAzul },
-  { key: "br-clasico-profissional", name: "Clássico Profissional", premium: false, component: BrClasicoProfissional },
-  { key: "br-verde-tecnico", name: "Verde Técnico", premium: false, component: BrVerdeTecnico },
-  { key: "br-simples-direto", name: "Simples & Direto", premium: false, component: BrSimplesDirecto },
-  // PREMIUM (bundle only — R$149)
-  { key: "br-executivo-verde", name: "Executivo Verde", premium: true, component: BrExecutivoVerde },
-  { key: "br-construcao-bold", name: "Construção Bold", premium: true, component: BrConstrucaoBold },
-  { key: "br-tecnico-moderno", name: "Técnico Moderno", premium: true, component: BrTecnicoModerno },
-  { key: "br-premium-dourado", name: "Premium Dourado", premium: true, component: BrPremiumDourado },
-  { key: "br-minimalista-br", name: "Minimalista BR", premium: true, component: BrMinimalistaBR },
+  { key: "br-moderno-azul", name: "Moderno Azul", component: BrModernoAzul },
+  { key: "br-clasico-profissional", name: "Clássico Profissional", component: BrClasicoProfissional },
+  { key: "br-verde-tecnico", name: "Verde Técnico", component: BrVerdeTecnico },
+  { key: "br-simples-direto", name: "Simples & Direto", component: BrSimplesDirecto },
+  { key: "br-executivo-verde", name: "Executivo Verde", component: BrExecutivoVerde },
+  { key: "br-construcao-bold", name: "Construção Bold", component: BrConstrucaoBold },
+  { key: "br-tecnico-moderno", name: "Técnico Moderno", component: BrTecnicoModerno },
+  { key: "br-premium-dourado", name: "Premium Dourado", component: BrPremiumDourado },
+  { key: "br-minimalista-br", name: "Minimalista BR", component: BrMinimalistaBR },
 ];
 
 const SAMPLE_DATA = {
@@ -114,41 +112,33 @@ export default function BrCurriculoSelectPage() {
               >
                 <div className="flex justify-between items-center">
                   <h3 className="text-base font-semibold text-neutral-900">{t.name}</h3>
-                  <span className={`text-xs font-semibold px-2 py-1 rounded ${
-                    t.premium ? "bg-yellow-100 text-yellow-700" : "bg-green-100 text-green-700"
-                  }`}>
-                    {t.premium ? "Premium" : "Padrão"}
+                  <span className="text-xs font-semibold px-2 py-1 rounded bg-green-100 text-green-700">
+                    Incluído
                   </span>
                 </div>
                 <p className="text-neutral-500 text-xs mt-1">Clique para visualizar à direita</p>
               </button>
 
-              {/* Action buttons — always visible */}
+              {/* Action buttons */}
               <div className="px-4 pb-4 flex gap-2 flex-wrap">
                 {/* WhatsApp — operator model */}
-                <a
-                  href={waLink(t.name)}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <a href={waLink(t.name)} target="_blank" rel="noopener noreferrer"
                   className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white transition hover:opacity-90"
-                  style={{ backgroundColor: "#25D366" }}
-                >
+                  style={{ backgroundColor: "#25D366" }}>
                   <svg viewBox="0 0 32 32" className="w-4 h-4" fill="white">
                     <path d="M16 2C8.268 2 2 8.268 2 16c0 2.444.658 4.733 1.805 6.7L2 30l7.5-1.775A13.93 13.93 0 0 0 16 30c7.732 0 14-6.268 14-14S23.732 2 16 2zm0 25.5a11.43 11.43 0 0 1-5.82-1.593l-.418-.247-4.453 1.053 1.09-4.322-.274-.44A11.432 11.432 0 0 1 4.5 16C4.5 9.649 9.649 4.5 16 4.5S27.5 9.649 27.5 16 22.351 27.5 16 27.5zm6.29-8.47c-.345-.173-2.04-1.005-2.355-1.12-.315-.115-.545-.172-.774.173-.23.345-.89 1.12-1.09 1.348-.2.23-.4.258-.745.086-.345-.172-1.457-.537-2.775-1.713-1.025-.916-1.717-2.047-1.917-2.392-.2-.345-.021-.532.15-.703.154-.154.345-.4.518-.6.172-.2.23-.345.345-.575.115-.23.057-.43-.029-.603-.086-.172-.774-1.866-1.06-2.555-.28-.67-.564-.58-.774-.59-.2-.01-.43-.012-.66-.012-.23 0-.603.086-.918.43-.315.345-1.205 1.177-1.205 2.869s1.233 3.328 1.405 3.557c.172.23 2.427 3.71 5.88 5.204.822.355 1.463.567 1.963.725.824.263 1.575.226 2.168.137.66-.099 2.04-.834 2.327-1.638.287-.805.287-1.494.2-1.638-.085-.143-.315-.23-.66-.4z"/>
                   </svg>
                   Quero esse modelo
                 </a>
 
-                {/* Self-serve purchase */}
                 {!hasAccess && (
                   <Link href="/br/precos"
                     className="px-4 py-2 rounded-lg text-sm font-medium border border-green-600 text-green-700 hover:bg-green-50 transition">
-                    Fazer eu mesmo — {t.premium ? "R$ 99" : "R$ 79"}
+                    Fazer eu mesmo — R$ 49
                   </Link>
                 )}
                 {hasAccess && (
-                  <button
-                    onClick={() => { setField("selectedTemplate", t.key); router.push("/br/curriculo/pessoal"); }}
+                  <button onClick={() => { setField("selectedTemplate", t.key); router.push("/br/curriculo/pessoal"); }}
                     className="px-4 py-2 rounded-lg text-sm font-medium border border-green-600 text-green-700 hover:bg-green-50 transition">
                     Usar este modelo →
                   </button>
