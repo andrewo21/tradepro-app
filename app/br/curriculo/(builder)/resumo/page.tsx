@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useBrResumeStore } from "@/app/store/useBrResumeStore";
 import Link from "next/link";
-import JobMatchBR from "@/components/JobMatchBR";
 
 export default function BrResumoPage() {
   const { resumoProfissional, updateResumo } = useBrResumeStore();
@@ -38,13 +37,13 @@ export default function BrResumoPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
-      <p className="text-sm text-neutral-500 mb-1">Passo 5 de 6 — Resumo Profissional</p>
+      <p className="text-sm text-neutral-500 mb-1">Passo 5 de 7 — Resumo Profissional</p>
       <h1 className="text-2xl font-semibold mb-2">Resumo Profissional</h1>
       <p className="text-sm text-neutral-500 mb-6">Escreva em português informal, gíria ou mistura de idiomas. A IA vai melhorar automaticamente enquanto você digita.</p>
 
       <textarea
         className="w-full border rounded-xl px-4 py-3 text-sm h-40 resize-none focus:ring-2 focus:ring-green-500 focus:outline-none"
-        placeholder="ex: Trabalho com elétrica há 10 anos, instalei painel, fiz quadro, conheço NR-10, já fui encarregado de equipe de 8 pessoas..."
+        placeholder="ex: Trabalho com marketing há 3 anos, gerencio redes sociais, faço campanhas no Instagram e TikTok..."
         value={local}
         onChange={e => { setLocal(e.target.value); if (suggestion) setSuggestion(null); updateResumo(e.target.value); }}
       />
@@ -73,12 +72,7 @@ export default function BrResumoPage() {
         </div>
       )}
 
-      {/* Job Match Optimizer em Português */}
-      <div className="mt-6">
-        <JobMatchBR />
-      </div>
-
-      <div className="flex justify-between mt-6">
+      <div className="flex justify-between mt-8">
         <Link href="/br/curriculo/formacao" className="px-6 py-2 bg-neutral-200 rounded-lg text-sm hover:bg-neutral-300">← Passo 4</Link>
         <Link href="/br/curriculo/ats" className="px-6 py-2 bg-green-700 text-white rounded-lg text-sm font-medium hover:bg-green-800">Passo 6: Análise ATS →</Link>
       </div>

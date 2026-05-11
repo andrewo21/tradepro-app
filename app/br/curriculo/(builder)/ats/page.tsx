@@ -24,6 +24,13 @@ function labelStyle(label: string) {
   return { ring: "border-red-400", bg: "bg-red-50", color: "text-red-700", bar: "#dc2626" };
 }
 
+/** Safely extract text from a skill/bullet item — never returns [object Object] */
+function txt(item: any): string {
+  if (typeof item === "string") return item.trim();
+  if (item && typeof item.text === "string") return item.text.trim();
+  return "";
+}
+
 /** Build a plain-text representation of the resume from the BR store */
 function buildResumeText(store: any): string {
   const p = store.personalInfo || {};
@@ -31,37 +38,42 @@ function buildResumeText(store: any): string {
 
   const name = [p.nome, p.sobrenome].filter(Boolean).join(" ");
   if (name) parts.push(`Nome: ${name}`);
-  if (p.tituloProfissional) parts.push(`Cargo atual: ${p.tituloProfissional}`);
+  if (p.tituloProfissional) parts.push(`Cargo: ${p.tituloProfissional}`);
   if (p.cidade || p.estado) parts.push(`Localização: ${[p.cidade, p.estado].filter(Boolean).join(", ")}`);
 
   if (store.resumoProfissional?.trim()) {
-    parts.push(`\nResumo Profissional:\n${store.resumoProfissional}`);
+    parts.push(`\nResumo Profissional:\n${store.resumoProfissional.trim()}`);
   }
 
-  const tecnicas = (store.habilidadesTecnicas || []).map((h: any) => h.text || h).filter(Boolean);
-  const comportamentais = (store.habilidadesComportamentais || []).map((h: any) => h.text || h).filter(Boolean);
-  const idiomas = (store.idiomas || []).map((h: any) => h.text || h).filter(Boolean);
+  const tecnicas = (store.habilidadesTecnicas || store.habilidades || []).map(txt).filter(Boolean);
+  const comportamentais = (store.habilidadesComportamentais || []).map(txt).filter(Boolean);
+  const idiomas = (store.idiomas || []).map(txt).filter(Boolean);
   if (tecnicas.length) parts.push(`\nHabilidades Técnicas: ${tecnicas.join(", ")}`);
   if (comportamentais.length) parts.push(`Habilidades Comportamentais: ${comportamentais.join(", ")}`);
   if (idiomas.length) parts.push(`Idiomas: ${idiomas.join(", ")}`);
 
-  if (store.experiencia?.length) {
+  const experiencia = (store.experiencia || []).filter((e: any) => e.cargo || e.empresa);
+  if (experiencia.length) {
     parts.push("\nExperiência Profissional:");
-    store.experiencia.forEach((exp: any) => {
+    experiencia.forEach((exp: any) => {
       const dates = [exp.dataInicio, exp.dataFim].filter(Boolean).join(" – ");
-      parts.push(`${exp.cargo} | ${exp.empresa}${dates ? ` (${dates})` : ""}`);
-      if (exp.roleSummary) parts.push(exp.roleSummary);
+      if (exp.cargo || exp.empresa) {
+        parts.push(`${exp.cargo || ""}${exp.empresa ? " | " + exp.empresa : ""}${dates ? " (" + dates + ")" : ""}`);
+      }
+      if (exp.roleSummary?.trim()) parts.push(exp.roleSummary.trim());
       (exp.responsabilidades || []).forEach((r: any) => {
-        const text = r.text || r;
-        if (text) parts.push(`• ${text}`);
+        const t = txt(r);
+        if (t) parts.push(`• ${t}`);
       });
     });
   }
 
-  if (store.formacao?.length) {
+  const formacao = (store.formacao || []).filter((f: any) => f.curso || f.instituicao);
+  if (formacao.length) {
     parts.push("\nFormação:");
-    store.formacao.forEach((f: any) => {
-      parts.push(`${f.curso} — ${f.instituicao}`);
+    formacao.forEach((f: any) => {
+      const line = [f.curso, f.instituicao].filter(Boolean).join(" — ");
+      if (line) parts.push(line);
     });
   }
 

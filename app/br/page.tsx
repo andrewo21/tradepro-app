@@ -270,17 +270,12 @@ export default function BrazilHomePage() {
             ))}
           </div>
 
-          <div className="text-center flex flex-col sm:flex-row gap-3 justify-center">
-            <Link href="/br/ats"
-              className="inline-block px-8 py-3 bg-green-700 text-white font-semibold rounded-xl hover:bg-green-800 transition shadow-md">
-              Analisar meu currículo agora →
-            </Link>
+          <div className="text-center">
             <Link href="/br/curriculo"
-              className="inline-block px-8 py-3 border border-green-700 text-green-700 font-semibold rounded-xl hover:bg-green-50 transition">
-              Criar novo currículo
+              className="inline-block px-8 py-3 bg-green-700 text-white font-semibold rounded-xl hover:bg-green-800 transition shadow-md">
+              Criar meu currículo →
             </Link>
           </div>
-          <p className="text-xs text-neutral-400 mt-3 text-center">A análise ATS está incluída no pacote R$ 49</p>
         </div>
       </section>
 
@@ -319,14 +314,9 @@ export default function BrazilHomePage() {
             </p>
           </div>
 
-          <p className="text-lg font-medium text-neutral-900 mb-6">
+          <p className="text-lg font-medium text-neutral-900">
             Incluído automaticamente no seu pacote — sem assinatura, sem mensalidade.
           </p>
-
-          <Link href="/br/ats"
-            className="inline-block px-8 py-3 bg-green-700 text-white font-semibold rounded-xl hover:bg-green-800 transition shadow-md">
-            Testar análise ATS agora →
-          </Link>
         </div>
       </section>
 
