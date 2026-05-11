@@ -100,7 +100,7 @@ REGRAS OBRIGATÓRIAS:
 - NUNCA invente habilidades ou experiências que não estão nos dados
 - Seja construtivo e encorajador
 - Use linguagem direta: "Adicione...", "Tente incluir...", "Considere..."
-- Retorne: { "suggestions": ["sugestão 1", "sugestão 2", ...] }`,
+- Retorne um JSON com este formato: { "suggestions": ["sugestão 1", "sugestão 2", ...] }`,
       },
       { role: "user", content: context },
     ],
