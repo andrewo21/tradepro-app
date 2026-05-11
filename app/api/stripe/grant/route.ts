@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
         const customerEmail = session.customer_details?.email || session.customer_email || "";
         if (customerEmail) {
           const productName = PRODUCT_LABELS[productId] || productId;
-          schedulePostPurchaseEmails(customerEmail, productName, entitlements.coverLetter);
+          schedulePostPurchaseEmails(customerEmail, productName, entitlements.coverLetter, productId);
         }
       }
     } catch (emailErr: any) {

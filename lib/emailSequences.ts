@@ -9,8 +9,9 @@ const FROM = {
 };
 
 const BASE_URL = "https://tradeprotech.ai";
+const BR_URL   = `${BASE_URL}/br`;
 
-// ── Email 1 — Welcome + Quick Win (send immediately) ─────────────────────────
+// ── Email 1 — Welcome (EN) ────────────────────────────────────────────────────
 
 export async function sendWelcomeEmail(customerEmail: string, productName: string) {
   if (!process.env.SENDGRID_API_KEY || !customerEmail) return;
@@ -18,7 +19,6 @@ export async function sendWelcomeEmail(customerEmail: string, productName: strin
 
   const isCoverLetter = productName.toLowerCase().includes("cover");
   const builderUrl = isCoverLetter ? `${BASE_URL}/cover-letter` : `${BASE_URL}/resume`;
-  const builderLabel = isCoverLetter ? "Cover Letter Builder" : "Resume Builder";
 
   await sgMail.send({
     to: customerEmail,
@@ -30,24 +30,57 @@ export async function sendWelcomeEmail(customerEmail: string, productName: strin
         <h1 style="font-size:22px;font-weight:700;margin-bottom:8px">Welcome to TradePro.</h1>
         <p style="color:#555;margin-bottom:4px">Thank you for your purchase. Your access is active and ready to use right now.</p>
         <p style="color:#555;margin-bottom:24px">Let's fix your resume in the next 10 minutes.</p>
-
         <a href="${builderUrl}" style="display:inline-block;background:#1a1a1a;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:600;margin-bottom:24px">
-          Start Building Your ${builderLabel === "Resume Builder" ? "Resume" : "Cover Letter"} →
+          Start Building Your Resume →
         </a>
-
         <h3 style="font-size:15px;font-weight:600;margin-bottom:12px">Here's how it works:</h3>
         <ol style="color:#555;padding-left:20px;line-height:1.8">
           <li>Fill in your work history — any language, any style.</li>
           <li>Let TradePro's AI rewrite it in clean, professional language.</li>
           <li>Download your new PDF and start applying.</li>
         </ol>
-
         <hr style="border:none;border-top:1px solid #eee;margin:28px 0" />
         <p style="font-size:12px;color:#999">Questions? Reply to this email or visit <a href="${BASE_URL}/contact" style="color:#555">tradeprotech.ai/contact</a>.</p>
         <p style="font-size:12px;color:#999">© ${new Date().getFullYear()} TradePro Technologies</p>
       </div>
     `,
-    text: `Welcome to TradePro!\n\nYour access is ready. Let's fix your resume in the next 10 minutes.\n\nStart here: ${builderUrl}\n\n1. Fill in your work history.\n2. Let TradePro rewrite it professionally.\n3. Download your PDF and apply.\n\nQuestions? Reply to this email.`,
+    text: `Welcome to TradePro!\n\nYour access is ready.\n\nStart here: ${builderUrl}\n\nQuestions? Reply to this email.`,
+  });
+}
+
+// ── Email 1 — Welcome (PT-BR) ─────────────────────────────────────────────────
+
+export async function sendWelcomeEmailPTBR(customerEmail: string) {
+  if (!process.env.SENDGRID_API_KEY || !customerEmail) return;
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+
+  const builderUrl = `${BR_URL}/curriculo`;
+
+  await sgMail.send({
+    to: customerEmail,
+    from: FROM,
+    subject: "Seu acesso à TradePro está ativo",
+    html: `
+      <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:24px;color:#1a1a1a">
+        <img src="${BASE_URL}/brand/Tradepro-logo.svg" alt="TradePro" style="width:180px;margin-bottom:24px" />
+        <h1 style="font-size:22px;font-weight:700;margin-bottom:8px">Bem-vindo à TradePro.</h1>
+        <p style="color:#555;margin-bottom:4px">Obrigado pela sua compra. Seu acesso está ativo e pronto para usar agora mesmo.</p>
+        <p style="color:#555;margin-bottom:24px">Vamos criar seu currículo nos próximos 10 minutos.</p>
+        <a href="${builderUrl}" style="display:inline-block;background:#166534;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:600;margin-bottom:24px">
+          Criar Meu Currículo Agora →
+        </a>
+        <h3 style="font-size:15px;font-weight:600;margin-bottom:12px">Como funciona:</h3>
+        <ol style="color:#555;padding-left:20px;line-height:1.8">
+          <li>Preencha sua experiência — pode ser informal, em português mesmo.</li>
+          <li>A IA da TradePro reescreve tudo em linguagem profissional.</li>
+          <li>Baixe seu currículo em PDF e comece a se candidatar.</li>
+        </ol>
+        <hr style="border:none;border-top:1px solid #eee;margin:28px 0" />
+        <p style="font-size:12px;color:#999">Dúvidas? Responda este e-mail ou acesse <a href="${BR_URL}/contato" style="color:#555">tradeprotech.ai/br/contato</a>.</p>
+        <p style="font-size:12px;color:#999">© ${new Date().getFullYear()} TradePro Technologies</p>
+      </div>
+    `,
+    text: `Bem-vindo à TradePro!\n\nSeu acesso está ativo.\n\nComeçar aqui: ${builderUrl}\n\nDúvidas? Responda este e-mail.`,
   });
 }
 
@@ -118,27 +151,63 @@ export async function sendDay5Email(customerEmail: string, hasCoverLetter: boole
   });
 }
 
+// ── Day 2 PT-BR ───────────────────────────────────────────────────────────────
+
+export async function sendDay2EmailPTBR(customerEmail: string) {
+  if (!process.env.SENDGRID_API_KEY || !customerEmail) return;
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+
+  await sgMail.send({
+    to: customerEmail,
+    from: FROM,
+    subject: "Seu currículo está quase pronto",
+    html: `
+      <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:24px;color:#1a1a1a">
+        <img src="${BASE_URL}/brand/Tradepro-logo.svg" alt="TradePro" style="width:180px;margin-bottom:24px" />
+        <h1 style="font-size:22px;font-weight:700;margin-bottom:8px">Você está quase lá.</h1>
+        <p style="color:#555;margin-bottom:16px">A maioria das pessoas para um passo antes de terminar. Quem termina é quem recebe as ligações.</p>
+        <p style="color:#555;margin-bottom:24px">Um currículo finalizado na caixa de entrada de um recrutador vale mais do que um perfeito que ainda está sendo editado.</p>
+        <a href="${BR_URL}/curriculo" style="display:inline-block;background:#166534;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:600;margin-bottom:24px">
+          Terminar Meu Currículo →
+        </a>
+        <p style="color:#777;font-size:13px">Leva menos de 10 minutos. Seu próximo emprego pode começar na próxima candidatura.</p>
+        <hr style="border:none;border-top:1px solid #eee;margin:28px 0" />
+        <p style="font-size:12px;color:#999">© ${new Date().getFullYear()} TradePro Technologies</p>
+      </div>
+    `,
+    text: `Você está quase lá.\n\nTermine seu currículo agora: ${BR_URL}/curriculo\n\nLeva menos de 10 minutos.`,
+  });
+}
+
 // ── Scheduler — queues Day 2 and Day 5 emails ────────────────────────────────
 // Uses setTimeout for serverless (fires async, non-blocking).
-// For production scale, replace with a proper queue (Upstash QStash, etc.)
+// Detects BR purchases by productId prefix "br_".
 
 export function schedulePostPurchaseEmails(
   customerEmail: string,
   productName: string,
-  hasCoverLetter: boolean
+  hasCoverLetter: boolean,
+  productId?: string
 ) {
   if (!customerEmail) return;
 
-  // Email 1 — immediate (non-blocking)
-  sendWelcomeEmail(customerEmail, productName).catch(console.error);
+  const isBrazil = !!(productId?.startsWith("br_") || productName.toLowerCase().includes("br_"));
 
-  // Email 2 — Day 2 (48 hours)
-  setTimeout(() => {
-    sendDay2Email(customerEmail).catch(console.error);
-  }, 48 * 60 * 60 * 1000);
-
-  // Email 3 — Day 5 (120 hours)
-  setTimeout(() => {
-    sendDay5Email(customerEmail, hasCoverLetter).catch(console.error);
-  }, 120 * 60 * 60 * 1000);
+  if (isBrazil) {
+    // PT-BR sequence
+    sendWelcomeEmailPTBR(customerEmail).catch(console.error);
+    setTimeout(() => {
+      sendDay2EmailPTBR(customerEmail).catch(console.error);
+    }, 48 * 60 * 60 * 1000);
+    // No Day 5 upsell for BR (single product)
+  } else {
+    // EN sequence
+    sendWelcomeEmail(customerEmail, productName).catch(console.error);
+    setTimeout(() => {
+      sendDay2Email(customerEmail).catch(console.error);
+    }, 48 * 60 * 60 * 1000);
+    setTimeout(() => {
+      sendDay5Email(customerEmail, hasCoverLetter).catch(console.error);
+    }, 120 * 60 * 60 * 1000);
+  }
 }
