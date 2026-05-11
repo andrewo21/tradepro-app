@@ -16,6 +16,8 @@ interface ATSResult {
   skills_found?: string[];
   skills_missing?: string[];
   suggestions_pt_br: string[];
+  specific_recommendations?: string[];
+  profession?: string | null;
   raw_extraction?: any;
 }
 
@@ -101,8 +103,9 @@ export default function AdminATSPage() {
     setLoading(true); setError(null); setResult(null);
 
     const payload: any = {
-      resumeText: profession.trim() ? `Profissão: ${profession}\n\n${resumeText}` : resumeText,
+      resumeText,
       candidateName: candidateName || null,
+      profession: profession.trim() || null,
       date,
     };
     if (useJob && jobText.trim()) payload.jobDescription = jobText;
@@ -332,15 +335,33 @@ export default function AdminATSPage() {
                 </div>
               )}
 
-              {/* Suggestions */}
+              {/* Profession-specific recommendations */}
+              {result.specific_recommendations?.length > 0 && (
+                <div className="bg-white border border-green-200 rounded-2xl p-5 shadow-sm">
+                  <h3 className="font-semibold text-neutral-800 text-sm mb-1">
+                    🎯 Para {result.profession || "a profissão"} — recomendações específicas
+                  </h3>
+                  <p className="text-xs text-neutral-500 mb-3">
+                    Comparando o currículo com o que é esperado para esta área no mercado.
+                  </p>
+                  <ol className="space-y-3">
+                    {result.specific_recommendations.map((s, i) => (
+                      <li key={i} className="flex gap-3 text-sm text-neutral-700">
+                        <span className="text-green-700 font-bold flex-shrink-0 w-5">{i + 1}.</span>{s}
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              )}
+
+              {/* General hints */}
               {result.suggestions_pt_br?.length > 0 && (
                 <div className="bg-white border rounded-2xl p-5 shadow-sm">
-                  <h3 className="font-semibold text-neutral-800 text-sm mb-3">💡 Sugestões para o cliente</h3>
+                  <h3 className="font-semibold text-neutral-800 text-sm mb-3">💡 Dicas gerais de estrutura</h3>
                   <ol className="space-y-3">
                     {result.suggestions_pt_br.map((s, i) => (
                       <li key={i} className="flex gap-3 text-sm text-neutral-700">
-                        <span className="text-green-700 font-bold flex-shrink-0 w-5">{i + 1}.</span>
-                        {s}
+                        <span className="text-neutral-400 font-bold flex-shrink-0 w-5">{i + 1}.</span>{s}
                       </li>
                     ))}
                   </ol>

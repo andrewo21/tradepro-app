@@ -328,14 +328,30 @@ function drawATSReport(doc: any, data: any) {
     }
   }
 
-  // Suggestions
+  // Profession-specific recommendations
+  if (data.specific_recommendations?.length) {
+    if (y + 80 > doc.page.height - 60) { doc.addPage(); y = 50; }
+    doc.moveTo(L, y).lineTo(R, y).lineWidth(0.5).stroke("#d1d5db"); y += 14;
+    const profLabel = data.profession ? `Para ${data.profession} — Recomendações Específicas` : "Recomendações Específicas";
+    doc.font("Helvetica-Bold").fontSize(12).fillColor("#111827").text(`🎯 ${profLabel}`, L, y); y = doc.y + 4;
+    doc.font("Helvetica").fontSize(9).fillColor("#6b7280")
+      .text("Comparando seu currículo com o que é esperado para esta área no mercado.", L, y, { width: CW }); y = doc.y + 8;
+    data.specific_recommendations.forEach((s: string, i: number) => {
+      if (y + 40 > doc.page.height - 60) { doc.addPage(); y = 50; }
+      doc.font("Helvetica-Bold").fontSize(10).fillColor(GREEN).text(`${i + 1}.`, L, y, { lineBreak: false });
+      doc.font("Helvetica").fontSize(10).fillColor("#374151").text(s, L + 18, y, { width: CW - 18, lineGap: 2 });
+      y = doc.y + 10;
+    });
+  }
+
+  // General structure hints
   if (data.suggestions_pt_br?.length) {
     if (y + 80 > doc.page.height - 60) { doc.addPage(); y = 50; }
     doc.moveTo(L, y).lineTo(R, y).lineWidth(0.5).stroke("#d1d5db"); y += 14;
-    doc.font("Helvetica-Bold").fontSize(12).fillColor("#111827").text("💡 Sugestões de Melhoria", L, y); y = doc.y + 8;
+    doc.font("Helvetica-Bold").fontSize(12).fillColor("#111827").text("💡 Dicas Gerais de Estrutura", L, y); y = doc.y + 8;
     data.suggestions_pt_br.forEach((s: string, i: number) => {
       if (y + 40 > doc.page.height - 60) { doc.addPage(); y = 50; }
-      doc.font("Helvetica-Bold").fontSize(10).fillColor(GREEN).text(`${i + 1}.`, L, y, { lineBreak: false });
+      doc.font("Helvetica-Bold").fontSize(10).fillColor("#6b7280").text(`${i + 1}.`, L, y, { lineBreak: false });
       doc.font("Helvetica").fontSize(10).fillColor("#374151")
         .text(s, L + 18, y, { width: CW - 18, lineGap: 2 });
       y = doc.y + 10;

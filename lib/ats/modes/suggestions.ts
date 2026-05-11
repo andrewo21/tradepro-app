@@ -53,34 +53,69 @@ export interface GeneralSuggestionInput {
   structureScore: number;
   penalties: string[];
   resumeExtraction: ResumeExtraction;
+  profession?: string | null;
+}
+
+export interface TieredSuggestions {
+  general:  string[];  // 3-4 general structure hints
+  specific: string[];  // 4-5 profession-specific resume recommendations
 }
 
 export async function generateSuggestionsGeneral(
   client: OpenAI,
   input: GeneralSuggestionInput
-): Promise<string[]> {
-  const { structureScore, penalties, resumeExtraction } = input;
+): Promise<TieredSuggestions> {
+  const { structureScore, penalties, resumeExtraction, profession } = input;
 
-  const contextLines = [
-    `Modo: avaliação geral de qualidade (sem vaga específica)`,
-    `Pontuação de estrutura: ${Math.round(structureScore)}/100`,
-    `Penalizações aplicadas: ${penalties.join("; ") || "nenhuma"}`,
+  // ── Tier 1: General structure hints ─────────────────────────────────────
+  const structureContext = [
+    `Avaliação de estrutura do currículo`,
+    `Pontuação: ${Math.round(structureScore)}/100`,
+    `Problemas encontrados: ${penalties.join("; ") || "nenhum"}`,
     `Tem resumo profissional: ${resumeExtraction.has_summary ? "sim" : "não"}`,
     `Tem seção de experiência: ${resumeExtraction.has_experience_section ? "sim" : "não"}`,
     `Tem seção de habilidades: ${resumeExtraction.has_skills_section ? "sim" : "não"}`,
     `Tem seção de formação: ${resumeExtraction.has_education_section ? "sim" : "não"}`,
-    `Número de bullets de experiência: ${resumeExtraction.bullet_point_count}`,
-    `Número de palavras: ${resumeExtraction.word_count}`,
-  ];
+    `Bullets de experiência: ${resumeExtraction.bullet_point_count}`,
+    `Palavras no currículo: ${resumeExtraction.word_count}`,
+  ].join("\n");
 
-  return callSuggestionsAI(client, contextLines.join("\n"));
+  const generalSuggestions = await callSuggestionsAI(client, structureContext, 3);
+
+  // ── Tier 2: Profession-specific recommendations ─────────────────────────
+  let specificSuggestions: string[] = [];
+  if (profession?.trim()) {
+    const prof = profession.trim();
+    const resumeSkills = resumeExtraction.resume_skills.slice(0, 10).join(", ") || "não listadas";
+    const resumeTitles = resumeExtraction.resume_titles.slice(0, 3).join(", ") || "não listados";
+    const bulletSample = resumeExtraction.resume_experience_bullets.slice(0, 4).join(" | ") || "nenhum";
+
+    const specificContext = [
+      `Profissão do candidato: ${prof}`,
+      `Habilidades que o candidato tem: ${resumeSkills}`,
+      `Cargos que o candidato teve: ${resumeTitles}`,
+      `Exemplos de bullets de experiência: ${bulletSample}`,
+      ``,
+      `Compare o que o candidato tem com o que profissionais de "${prof}" normalmente precisam apresentar no mercado de trabalho.`,
+      `Gere 4 a 5 recomendações específicas para ESTE currículo — não conselhos genéricos.`,
+      `Exemplos do tipo de recomendação esperada:`,
+      `- "Seu currículo menciona X mas não menciona Y — uma competência-chave para ${prof}"`,
+      `- "Adicione resultados mensuráveis às suas experiências como ${prof}, como percentuais ou volumes"`,
+      `- "Profissionais de ${prof} costumam destacar Z — considere incluir isso"`,
+    ].join("\n");
+
+    specificSuggestions = await callSuggestionsAI(client, specificContext, 5);
+  }
+
+  return { general: generalSuggestions, specific: specificSuggestions };
 }
 
 // ─── Shared AI call ────────────────────────────────────────────────────────────
 
 async function callSuggestionsAI(
   client: OpenAI,
-  context: string
+  context: string,
+  count: number = 4
 ): Promise<string[]> {
   const completion = await client.chat.completions.create({
     model: "gpt-4o",
@@ -90,16 +125,15 @@ async function callSuggestionsAI(
       {
         role: "system",
         content: `Você é um consultor de carreira especializado no mercado de trabalho brasileiro.
-Gere sugestões práticas de melhoria de currículo com base nos dados fornecidos.
+Gere exatamente ${count} sugestões práticas de melhoria de currículo com base nos dados fornecidos.
 
-REGRAS OBRIGATÓRIAS:
-- Escreva em português brasileiro, tom caloroso, simples e humano — nunca corporativo
-- Gere entre 3 e 6 sugestões específicas e acionáveis
-- Base CADA sugestão nos dados reais fornecidos — não invente problemas
+REGRAS:
+- Escreva em português brasileiro, tom direto e humano
+- Gere EXATAMENTE ${count} sugestões específicas e acionáveis
+- Base CADA sugestão nos dados reais fornecidos — não invente problemas que não existem
 - NUNCA afirme que o candidato já tem algo que não foi mencionado
 - NUNCA invente habilidades ou experiências que não estão nos dados
-- Seja construtivo e encorajador
-- Use linguagem direta: "Adicione...", "Tente incluir...", "Considere..."
+- Use linguagem direta: "Adicione...", "Considere...", "Seu currículo menciona X mas não Y..."
 - Retorne um JSON com este formato: { "suggestions": ["sugestão 1", "sugestão 2", ...] }`,
       },
       { role: "user", content: context },

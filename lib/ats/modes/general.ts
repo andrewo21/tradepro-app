@@ -11,10 +11,11 @@ import { buildOutputGeneral }    from "../output/build_output_json";
 export interface GeneralInput {
   resumeText: string;
   candidateName?: string | null;
+  profession?: string | null;  // used for industry-benchmark suggestions
 }
 
 export async function runGeneral(client: OpenAI, input: GeneralInput) {
-  const { resumeText, candidateName } = input;
+  const { resumeText, candidateName, profession } = input;
 
   // ── Step 1: Extract (AI allowed here only) ────────────────────────────────
   const resumeExtraction = await extractResumeData(client, resumeText);
@@ -25,19 +26,22 @@ export async function runGeneral(client: OpenAI, input: GeneralInput) {
   // ── Step 3: Strength label (from structure score in Mode B) ──────────────
   const strengthLabel = getStrengthLabel(structureResult.score);
 
-  // ── Step 4: Suggestions (AI for natural language only) ───────────────────
+  // ── Step 4: Two-tiered suggestions ────────────────────────────────────────
   const suggestions = await generateSuggestionsGeneral(client, {
     structureScore: structureResult.score,
     penalties:      structureResult.penalties,
     resumeExtraction,
+    profession:     profession || null,
   });
 
   // ── Step 5: Build structured output ──────────────────────────────────────
   return buildOutputGeneral({
     candidateName,
+    profession: profession || null,
     structureScore: structureResult.score,
     strengthLabel,
-    suggestions,
+    suggestions:              suggestions.general,
+    specific_recommendations: suggestions.specific,
     resumeExtraction,
   });
 }

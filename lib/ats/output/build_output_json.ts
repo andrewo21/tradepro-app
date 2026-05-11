@@ -77,25 +77,29 @@ export function buildOutputWithJob(input: WithJobOutputInput) {
 
 export interface GeneralOutputInput {
   candidateName?: string | null;
+  profession?: string | null;
   structureScore: number;
   strengthLabel: StrengthLabel;
   suggestions: string[];
+  specific_recommendations: string[];
   resumeExtraction: ResumeExtraction;
 }
 
 export function buildOutputGeneral(input: GeneralOutputInput) {
-  const { candidateName, structureScore, strengthLabel, suggestions, resumeExtraction } = input;
+  const { candidateName, profession, structureScore, strengthLabel, suggestions, specific_recommendations, resumeExtraction } = input;
 
   return {
     mode:           "general" as const,
     candidate_name: candidateName || null,
+    profession:     profession || null,
 
     final_ats_score: null,
     strength_label:  strengthLabel,
 
     structure_score: Math.round(structureScore),
 
-    suggestions_pt_br: suggestions,
+    suggestions_pt_br:       suggestions,
+    specific_recommendations: specific_recommendations,
 
     raw_extraction: {
       resume_skills:             resumeExtraction.resume_skills,

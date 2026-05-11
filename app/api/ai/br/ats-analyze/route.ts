@@ -24,6 +24,7 @@ export async function POST(req: NextRequest) {
       jobTitle,
       companyName,
       date,
+      profession,
     } = body;
 
     if (!resumeText?.trim()) {
@@ -49,10 +50,11 @@ export async function POST(req: NextRequest) {
       });
       return NextResponse.json(result);
     } else {
-      // MODE B — General strength analysis
+      // MODE B — General strength analysis with profession benchmark
       const result = await runGeneral(client, {
         resumeText:    resume,
         candidateName,
+        profession:    profession || null,
       });
       return NextResponse.json(result);
     }

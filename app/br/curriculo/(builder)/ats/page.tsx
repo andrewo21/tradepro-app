@@ -16,6 +16,8 @@ interface ATSResult {
   skills_found?: string[];
   skills_missing?: string[];
   suggestions_pt_br: string[];
+  specific_recommendations?: string[];
+  profession?: string | null;
 }
 
 function labelStyle(label: string) {
@@ -109,7 +111,11 @@ export default function BrATSStepPage() {
       return;
     }
 
-    const payload: any = { resumeText };
+    // Pass profession from store for industry benchmarking in general mode
+    const payload: any = {
+      resumeText,
+      profession: store.personalInfo?.tituloProfissional || null,
+    };
     if (mode === "with_job") payload.jobDescription = jobText;
 
     try {
@@ -244,14 +250,33 @@ export default function BrATSStepPage() {
             </div>
           )}
 
-          {/* Suggestions */}
+          {/* Profession-specific recommendations */}
+          {result.specific_recommendations?.length > 0 && (
+            <div className="bg-white border border-green-200 rounded-xl p-5">
+              <h3 className="font-semibold text-neutral-800 mb-1 text-sm">
+                🎯 Recomendações para {result.profession || "sua profissão"}
+              </h3>
+              <p className="text-xs text-neutral-500 mb-3">
+                O que profissionais da sua área costumam apresentar — comparado ao que está no seu currículo.
+              </p>
+              <ol className="space-y-3">
+                {result.specific_recommendations.map((s, i) => (
+                  <li key={i} className="flex gap-3 text-sm text-neutral-700">
+                    <span className="text-green-700 font-bold flex-shrink-0">{i + 1}.</span>{s}
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
+
+          {/* General structure hints */}
           {result.suggestions_pt_br?.length > 0 && (
             <div className="bg-white border border-neutral-200 rounded-xl p-5">
-              <h3 className="font-semibold text-neutral-800 mb-3 text-sm">💡 Sugestões de melhoria</h3>
+              <h3 className="font-semibold text-neutral-800 mb-3 text-sm">💡 Dicas gerais de estrutura</h3>
               <ol className="space-y-3">
                 {result.suggestions_pt_br.map((s, i) => (
                   <li key={i} className="flex gap-3 text-sm text-neutral-700">
-                    <span className="text-green-700 font-bold flex-shrink-0">{i + 1}.</span>{s}
+                    <span className="text-neutral-400 font-bold flex-shrink-0">{i + 1}.</span>{s}
                   </li>
                 ))}
               </ol>
