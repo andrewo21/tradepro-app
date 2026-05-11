@@ -343,18 +343,16 @@ function drawATSReport(doc: any, data: any) {
     });
   }
 
-  // Role recommendations
-  if ((data.role_recommendations_pt_br || data.specific_recommendations)?.length) {
-    data.specific_recommendations = data.role_recommendations_pt_br || data.specific_recommendations;
-  }
-  if (data.specific_recommendations?.length) {
+  // Role recommendations (accepts both field names)
+  const roleRecs = data.role_recommendations_pt_br || data.specific_recommendations || [];
+  if (roleRecs.length) {
     if (y + 80 > doc.page.height - 60) { doc.addPage(); y = 50; }
     doc.moveTo(L, y).lineTo(R, y).lineWidth(0.5).stroke("#d1d5db"); y += 14;
     const profLabel = data.profession ? `Para ${data.profession} — Recomendações Específicas` : "Recomendações Específicas";
     doc.font("Helvetica-Bold").fontSize(12).fillColor("#111827").text(`🎯 ${profLabel}`, L, y); y = doc.y + 4;
     doc.font("Helvetica").fontSize(9).fillColor("#6b7280")
       .text("Comparando seu currículo com o que é esperado para esta área no mercado.", L, y, { width: CW }); y = doc.y + 8;
-    data.specific_recommendations.forEach((s: string, i: number) => {
+    roleRecs.forEach((s: string, i: number) => {
       if (y + 40 > doc.page.height - 60) { doc.addPage(); y = 50; }
       doc.font("Helvetica-Bold").fontSize(10).fillColor(GREEN).text(`${i + 1}.`, L, y, { lineBreak: false });
       doc.font("Helvetica").fontSize(10).fillColor("#374151").text(s, L + 18, y, { width: CW - 18, lineGap: 2 });

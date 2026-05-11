@@ -145,7 +145,10 @@ export default function AdminATSPage() {
           semantic_match_score: result.semantic_match_score,
           skills_found: result.skills_found || [],
           skills_missing: result.skills_missing || [],
-          suggestions_pt_br: result.suggestions_pt_br || [],
+          suggestions_pt_br:          result.suggestions_pt_br || [],
+          specific_enhancements:      result.specific_enhancements || [],
+          role_recommendations_pt_br: result.role_recommendations_pt_br || [],
+          profession:                 profession || null,
         }),
       });
       if (!res.ok) {
