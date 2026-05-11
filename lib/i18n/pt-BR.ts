@@ -29,7 +29,7 @@ export const ptBR = {
       title: "O que os profissionais estão dizendo",
       items: [
         { text: "A TradePro me ajudou a transformar minha experiência em um currículo do qual me orgulho.", author: "Juan, Analista de Marketing" },
-        { text: "Simples, honesto e profissional. Finalmente um currículo que representa quem eu realmente sou.", author: "Carla, Enfermeira" },
+        { text: "Para mim, a experiência do cliente é a parte mais importante de qualquer serviço — e a sua é excepcional. Esse trabalho pode ajudar muita gente que não sabe como criar um bom currículo ou apresentação.", author: "Carla, Enfermeira" },
         { text: "Fácil de usar e o resultado ficou incrível. Consegui entrevista na primeira semana.", author: "Paulo, Técnico em TI" },
       ],
     },
