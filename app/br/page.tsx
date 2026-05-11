@@ -312,11 +312,9 @@ export default function BrazilHomePage() {
 
           <div className="bg-neutral-50 border border-neutral-200 p-6 rounded-2xl shadow-sm mb-10 max-w-2xl mx-auto">
             <p className="text-lg font-semibold text-neutral-900 leading-relaxed">
-              Catho não oferece.<br />
-              Trampos não oferece.<br />
-              Gupy não oferece.<br />
+              Você não vai encontrar essa ferramenta em nenhum outro lugar.<br />
               <span className="text-green-700 font-bold">
-                Só a TradePro entrega uma análise ATS completa — feita para o Brasil.
+                A análise ATS completa para o mercado brasileiro — exclusiva da TradePro Technologies.
               </span>
             </p>
           </div>
