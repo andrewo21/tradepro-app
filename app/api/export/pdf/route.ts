@@ -235,11 +235,125 @@ function estimateCardHeight(project: any): number {
   return 90 + (scopeLines * 11) + (highlights * 12);
 }
 
+// ── ATS Report PDF ─────────────────────────────────────────────────────────────
+function drawATSReport(doc: any, data: any) {
+  const W = doc.page.width;
+  const L = 50; const R = W - 50; const CW = R - L;
+  const GREEN = "#166534"; const LIGHT_GREEN = "#dcfce7";
+  const AMBER = "#d97706"; const RED = "#dc2626";
+
+  function scoreColor(label: string) {
+    if (label === "Forte") return GREEN;
+    if (label === "Mediano") return AMBER;
+    return RED;
+  }
+  const SC = scoreColor(data.strength_label);
+
+  // Header bar
+  doc.rect(0, 0, W, 72).fill(GREEN);
+  doc.fillColor("white").font("Helvetica-Bold").fontSize(18)
+    .text("Relatório de Análise ATS", L, 18);
+  doc.font("Helvetica").fontSize(10).fillColor("#bbf7d0")
+    .text("TradePro Technologies — Brasil", L, 42);
+  if (data.date) doc.text(data.date, R - 60, 42);
+
+  let y = 90;
+
+  // Candidate info
+  if (data.candidateName) {
+    doc.font("Helvetica-Bold").fontSize(14).fillColor("#111827")
+      .text(data.candidateName, L, y);
+    y = doc.y + 3;
+  }
+  if (data.profession) {
+    doc.font("Helvetica").fontSize(11).fillColor("#6b7280").text(data.profession, L, y);
+    y = doc.y + 6;
+  }
+  doc.font("Helvetica").fontSize(10).fillColor("#6b7280")
+    .text(data.mode === "with_job" ? "Análise contra vaga específica" : "Avaliação geral do currículo", L, y);
+  y = doc.y + 20;
+
+  // Score & label
+  doc.rect(L, y, CW, 80).fill(LIGHT_GREEN);
+  const score = data.final_ats_score !== null && data.final_ats_score !== undefined
+    ? String(data.final_ats_score)
+    : String(data.structure_score);
+  doc.font("Helvetica-Bold").fontSize(36).fillColor(SC)
+    .text(score, L + 20, y + 18, { lineBreak: false });
+  doc.font("Helvetica-Bold").fontSize(16).fillColor(SC)
+    .text(data.strength_label, L + 90, y + 26, { lineBreak: false });
+  doc.font("Helvetica").fontSize(10).fillColor("#374151")
+    .text(
+      data.mode === "with_job" ? "Pontuação ATS Final" : "Pontuação de Estrutura",
+      L + 90, y + 48, { lineBreak: false }
+    );
+  y += 100;
+
+  // Score bars
+  function drawBar(label: string, value: number, barColor: string) {
+    doc.font("Helvetica").fontSize(10).fillColor("#374151").text(label, L, y, { lineBreak: false });
+    doc.font("Helvetica-Bold").fontSize(10).fillColor("#111827")
+      .text(`${Math.round(value)}%`, R - 30, y, { lineBreak: false });
+    y += 14;
+    doc.rect(L, y, CW, 8).fill("#e5e7eb");
+    doc.rect(L, y, (CW * value) / 100, 8).fill(barColor);
+    y += 18;
+  }
+
+  drawBar("Estrutura do currículo", data.structure_score, GREEN);
+  if (data.skills_coverage_score !== undefined && data.skills_coverage_score !== null) {
+    drawBar("Cobertura de habilidades da vaga", data.skills_coverage_score, "#2563eb");
+  }
+  if (data.semantic_match_score !== undefined && data.semantic_match_score !== null) {
+    drawBar("Alinhamento semântico com a vaga", data.semantic_match_score, AMBER);
+  }
+  y += 10;
+
+  // Skills found / missing
+  if (data.mode === "with_job") {
+    if (data.skills_found?.length) {
+      doc.font("Helvetica-Bold").fontSize(11).fillColor(GREEN).text("✓ Habilidades Encontradas", L, y); y = doc.y + 4;
+      data.skills_found.slice(0, 10).forEach((s: string) => {
+        doc.font("Helvetica").fontSize(10).fillColor("#374151").text(`• ${s}`, L + 10, y, { width: CW - 10 }); y = doc.y + 2;
+      });
+      y += 8;
+    }
+    if (data.skills_missing?.length) {
+      if (y + 60 > doc.page.height - 60) { doc.addPage(); y = 50; }
+      doc.font("Helvetica-Bold").fontSize(11).fillColor(AMBER).text("⚠ Habilidades Faltando", L, y); y = doc.y + 4;
+      data.skills_missing.slice(0, 10).forEach((s: string) => {
+        doc.font("Helvetica").fontSize(10).fillColor("#374151").text(`• ${s}`, L + 10, y, { width: CW - 10 }); y = doc.y + 2;
+      });
+      y += 8;
+    }
+  }
+
+  // Suggestions
+  if (data.suggestions_pt_br?.length) {
+    if (y + 80 > doc.page.height - 60) { doc.addPage(); y = 50; }
+    doc.moveTo(L, y).lineTo(R, y).lineWidth(0.5).stroke("#d1d5db"); y += 14;
+    doc.font("Helvetica-Bold").fontSize(12).fillColor("#111827").text("💡 Sugestões de Melhoria", L, y); y = doc.y + 8;
+    data.suggestions_pt_br.forEach((s: string, i: number) => {
+      if (y + 40 > doc.page.height - 60) { doc.addPage(); y = 50; }
+      doc.font("Helvetica-Bold").fontSize(10).fillColor(GREEN).text(`${i + 1}.`, L, y, { lineBreak: false });
+      doc.font("Helvetica").fontSize(10).fillColor("#374151")
+        .text(s, L + 18, y, { width: CW - 18, lineGap: 2 });
+      y = doc.y + 10;
+    });
+  }
+
+  // Footer
+  doc.moveTo(L, doc.page.height - 40).lineTo(R, doc.page.height - 40).lineWidth(0.5).stroke("#d1d5db");
+  doc.font("Helvetica").fontSize(9).fillColor("#9ca3af")
+    .text("TradePro Technologies · tradeprotech.ai · Análise gerada por IA", L, doc.page.height - 28, { width: CW, align: "center" });
+}
+
 export async function POST(req: NextRequest) {
   try {
     const data = await req.json();
     const isResume = data.type === "resume";
     const isProjectList = data.type === "project-list";
+    const isATSReport = data.type === "ats-report";
 
     const PDFDocument = (await import("pdfkit")).default;
     const doc = new PDFDocument({ size: "LETTER", margin: 0, autoFirstPage: true, bufferPages: true });
@@ -264,7 +378,10 @@ export async function POST(req: NextRequest) {
       doc.on("end", resolve);
       doc.on("error", reject);
 
-      if (isProjectList) {
+      if (isATSReport) {
+        drawATSReport(doc, data);
+        addPageNumbers(doc);
+      } else if (isProjectList) {
         drawProjectPortfolio(doc, data);
       } else if (isResume) {
         const templateId = data.selectedTemplate || "standard-contemporary";

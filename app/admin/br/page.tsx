@@ -385,7 +385,8 @@ export default function OperadorBR() {
           <h1 className="text-lg font-bold">🇧🇷 TradePro — Gerador de Currículo</h1>
           <p className="text-green-200 text-xs">Área do Operador</p>
         </div>
-        <a href="/admin/br/carta" className="text-green-200 text-sm hover:text-white">✉️ Carta de Apresentação</a>
+        <a href="/admin/br/carta" className="text-green-200 text-sm hover:text-white">✉️ Carta</a>
+        <a href="/admin/br/ats" className="text-green-200 text-sm hover:text-white">📊 ATS</a>
         <button onClick={() => setAuthed(false)} className="text-green-200 text-sm hover:text-white">Sair</button>
       </div>
 
