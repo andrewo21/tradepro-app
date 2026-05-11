@@ -5,6 +5,7 @@
 import type { ResumeExtraction } from "../extraction/extract_resume_data";
 import type { JobExtraction }    from "../extraction/extract_job_data";
 import { normalize }             from "../utils/normalize";
+import { atsPointGains }         from "./final_score";
 
 export interface EnhancementInput {
   resumeExtraction: ResumeExtraction;
@@ -15,296 +16,299 @@ export interface EnhancementInput {
   profession?: string | null;
 }
 
-// ─── Role-based skill + tool libraries ────────────────────────────────────────
-// Deterministic lookup for Mode B (no job description).
-// Match profession string (case-insensitive, partial) to expected skills/tools.
+// ─── Role library — exact 19 Brazilian job titles ─────────────────────────────
 
-interface RoleProfile { skills: string[]; tools: string[]; }
+interface RoleData { skills: string[]; tools: string[]; responsibilities: string[]; }
 
-const ROLE_LIBRARY: Array<{ keywords: string[]; profile: RoleProfile }> = [
-  {
-    keywords: ["atendimento", "customer service", "suporte", "sac", "relacionamento com cliente"],
-    profile: {
-      skills: ["resolução de conflitos", "comunicação eficaz", "empatia", "organização", "atendimento omnichannel"],
-      tools:  ["Zendesk", "Freshdesk", "HubSpot Service", "Salesforce Service Cloud"],
-    },
+export const roleSkillLibrary: Record<string, RoleData> = {
+  "Analista de Marketing Jr.": {
+    skills: ["copywriting","SEO","gestão de redes sociais","planejamento de conteúdo","análise de métricas","comunicação eficaz","organização"],
+    tools:  ["Google Analytics","Canva","Meta Business Suite","Google Ads","RD Station","Hootsuite"],
+    responsibilities: ["criação de conteúdo","gestão de campanhas","otimização de SEO","monitoramento de redes sociais","análise de performance"],
   },
-  {
-    keywords: ["marketing", "social media", "conteúdo", "mídia", "redes sociais"],
-    profile: {
-      skills: ["planejamento de campanhas", "análise de métricas", "copywriting", "SEO", "gestão de redes sociais"],
-      tools:  ["Meta Business Suite", "Google Analytics", "Canva", "Hootsuite", "Google Ads"],
-    },
+  "Analista de Atendimento": {
+    skills: ["resolução de conflitos","comunicação eficaz","empatia","organização","atendimento omnichannel"],
+    tools:  ["Zendesk","Freshdesk","HubSpot Service","Salesforce Service Cloud"],
+    responsibilities: ["responder solicitações","gerenciar tickets","acompanhar métricas de atendimento","resolver problemas de clientes"],
   },
-  {
-    keywords: ["desenvolvedor", "programador", "software", "backend", "frontend", "fullstack", "dev"],
-    profile: {
-      skills: ["controle de versão", "testes unitários", "metodologias ágeis", "revisão de código", "documentação técnica"],
-      tools:  ["Git", "GitHub", "Docker", "Jira", "Postman"],
-    },
+  "Assistente Administrativo": {
+    skills: ["organização","comunicação","gestão de documentos","controle de agendas","atenção aos detalhes"],
+    tools:  ["Excel","Word","ERP","Google Workspace"],
+    responsibilities: ["controle de documentos","apoio administrativo","atendimento interno","gestão de planilhas"],
   },
-  {
-    keywords: ["analista de ti", "ti", "suporte técnico", "infraestrutura", "redes", "helpdesk"],
-    profile: {
-      skills: ["troubleshooting", "segurança da informação", "gestão de redes", "backup e recuperação"],
-      tools:  ["Active Directory", "GLPI", "Zabbix", "TeamViewer", "Office 365 Admin"],
-    },
+  "Auxiliar Administrativo": {
+    skills: ["organização","arquivamento","comunicação","controle de estoque","agilidade"],
+    tools:  ["Excel","Word","Sistemas internos"],
+    responsibilities: ["apoio administrativo","controle de materiais","atendimento interno"],
   },
-  {
-    keywords: ["recursos humanos", "rh", "recrutamento", "seleção", "gente e gestão", "people"],
-    profile: {
-      skills: ["recrutamento e seleção", "gestão de desempenho", "onboarding", "legislação trabalhista", "treinamento"],
-      tools:  ["Gupy", "LinkedIn Recruiter", "SAP HCM", "Sólides", "PontoTel"],
-    },
+  "Analista de RH": {
+    skills: ["recrutamento e seleção","entrevistas","onboarding","avaliação de desempenho","clima organizacional"],
+    tools:  ["Gupy","Kenoby","Sólides","LinkedIn Recruiter"],
+    responsibilities: ["condução de entrevistas","triagem de currículos","gestão de indicadores de RH","processos de admissão"],
   },
-  {
-    keywords: ["financeiro", "finanças", "contabilidade", "controladoria", "fiscal"],
-    profile: {
-      skills: ["controle de fluxo de caixa", "conciliação bancária", "análise financeira", "orçamento", "relatórios gerenciais"],
-      tools:  ["SAP FI", "Totvs", "Excel avançado", "Sankhya", "Power BI"],
-    },
+  "Assistente de RH": {
+    skills: ["triagem de currículos","comunicação","organização","apoio em entrevistas"],
+    tools:  ["Gupy","Sólides","Excel"],
+    responsibilities: ["apoio ao recrutamento","agendamento de entrevistas","controle de documentos"],
   },
-  {
-    keywords: ["logística", "supply chain", "estoque", "almoxarifado", "cadeia de suprimentos", "transporte"],
-    profile: {
-      skills: ["gestão de estoque", "roteirização", "controle de inventário", "negociação com fornecedores"],
-      tools:  ["SAP MM", "Totvs", "WMS", "Excel avançado", "TMS"],
-    },
+  "Analista Financeiro": {
+    skills: ["análise financeira","fluxo de caixa","conciliação bancária","planejamento financeiro","contas a pagar e receber"],
+    tools:  ["Excel avançado","ERP","Power BI"],
+    responsibilities: ["controle financeiro","análise de indicadores","gestão de pagamentos","relatórios financeiros"],
   },
-  {
-    keywords: ["vendas", "comercial", "vendedor", "representante", "account"],
-    profile: {
-      skills: ["prospecção de clientes", "negociação", "fechamento de vendas", "gestão de carteira", "CRM"],
-      tools:  ["Salesforce", "HubSpot CRM", "Pipedrive", "RD Station", "Excel"],
-    },
+  "Assistente Financeiro": {
+    skills: ["conciliação bancária","organização","controle financeiro","comunicação"],
+    tools:  ["Excel","ERP"],
+    responsibilities: ["lançamentos financeiros","controle de pagamentos","apoio administrativo"],
   },
-  {
-    keywords: ["enfermeiro", "enfermagem", "técnico de enfermagem", "saúde", "hospitalar", "clínico"],
-    profile: {
-      skills: ["assistência ao paciente", "administração de medicamentos", "procedimentos clínicos", "ACLS", "BLS"],
-      tools:  ["Tasy", "MV Soul", "Prontuário Eletrônico", "Philips Tasy"],
-    },
+  "Analista de Logística": {
+    skills: ["gestão de estoque","planejamento logístico","rastreio de entregas","negociação"],
+    tools:  ["ERP","WMS","Excel"],
+    responsibilities: ["controle de estoque","gestão de rotas","acompanhamento de entregas"],
   },
-  {
-    keywords: ["eletricista", "elétrica", "instalações elétricas", "eletrotécnica"],
-    profile: {
-      skills: ["NR-10", "NR-35", "leitura de diagramas elétricos", "instalações de baixa tensão", "SPDA"],
-      tools:  ["multímetro", "alicate amperímetro", "megôhmetro"],
-    },
+  "Auxiliar de Logística": {
+    skills: ["organização","controle de estoque","separação de pedidos"],
+    tools:  ["WMS","ERP"],
+    responsibilities: ["separação de mercadorias","controle de entrada e saída","apoio logístico"],
   },
-  {
-    keywords: ["construção", "obras", "civil", "engenharia civil", "mestre de obras", "encarregado"],
-    profile: {
-      skills: ["gestão de equipes", "controle de cronograma", "leitura de projetos", "NR-18", "qualidade"],
-      tools:  ["AutoCAD", "MS Project", "Excel", "BIM"],
-    },
+  "Vendedor": {
+    skills: ["negociação","comunicação","persuasão","relacionamento com clientes"],
+    tools:  ["CRM","WhatsApp Business","ERP"],
+    responsibilities: ["prospecção","atendimento ao cliente","fechamento de vendas"],
   },
-  {
-    keywords: ["educação", "professor", "docente", "pedagogo", "ensino", "escola"],
-    profile: {
-      skills: ["planejamento de aulas", "avaliação de aprendizagem", "gestão de sala de aula", "metodologias ativas"],
-      tools:  ["Google Classroom", "Canva Educação", "Moodle", "Microsoft Teams"],
-    },
+  "Atendente": {
+    skills: ["comunicação","empatia","agilidade","organização"],
+    tools:  ["sistemas de atendimento","PDV"],
+    responsibilities: ["atendimento ao cliente","resolução de dúvidas","apoio operacional"],
   },
-  {
-    keywords: ["administrativo", "assistente administrativo", "secretária", "backoffice", "auxiliar"],
-    profile: {
-      skills: ["organização de documentos", "atendimento telefônico", "gestão de agenda", "redação de e-mails"],
-      tools:  ["Pacote Office", "G Suite", "ERP", "Asana"],
-    },
+  "Recepcionista": {
+    skills: ["comunicação","organização","atendimento ao público"],
+    tools:  ["agenda eletrônica","sistemas internos"],
+    responsibilities: ["recepção de clientes","agendamento","controle de entrada"],
   },
-  {
-    keywords: ["designer", "design gráfico", "criativo", "arte", "visual", "ui", "ux"],
-    profile: {
-      skills: ["identidade visual", "tipografia", "composição visual", "prototipagem", "UX writing"],
-      tools:  ["Adobe Photoshop", "Illustrator", "Figma", "InDesign", "After Effects"],
-    },
+  "Analista de Suporte Técnico": {
+    skills: ["diagnóstico técnico","resolução de problemas","comunicação","documentação"],
+    tools:  ["Jira","Zendesk","Freshdesk"],
+    responsibilities: ["suporte ao usuário","registro de tickets","solução de problemas técnicos"],
   },
-  {
-    keywords: ["analista de dados", "data", "bi", "business intelligence", "dados", "cientista de dados"],
-    profile: {
-      skills: ["análise estatística", "visualização de dados", "modelagem de dados", "SQL", "machine learning"],
-      tools:  ["Power BI", "Tableau", "Python", "SQL Server", "Google Data Studio"],
-    },
+  "Desenvolvedor Jr.": {
+    skills: ["lógica de programação","versionamento","resolução de problemas"],
+    tools:  ["Git","VS Code","Postman"],
+    responsibilities: ["desenvolvimento de funcionalidades","correção de bugs","testes básicos"],
   },
-];
+  "Auxiliar de Produção": {
+    skills: ["agilidade","atenção aos detalhes","organização"],
+    tools:  ["máquinas industriais","equipamentos de segurança"],
+    responsibilities: ["apoio na produção","controle de qualidade","embalagem"],
+  },
+  "Operador de Caixa": {
+    skills: ["agilidade","atenção","comunicação"],
+    tools:  ["PDV","sistemas de pagamento"],
+    responsibilities: ["registro de compras","fechamento de caixa","atendimento ao cliente"],
+  },
+  "Auxiliar de Escritório": {
+    skills: ["organização","comunicação","arquivamento"],
+    tools:  ["Excel","Word"],
+    responsibilities: ["apoio administrativo","organização de documentos","atendimento interno"],
+  },
+  "Analista de Compras": {
+    skills: ["negociação","pesquisa de fornecedores","gestão de contratos"],
+    tools:  ["ERP","Excel","Power BI"],
+    responsibilities: ["cotação","negociação","gestão de pedidos"],
+  },
+};
 
-/** Find the role profile for a given profession string */
-function findRoleProfile(profession: string | null | undefined): RoleProfile | null {
+/** Find role data — exact match first, then keyword fallback */
+function findRoleData(profession: string | null | undefined): { role: string; data: RoleData } | null {
   if (!profession) return null;
-  const lowerProf = profession.toLowerCase();
-  for (const entry of ROLE_LIBRARY) {
-    if (entry.keywords.some(kw => lowerProf.includes(kw))) {
-      return entry.profile;
+
+  // 1. Exact match (case-insensitive)
+  for (const [key, data] of Object.entries(roleSkillLibrary)) {
+    if (key.toLowerCase() === profession.toLowerCase()) return { role: key, data };
+  }
+
+  // 2. Partial match — profession contains role name or vice versa
+  for (const [key, data] of Object.entries(roleSkillLibrary)) {
+    const kLower = key.toLowerCase();
+    const pLower = profession.toLowerCase();
+    if (pLower.includes(kLower) || kLower.includes(pLower)) return { role: key, data };
+  }
+
+  // 3. Keyword fallback for common variants not in the exact list
+  const KEYWORD_FALLBACKS: Array<{ keywords: string[]; role: string }> = [
+    { keywords: ["marketing","social media","conteúdo","mídia"],        role: "Analista de Marketing Jr." },
+    { keywords: ["atendimento","customer","suporte","sac","helpdesk"],  role: "Analista de Atendimento" },
+    { keywords: ["rh","recursos humanos","recrutamento","seleção"],     role: "Analista de RH" },
+    { keywords: ["financeiro","finanças","contabil","controladoria"],   role: "Analista Financeiro" },
+    { keywords: ["logística","supply","estoque","almoxarifado"],        role: "Analista de Logística" },
+    { keywords: ["desenvolvedor","programador","software","dev"],       role: "Desenvolvedor Jr." },
+    { keywords: ["vendas","comercial","representante","account"],       role: "Vendedor" },
+    { keywords: ["administrativo","secretária","backoffice","auxiliar de escritório"], role: "Assistente Administrativo" },
+    { keywords: ["compras","procurement","suprimentos"],                role: "Analista de Compras" },
+  ];
+
+  const pLower = profession.toLowerCase();
+  for (const fb of KEYWORD_FALLBACKS) {
+    if (fb.keywords.some(kw => pLower.includes(kw))) {
+      return { role: fb.role, data: roleSkillLibrary[fb.role] };
     }
   }
+
   return null;
 }
 
-// ─── Main function ─────────────────────────────────────────────────────────────
+// ─── Build specific enhancements — exact spec implementation ──────────────────
+
+export function buildSpecificEnhancements(
+  data: ResumeExtraction,
+  role: string
+): string[] {
+  const enhancements: string[] = [];
+  const roleMatch = findRoleData(role);
+  const roleData = roleMatch?.data ?? null;
+  const roleLabel = roleMatch?.role ?? role;
+
+  // 1. Missing skills from role library
+  if (roleData) {
+    const missingSkills = roleData.skills.filter(
+      skill => !data.resume_skills.some(s => s.toLowerCase().includes(skill.toLowerCase()))
+    );
+    if (missingSkills.length > 0) {
+      enhancements.push(
+        `Seu currículo não menciona habilidades importantes para ${roleLabel}, como ${missingSkills
+          .slice(0, 3)
+          .join(", ")}. Se você realmente possui essas habilidades e adicioná‑las, sua pontuação pode aumentar em aproximadamente +${atsPointGains.missingSkill} pontos.`
+      );
+    }
+  }
+
+  // 2. Missing tools from role library
+  if (roleData) {
+    const missingTools = roleData.tools.filter(
+      tool => !data.resume_tools.some(t => t.toLowerCase().includes(tool.toLowerCase()))
+    );
+    if (missingTools.length > 0) {
+      enhancements.push(
+        `Profissionais de ${roleLabel} costumam utilizar ferramentas como ${missingTools
+          .slice(0, 3)
+          .join(", ")}. Se você já trabalhou com alguma delas, incluí‑las pode melhorar sua pontuação em cerca de +${atsPointGains.missingToolMin}–${atsPointGains.missingToolMax} pontos.`
+      );
+    }
+  }
+
+  // 3. Bullet count
+  if (data.bullet_point_count < 5) {
+    enhancements.push(
+      `Seu currículo tem apenas ${data.bullet_point_count} tópico${data.bullet_point_count !== 1 ? "s" : ""} de experiência. Adicionar ${
+        5 - data.bullet_point_count
+      } tópico${5 - data.bullet_point_count !== 1 ? "s" : ""}(s) relevante(s) pode aumentar sua pontuação estrutural em aproximadamente +${atsPointGains.missingBullet} pontos.`
+    );
+  }
+
+  // 4. Missing metrics (always included — everyone benefits from this)
+  enhancements.push(
+    `Inclua resultados mensuráveis em seus tópicos de experiência — números, percentuais e metas atingidas tornam seu currículo mais impactante e aumentam sua pontuação em até +${atsPointGains.missingMetrics} pontos.`
+  );
+
+  // 5. Missing summary
+  if (!data.has_summary) {
+    enhancements.push(
+      `Seu currículo não possui um resumo profissional forte. Criar um resumo claro e objetivo pode melhorar sua pontuação estrutural em até +${atsPointGains.missingSummary} pontos.`
+    );
+  }
+
+  // 6. Word count
+  if (data.word_count < 200) {
+    enhancements.push(
+      `Seu currículo está abaixo do tamanho recomendado (${data.word_count} palavras — mínimo: 200). Expandir suas experiências pode melhorar sua pontuação em até +${atsPointGains.lowWordCount} pontos.`
+    );
+  }
+
+  // 7. Missing skills section
+  if (!data.has_skills_section) {
+    enhancements.push(
+      `Seu currículo não possui uma seção de habilidades. Adicionar uma lista das suas principais competências pode aumentar sua pontuação em até +${atsPointGains.missingSkillsSection} pontos.`
+    );
+  }
+
+  return enhancements.slice(0, 7);
+}
+
+// ─── Main export — called by general.ts and with_job.ts ──────────────────────
 
 export function computeSpecificEnhancements(input: EnhancementInput): string[] {
   const { resumeExtraction: e, mode, jobExtraction, skillsMissing, profession } = input;
+
+  if (mode === "general") {
+    const role = profession || e.resume_titles?.[0] || "sua área";
+    return buildSpecificEnhancements(e, role);
+  }
+
+  // Mode A — job description comparisons (deterministic from job data)
   const items: string[] = [];
 
-  // ── MODE A: Job description comparisons ────────────────────────────────────
+  // Individual missing skills
+  (skillsMissing || []).slice(0, 3).forEach(skill => {
+    if (items.length >= 7) return;
+    items.push(
+      `Seu currículo não menciona "${skill}", uma habilidade exigida por esta vaga. ` +
+      `Se você possui essa habilidade, adicione-a — pode aumentar sua pontuação em +${atsPointGains.missingSkill} pontos.`
+    );
+  });
 
-  if (mode === "with_job") {
-
-    // 1. Individual missing skills (up to 3)
-    (skillsMissing || []).slice(0, 3).forEach(skill => {
-      if (items.length >= 7) return;
-      items.push(
-        `Seu currículo não menciona "${skill}", uma habilidade exigida por esta vaga. ` +
-        `Se você realmente possui essa habilidade, adicione-a na seção de habilidades — ` +
-        `isso pode aumentar sua pontuação em aproximadamente +5 pontos.`
-      );
-    });
-
-    // 2. Individual missing tools (up to 2)
-    if (jobExtraction?.tools?.length && items.length < 7) {
-      const normResTools = e.resume_tools.map(normalize);
-      jobExtraction.tools
-        .filter(t => !normResTools.some(rt => rt.includes(normalize(t)) || normalize(t).includes(rt)))
-        .slice(0, 2)
-        .forEach(tool => {
-          if (items.length >= 7) return;
-          items.push(
-            `A vaga exige conhecimento em "${tool}", que não aparece no seu currículo. ` +
-            `Se você já utilizou essa ferramenta, inclua-a nas habilidades ou em um bullet de experiência — ` +
-            `isso pode melhorar sua pontuação em +3–5 pontos.`
-          );
-        });
-    }
-
-    // 3. Unmatched responsibilities (up to 2)
-    if (jobExtraction?.responsibilities?.length && items.length < 7) {
-      const normBullets = e.resume_experience_bullets.map(normalize).join(" ");
-      jobExtraction.responsibilities
-        .filter(resp => {
-          const words = normalize(resp).split(" ").filter(w => w.length > 4);
-          return words.filter(w => normBullets.includes(w)).length < 2;
-        })
-        .slice(0, 2)
-        .forEach(resp => {
-          if (items.length >= 7) return;
-          const short = resp.length > 70 ? resp.slice(0, 67) + "..." : resp;
-          items.push(
-            `A vaga menciona: "${short}". ` +
-            `Essa atividade não aparece no seu currículo. ` +
-            `Se você já executou algo parecido, crie um bullet descrevendo como fez — ` +
-            `isso pode aumentar sua pontuação em até +5 pontos.`
-          );
-        });
-    }
+  // Missing tools from job description
+  if (jobExtraction?.tools?.length && items.length < 7) {
+    const normResTools = e.resume_tools.map(normalize);
+    jobExtraction.tools
+      .filter(t => !normResTools.some(rt => rt.includes(normalize(t)) || normalize(t).includes(rt)))
+      .slice(0, 2)
+      .forEach(tool => {
+        if (items.length >= 7) return;
+        items.push(
+          `A vaga exige "${tool}", que não aparece no seu currículo. ` +
+          `Se você já utilizou, inclua-a — pode melhorar sua pontuação em +${atsPointGains.missingToolMin}–${atsPointGains.missingToolMax} pontos.`
+        );
+      });
   }
 
-  // ── MODE B: Role library comparisons ───────────────────────────────────────
-
-  if (mode === "general" && items.length < 7) {
-    const roleProfile = findRoleProfile(profession);
-
-    if (roleProfile) {
-      // Missing skills from role library
-      const normResSkills = e.resume_skills.map(normalize);
-      const missingRoleSkills = roleProfile.skills
-        .filter(skill => !normResSkills.some(s => s.includes(normalize(skill)) || normalize(skill).includes(s)))
-        .slice(0, 3);
-
-      if (missingRoleSkills.length > 0 && items.length < 7) {
-        const role = profession || "sua área";
-        const listed = missingRoleSkills.map(s => `"${s}"`).join(", ");
+  // Unmatched responsibilities
+  if (jobExtraction?.responsibilities?.length && items.length < 7) {
+    const normBullets = e.resume_experience_bullets.map(normalize).join(" ");
+    jobExtraction.responsibilities
+      .filter(resp => {
+        const words = normalize(resp).split(" ").filter(w => w.length > 4);
+        return words.filter(w => normBullets.includes(w)).length < 2;
+      })
+      .slice(0, 2)
+      .forEach(resp => {
+        if (items.length >= 7) return;
+        const short = resp.length > 70 ? resp.slice(0, 67) + "..." : resp;
         items.push(
-          `Seu currículo não menciona habilidades importantes para ${role}, como ${listed}. ` +
-          `Se você realmente possui essas habilidades e adicioná-las, sua pontuação pode aumentar em aproximadamente +5 pontos.`
+          `A vaga menciona: "${short}". Se você executou isso, crie um bullet descrevendo como — pode aumentar +${atsPointGains.missingResponsibilityMin}–${atsPointGains.missingResponsibilityMax} pontos.`
         );
-      }
-
-      // Missing tools from role library
-      const normResTools = e.resume_tools.map(normalize);
-      const missingRoleTools = roleProfile.tools
-        .filter(tool => !normResTools.some(t => t.includes(normalize(tool)) || normalize(tool).includes(t)))
-        .slice(0, 3);
-
-      if (missingRoleTools.length > 0 && items.length < 7) {
-        const role = profession || "sua área";
-        const listed = missingRoleTools.slice(0, 2).join(", ");
-        items.push(
-          `Profissionais de ${role} costumam utilizar ferramentas como ${listed}. ` +
-          `Se você já trabalhou com alguma delas, incluí-las pode melhorar sua pontuação em cerca de +3–5 pontos.`
-        );
-      }
-    } else if (e.resume_skills.length < 3 && items.length < 7) {
-      // No role matched but very few skills listed
-      items.push(
-        `Seu currículo lista ${e.resume_skills.length === 0 ? "nenhuma" : "poucas"} habilidades. ` +
-        `Adicione pelo menos 5 a 8 competências relevantes para sua área — ` +
-        `isso torna seu perfil mais visível em buscas automáticas de recrutadores.`
-      );
-    }
+      });
   }
 
-  // ── STRUCTURE ITEMS (both modes) ──────────────────────────────────────────
-
+  // Structure items
   if (e.bullet_point_count < 5 && items.length < 7) {
     const deficit = 5 - e.bullet_point_count;
-    items.push(
-      `Seu currículo tem apenas ${e.bullet_point_count} tópico${e.bullet_point_count !== 1 ? "s" : ""} de experiência. ` +
-      `Adicionar ${deficit} tópico${deficit !== 1 ? "s" : ""} relevante${deficit !== 1 ? "s" : ""} pode aumentar ` +
-      `sua pontuação estrutural em aproximadamente +5 pontos.`
-    );
+    items.push(`Seu currículo tem apenas ${e.bullet_point_count} tópicos de experiência. Adicionar ${deficit} mais pode aumentar +${atsPointGains.missingBullet} pontos.`);
   }
+  if (!e.has_summary && items.length < 7)
+    items.push(`Adicionar um resumo profissional pode melhorar sua pontuação estrutural em até +${atsPointGains.missingSummary} pontos.`);
+  if (!e.has_skills_section && items.length < 7)
+    items.push(`Adicionar uma seção de habilidades pode melhorar sua pontuação em até +${atsPointGains.missingSkillsSection} pontos.`);
+  if (e.word_count < 200 && items.length < 7)
+    items.push(`Seu currículo está muito curto (${e.word_count} palavras). Expandir pode melhorar +${atsPointGains.lowWordCount} pontos.`);
 
-  if (!e.has_summary && items.length < 7) {
-    items.push(
-      `Seu currículo não possui um resumo profissional no topo. ` +
-      `Adicionar um resumo claro e objetivo com 3 a 5 frases pode melhorar sua pontuação estrutural em até +10 pontos.`
-    );
-  }
-
-  if (!e.has_skills_section && items.length < 7) {
-    items.push(
-      `Seu currículo não possui uma seção de habilidades. ` +
-      `Adicionar uma seção com suas principais competências pode aumentar sua pontuação estrutural em cerca de +15 pontos.`
-    );
-  }
-
-  if (e.word_count < 200 && items.length < 7) {
-    items.push(
-      `Seu currículo está abaixo do tamanho recomendado (${e.word_count} palavras — mínimo: 200). ` +
-      `Expandir a descrição das suas experiências pode melhorar sua pontuação em até +10 pontos.`
-    );
-  }
-
-  if (e.word_count > 1200 && items.length < 7) {
-    items.push(
-      `Seu currículo está longo demais (${e.word_count} palavras — máximo: 1.200). ` +
-      `Remova informações redundantes e mantenha o essencial — ` +
-      `isso pode melhorar sua pontuação estrutural em até +10 pontos.`
-    );
-  }
-
-  if (!e.has_experience_section && items.length < 7) {
-    items.push(
-      `Seu currículo não possui uma seção clara de experiência profissional. ` +
-      `Inclua uma seção com seus empregos anteriores, cargos e responsabilidades — ` +
-      `isso pode aumentar sua pontuação estrutural em até +20 pontos.`
-    );
-  }
-
-  // ── Padding: ensure at least 4 items ──────────────────────────────────────
-
+  // Padding to minimum 4
   const fillers = [
-    `Inclua resultados mensuráveis em seus tópicos de experiência — números, percentuais e metas atingidas tornam seu currículo mais impactante.`,
-    `Use verbos de ação no início de cada tópico (Liderou, Implementou, Reduziu, Aumentou, Desenvolveu) para tornar suas experiências mais dinâmicas.`,
-    `Se você possui certificações, cursos ou idiomas relevantes, adicione-os em seções dedicadas — esses elementos diferenciam seu perfil.`,
-    `Verifique se seu resumo profissional menciona sua área de atuação e seus anos de experiência — recrutadores leem o resumo primeiro.`,
+    `Inclua resultados mensuráveis nos seus bullets — números e percentuais aumentam o impacto e a pontuação em até +${atsPointGains.missingMetrics} pontos.`,
+    `Use verbos de ação no início de cada bullet (Liderou, Implementou, Reduziu, Aumentou) para tornar suas experiências mais dinâmicas.`,
+    `Se você possui certificações ou idiomas relevantes, adicione-os em seções dedicadas — isso diferencia seu perfil.`,
   ];
-
-  let fillerIdx = 0;
-  while (items.length < 4 && fillerIdx < fillers.length) {
-    items.push(fillers[fillerIdx++]);
-  }
+  let fi = 0;
+  while (items.length < 4 && fi < fillers.length) items.push(fillers[fi++]);
 
   return items.slice(0, 7);
 }

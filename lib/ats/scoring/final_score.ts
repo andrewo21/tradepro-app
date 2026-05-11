@@ -1,17 +1,31 @@
 // lib/ats/scoring/final_score.ts
 // Pure deterministic function. No AI. Same input = same output.
 
-/** Weights must sum to 1.0 */
+/** Weights for ATS match score (job description mode only) */
 const WEIGHTS = {
-  skills_coverage: 0.4,
+  skills_coverage: 0.6,
   semantic_match:  0.4,
-  structure:       0.2,
 } as const;
 
 /** Thresholds for strength label */
 const THRESHOLDS = {
   forte:   80,
   mediano: 50,
+} as const;
+
+/** Point gain estimates used by specific_enhancements — exported for consistency */
+export const atsPointGains = {
+  missingSkill:              5,
+  missingToolMin:            3,
+  missingToolMax:            5,
+  missingResponsibilityMin:  3,
+  missingResponsibilityMax:  5,
+  missingBullet:             5,
+  missingMetrics:            5,
+  missingSummary:           10,
+  lowWordCount:             10,
+  missingSkillsSection:     10,
+  missingEducationSection:   5,
 } as const;
 
 export type StrengthLabel = "Forte" | "Mediano" | "Precisa de ajustes";
@@ -36,12 +50,12 @@ export interface FinalScoreResult {
 export function computeFinalScore(
   skillsCoverage: number,
   semanticMatch: number,
-  structure: number
+  structure: number  // kept in signature for backwards compat, not used in weighted score
 ): FinalScoreResult {
+  // ATS match score: 60% skills coverage + 40% semantic match (per spec)
   const raw =
     (skillsCoverage * WEIGHTS.skills_coverage) +
-    (semanticMatch  * WEIGHTS.semantic_match)  +
-    (structure      * WEIGHTS.structure);
+    (semanticMatch  * WEIGHTS.semantic_match);
 
   const final = Math.round(Math.min(100, Math.max(0, raw)));
   const label  = getStrengthLabel(final);
