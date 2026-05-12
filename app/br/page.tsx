@@ -160,6 +160,13 @@ export default function BrazilHomePage() {
               </p>
             </div>
 
+            <div className="max-w-2xl mx-auto text-center mb-4">
+              <p className="text-sm md:text-base text-amber-300 font-semibold leading-relaxed">
+                Recrutadores recebem uma análise de compatibilidade do seu currículo.<br />
+                Você nunca teve acesso a essa visão. <span className="text-white">Até agora.</span>
+              </p>
+            </div>
+
             <div className="max-w-2xl mx-auto text-center mb-6">
               <p className="text-sm md:text-base text-green-300 font-medium">
                 O TradePro ATS Engine™ analisa seu currículo como um recrutador profissional — identificando habilidades faltantes, ferramentas essenciais, responsabilidades esperadas e melhorias que aumentam sua pontuação ATS.
@@ -206,14 +213,17 @@ export default function BrazilHomePage() {
           {/* Header */}
           <div className="text-center mb-12">
             <span className="inline-block bg-green-100 text-green-800 text-xs font-bold px-3 py-1 rounded-full mb-4 uppercase tracking-wide">
-              Tecnologia ATS
+              TradePro ATS Engine™
             </span>
             <h2 className="text-3xl md:text-4xl font-bold text-neutral-900 mb-4">
-              Seu currículo passa pelo filtro das empresas?
+              O que o recrutador vê — antes de você enviar
             </h2>
-            <p className="text-neutral-600 text-lg max-w-2xl mx-auto">
-              Antes de um humano ver o seu currículo, um sistema automático (ATS) já fez a triagem.
-              A maioria dos candidatos é eliminada nessa etapa — sem nem saber.
+            <p className="text-neutral-600 text-lg max-w-2xl mx-auto mb-3">
+              Empresas usam sistemas automáticos de triagem (ATS) para filtrar currículos antes de qualquer humano ver.
+              A maioria dos candidatos é eliminada nessa etapa — sem saber por quê.
+            </p>
+            <p className="text-neutral-500 text-base max-w-xl mx-auto">
+              O TradePro mostra exatamente o que esses sistemas veem no seu currículo — e o que você pode fazer para passar pelo filtro.
             </p>
           </div>
 
@@ -268,6 +278,53 @@ export default function BrazilHomePage() {
             </div>
           </div>
 
+          {/* Before / After illustrative sample */}
+          <div className="mb-12">
+            <div className="text-center mb-4">
+              <p className="text-sm font-semibold text-neutral-500 uppercase tracking-wide">Exemplo Ilustrativo</p>
+              <p className="text-xs text-neutral-400 mt-1">Personagem fictício para fins de demonstração. Resultados reais variam conforme o currículo.</p>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-4">
+              {/* Before */}
+              <div className="bg-red-50 border border-red-200 rounded-2xl p-6">
+                <p className="text-xs font-bold text-red-600 uppercase tracking-wide mb-3">Antes — Sem análise</p>
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="text-5xl font-bold text-red-600">52</div>
+                  <div>
+                    <span className="inline-block bg-amber-100 text-amber-800 text-xs font-bold px-3 py-1 rounded-full">Mediano</span>
+                    <p className="text-xs text-neutral-500 mt-1">Currículo de João Silva</p>
+                  </div>
+                </div>
+                <ul className="space-y-1.5 text-sm text-red-700">
+                  <li className="flex gap-2"><span>✗</span>Sem resumo profissional</li>
+                  <li className="flex gap-2"><span>✗</span>Apenas 3 bullets de experiência</li>
+                  <li className="flex gap-2"><span>✗</span>2 habilidades da vaga faltando</li>
+                  <li className="flex gap-2"><span>✗</span>Ferramenta principal não mencionada</li>
+                </ul>
+              </div>
+              {/* After */}
+              <div className="bg-green-50 border border-green-300 rounded-2xl p-6">
+                <p className="text-xs font-bold text-green-700 uppercase tracking-wide mb-3">Depois — Com TradePro ATS Engine™</p>
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="text-5xl font-bold text-green-700">84</div>
+                  <div>
+                    <span className="inline-block bg-green-100 text-green-800 text-xs font-bold px-3 py-1 rounded-full">Forte</span>
+                    <p className="text-xs text-neutral-500 mt-1">Após melhorias sugeridas</p>
+                  </div>
+                </div>
+                <ul className="space-y-1.5 text-sm text-green-700">
+                  <li className="flex gap-2"><span>✓</span>Resumo profissional adicionado (+10 pts)</li>
+                  <li className="flex gap-2"><span>✓</span>5 bullets com resultados mensuráveis (+5 pts)</li>
+                  <li className="flex gap-2"><span>✓</span>Habilidades da vaga incluídas (+10 pts)</li>
+                  <li className="flex gap-2"><span>✓</span>Ferramentas relevantes adicionadas (+7 pts)</li>
+                </ul>
+              </div>
+            </div>
+            <p className="text-center text-xs text-neutral-400 mt-3">
+              * Exemplo ilustrativo com personagem fictício. O TradePro mostra sua pontuação real e o que melhorar — mas não garante resultados de contratação.
+            </p>
+          </div>
+
           {/* 3 benefit pillars */}
           <div className="grid md:grid-cols-3 gap-6 mb-10">
             {[
@@ -320,10 +377,13 @@ export default function BrazilHomePage() {
 
           <div className="bg-neutral-50 border border-neutral-200 p-6 rounded-2xl shadow-sm mb-10 max-w-2xl mx-auto">
             <p className="text-lg font-semibold text-neutral-900 leading-relaxed">
-              Você não vai encontrar essa ferramenta em nenhum outro lugar.<br />
+              Recrutadores sempre tiveram informações que você não tinha.<br />
               <span className="text-green-700 font-bold">
-                A análise ATS completa para o mercado de trabalho — exclusiva da TradePro Technologies.
+                Agora você tem acesso à mesma visão — antes de enviar seu currículo.
               </span>
+            </p>
+            <p className="text-sm text-neutral-500 mt-3">
+              Você não vai encontrar essa ferramenta em nenhum outro lugar. Exclusiva da TradePro Technologies.
             </p>
           </div>
 
