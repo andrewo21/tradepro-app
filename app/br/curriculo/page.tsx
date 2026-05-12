@@ -18,17 +18,19 @@ import BrTecnicoModerno from "@/components/templates/brazil/BrTecnicoModerno";
 import BrPremiumDourado from "@/components/templates/brazil/BrPremiumDourado";
 import BrMinimalistaBR from "@/components/templates/brazil/BrMinimalistaBR";
 
-// All 9 templates included — no standard vs premium distinction
+// All 9 templates — ATS compatibility badges
+// Single-column = maximum ATS compatibility (all systems)
+// Two-column = compatible with modern ATS (Gupy, Gaia) but great for visual impact
 const TEMPLATES = [
-  { key: "br-moderno-azul", name: "Moderno Azul", component: BrModernoAzul },
-  { key: "br-clasico-profissional", name: "Clássico Profissional", component: BrClasicoProfissional },
-  { key: "br-verde-tecnico", name: "Verde Técnico", component: BrVerdeTecnico },
-  { key: "br-simples-direto", name: "Simples & Direto", component: BrSimplesDirecto },
-  { key: "br-executivo-verde", name: "Executivo Verde", component: BrExecutivoVerde },
-  { key: "br-construcao-bold", name: "Construção Bold", component: BrConstrucaoBold },
-  { key: "br-tecnico-moderno", name: "Técnico Moderno", component: BrTecnicoModerno },
-  { key: "br-premium-dourado", name: "Premium Dourado", component: BrPremiumDourado },
-  { key: "br-minimalista-br", name: "Minimalista BR", component: BrMinimalistaBR },
+  { key: "br-moderno-azul",         name: "Moderno Azul",        component: BrModernoAzul,          atsLevel: "full" },
+  { key: "br-clasico-profissional", name: "Clássico Profissional",component: BrClasicoProfissional,  atsLevel: "full" },
+  { key: "br-simples-direto",       name: "Simples & Direto",     component: BrSimplesDirecto,        atsLevel: "full" },
+  { key: "br-minimalista-br",       name: "Minimalista BR",       component: BrMinimalistaBR,         atsLevel: "full" },
+  { key: "br-verde-tecnico",        name: "Verde Técnico",        component: BrVerdeTecnico,          atsLevel: "modern" },
+  { key: "br-executivo-verde",      name: "Executivo Verde",      component: BrExecutivoVerde,        atsLevel: "modern" },
+  { key: "br-construcao-bold",      name: "Construção Bold",      component: BrConstrucaoBold,        atsLevel: "modern" },
+  { key: "br-tecnico-moderno",      name: "Técnico Moderno",      component: BrTecnicoModerno,        atsLevel: "modern" },
+  { key: "br-premium-dourado",      name: "Premium Dourado",      component: BrPremiumDourado,        atsLevel: "modern" },
 ];
 
 const SAMPLE_DATA = {
@@ -126,13 +128,26 @@ export default function BrCurriculoSelectPage() {
                 onClick={() => setField("selectedTemplate", t.key)}
                 className="w-full p-4 text-left"
               >
-                <div className="flex justify-between items-center">
-                  <h3 className="text-base font-semibold text-neutral-900">{t.name}</h3>
-                  <span className="text-xs font-semibold px-2 py-1 rounded bg-green-100 text-green-700">
-                    Incluído
-                  </span>
+                <div className="flex justify-between items-start gap-2">
+                  <div>
+                    <h3 className="text-base font-semibold text-neutral-900">{t.name}</h3>
+                    <p className="text-neutral-500 text-xs mt-0.5">Clique para visualizar à direita</p>
+                  </div>
+                  <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                    <span className="text-xs font-semibold px-2 py-0.5 rounded bg-green-100 text-green-700">
+                      Incluído
+                    </span>
+                    {t.atsLevel === "full" ? (
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded bg-blue-100 text-blue-700 whitespace-nowrap">
+                        ✓ ATS Otimizado
+                      </span>
+                    ) : (
+                      <span className="text-xs font-medium px-2 py-0.5 rounded bg-neutral-100 text-neutral-500 whitespace-nowrap">
+                        ATS Compatível
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <p className="text-neutral-500 text-xs mt-1">Clique para visualizar à direita</p>
               </button>
 
               {/* Action buttons */}

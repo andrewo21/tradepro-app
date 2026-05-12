@@ -116,6 +116,68 @@ export const roleSkillLibrary: Record<string, RoleData> = {
     tools:  ["ERP","Excel","Power BI"],
     responsibilities: ["cotação","negociação","gestão de pedidos"],
   },
+
+  // ── 10 new roles — top gaps in Brazilian job market ──────────────────────────
+
+  "Analista de Dados": {
+    skills: ["SQL","análise estatística","visualização de dados","modelagem de dados","Python","interpretação de indicadores"],
+    tools:  ["Power BI","Tableau","Python","SQL Server","Google Data Studio","Excel avançado"],
+    responsibilities: ["análise de dados","criação de dashboards","relatórios gerenciais","suporte à tomada de decisão"],
+  },
+
+  "Motorista": {
+    skills: ["habilitação categoria D ou E","direção defensiva","conhecimento do trânsito","controle de documentos de carga","pontualidade"],
+    tools:  ["GPS","Waze","sistemas de rastreamento","planilha de km"],
+    responsibilities: ["transporte de passageiros ou cargas","entrega de mercadorias","controle de rotas","manutenção básica do veículo"],
+  },
+
+  "Técnico de Enfermagem": {
+    skills: ["assistência ao paciente","administração de medicamentos","curativos e procedimentos","sinais vitais","biossegurança","BLS"],
+    tools:  ["prontuário eletrônico","Tasy","MV Soul","equipamentos hospitalares"],
+    responsibilities: ["assistência de enfermagem","administração de medicamentos","monitoramento de pacientes","registros clínicos"],
+  },
+
+  "Gerente de Loja": {
+    skills: ["gestão de equipes","controle de estoque","metas de vendas","atendimento ao cliente","treinamento de equipe","gestão financeira básica"],
+    tools:  ["PDV","ERP","Excel","sistemas de estoque"],
+    responsibilities: ["gestão de equipe","controle de metas","abertura e fechamento de caixa","gestão de estoque","atendimento a clientes"],
+  },
+
+  "Analista de E-commerce": {
+    skills: ["gestão de plataformas de venda","SEO para e-commerce","análise de conversão","gestão de produtos","atendimento online","marketing digital"],
+    tools:  ["Shopify","VTEX","Mercado Livre","Amazon Seller","Google Analytics","Meta Ads"],
+    responsibilities: ["gestão de catálogo","análise de performance","campanha de tráfego pago","gestão de pedidos","atendimento pós-venda"],
+  },
+
+  "Designer Gráfico": {
+    skills: ["identidade visual","tipografia","composição visual","branding","criação para redes sociais","prototipagem"],
+    tools:  ["Adobe Photoshop","Illustrator","Figma","InDesign","Canva Pro","After Effects"],
+    responsibilities: ["criação de materiais visuais","desenvolvimento de identidade visual","edição de imagens","criação para mídias digitais"],
+  },
+
+  "Analista de Projetos": {
+    skills: ["gestão de projetos","metodologias ágeis","Scrum","planejamento e cronograma","gestão de riscos","comunicação com stakeholders"],
+    tools:  ["MS Project","Jira","Trello","Asana","Excel","Notion"],
+    responsibilities: ["planejamento de projetos","acompanhamento de cronograma","gestão de riscos","comunicação com equipes","relatórios de status"],
+  },
+
+  "Auxiliar de Farmácia": {
+    skills: ["atendimento ao cliente","conhecimento de medicamentos","controle de estoque","legislação sanitária","organização"],
+    tools:  ["sistema de gestão de farmácia","PDV","leitor de código de barras"],
+    responsibilities: ["atendimento ao balcão","venda de medicamentos","controle de estoque","organização de prateleiras","orientação ao cliente"],
+  },
+
+  "Estagiário": {
+    skills: ["organização","comunicação","proatividade","aprendizado rápido","trabalho em equipe","atenção aos detalhes"],
+    tools:  ["Pacote Office","Google Workspace","sistemas internos"],
+    responsibilities: ["apoio às atividades do setor","participação em projetos","organização de documentos","suporte administrativo"],
+  },
+
+  "Personal Trainer": {
+    skills: ["avaliação física","prescrição de treinos","motivação de clientes","nutrição básica","primeiros socorros","anatomia aplicada"],
+    tools:  ["aplicativos de treino","Trainerize","planilhas de evolução","equipamentos de academia"],
+    responsibilities: ["avaliação física dos alunos","prescrição de treinos personalizados","acompanhamento de evolução","orientação nutricional básica"],
+  },
 };
 
 /** Find role data — exact match first, then keyword fallback */
@@ -136,15 +198,26 @@ function findRoleData(profession: string | null | undefined): { role: string; da
 
   // 3. Keyword fallback for common variants not in the exact list
   const KEYWORD_FALLBACKS: Array<{ keywords: string[]; role: string }> = [
-    { keywords: ["marketing","social media","conteúdo","mídia"],        role: "Analista de Marketing Jr." },
-    { keywords: ["atendimento","customer","suporte","sac","helpdesk"],  role: "Analista de Atendimento" },
-    { keywords: ["rh","recursos humanos","recrutamento","seleção"],     role: "Analista de RH" },
-    { keywords: ["financeiro","finanças","contabil","controladoria"],   role: "Analista Financeiro" },
-    { keywords: ["logística","supply","estoque","almoxarifado"],        role: "Analista de Logística" },
-    { keywords: ["desenvolvedor","programador","software","dev"],       role: "Desenvolvedor Jr." },
-    { keywords: ["vendas","comercial","representante","account"],       role: "Vendedor" },
-    { keywords: ["administrativo","secretária","backoffice","auxiliar de escritório"], role: "Assistente Administrativo" },
-    { keywords: ["compras","procurement","suprimentos"],                role: "Analista de Compras" },
+    { keywords: ["marketing","social media","conteúdo","mídia"],                      role: "Analista de Marketing Jr." },
+    { keywords: ["atendimento","customer","sac"],                                     role: "Analista de Atendimento" },
+    { keywords: ["helpdesk","suporte técnico","ti","infraestrutura"],                 role: "Analista de Suporte Técnico" },
+    { keywords: ["rh","recursos humanos","recrutamento","seleção","people"],          role: "Analista de RH" },
+    { keywords: ["financeiro","finanças","contabil","controladoria"],                 role: "Analista Financeiro" },
+    { keywords: ["logística","supply","estoque","almoxarifado"],                      role: "Analista de Logística" },
+    { keywords: ["desenvolvedor","programador","software","dev","fullstack","backend","frontend"], role: "Desenvolvedor Jr." },
+    { keywords: ["vendas","comercial","representante","account"],                     role: "Vendedor" },
+    { keywords: ["administrativo","secretária","backoffice"],                         role: "Assistente Administrativo" },
+    { keywords: ["compras","procurement","suprimentos"],                              role: "Analista de Compras" },
+    { keywords: ["dados","data","bi","business intelligence","cientista"],             role: "Analista de Dados" },
+    { keywords: ["motorista","entregador","condutor","transporte","motoboy"],         role: "Motorista" },
+    { keywords: ["enfermagem","técnico de enfermagem","enfermeiro","hospitalar"],     role: "Técnico de Enfermagem" },
+    { keywords: ["gerente de loja","gerência","varejo","supervisor de loja"],         role: "Gerente de Loja" },
+    { keywords: ["e-commerce","ecommerce","marketplace","loja virtual"],              role: "Analista de E-commerce" },
+    { keywords: ["designer","design gráfico","criativo","arte","visual","ui","ux"],  role: "Designer Gráfico" },
+    { keywords: ["projetos","pmo","scrum","agile","project manager"],                role: "Analista de Projetos" },
+    { keywords: ["farmácia","farmacêutico","medicamento","drogaria"],                 role: "Auxiliar de Farmácia" },
+    { keywords: ["estágio","estagiário","trainee","aprendiz"],                        role: "Estagiário" },
+    { keywords: ["personal trainer","educação física","academia","fitness","personal"], role: "Personal Trainer" },
   ];
 
   const pLower = profession.toLowerCase();

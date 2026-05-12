@@ -395,7 +395,10 @@ export default function BrazilHomePage() {
       {/* FEATURES */}
       <section className="w-full bg-white border-t border-neutral-200 py-12 px-4">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-2xl font-semibold text-center mb-8">{ptBR.landing.features.title}</h2>
+          <h2 className="text-2xl font-semibold text-center mb-3">{ptBR.landing.features.title}</h2>
+          <p className="text-sm text-green-700 font-medium text-center mb-8">
+            ✓ Modelos otimizados para leitura por sistemas ATS — compatíveis com os sistemas utilizados pelas principais empresas do mercado.
+          </p>
           <div className="grid gap-6 md:grid-cols-3 text-sm">
             {[
               { key: "resume", href: "/br/curriculo" },
