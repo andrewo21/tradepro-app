@@ -183,14 +183,6 @@ export default function BrazilHomePage() {
         </motion.div>
       </section>
 
-      {/* SALE BANNER */}
-      <div className="w-full bg-red-600 text-white py-3 px-4 text-center">
-        <p className="text-sm font-semibold">
-          🚀 <strong>Oferta de Lançamento: R$ 49 BRL</strong> — Acesse o TradePro ATS Engine™, a tecnologia proprietária que analisa seu currículo como um recrutador profissional.{" "}
-          Preço após o lançamento: R$ 99 BRL.{" "}
-          <a href="/br/precos" className="underline font-bold hover:text-red-100">Adquirir agora →</a>
-        </p>
-      </div>
 
       {/* ATS SECTION — what it is + before/after proof */}
       <section className="w-full bg-white border-t border-neutral-200 py-16 px-4">
