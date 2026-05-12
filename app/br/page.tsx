@@ -150,26 +150,20 @@ export default function BrazilHomePage() {
               </h1>
             </div>
 
-            <div className="max-w-2xl mx-auto text-center mb-4">
-              <p className="text-base md:text-lg text-neutral-200">{ptBR.landing.mission}</p>
+            <div className="max-w-xl mx-auto text-center mb-2">
+              <p className="text-sm md:text-base text-neutral-200">{ptBR.landing.mission}</p>
             </div>
 
-            <div className="max-w-xl mx-auto text-center mb-4">
-              <p className="text-base md:text-lg text-white font-medium italic leading-relaxed">
-                "Não importa sua área ou quanto tempo tem de experiência — sua história profissional merece ser contada com clareza e profissionalismo."
+            <div className="max-w-xl mx-auto text-center mb-2">
+              <p className="text-xs md:text-sm text-white font-medium italic">
+                "Não importa sua área — sua história profissional merece ser contada com profissionalismo."
               </p>
             </div>
 
-            <div className="max-w-2xl mx-auto text-center mb-4">
-              <p className="text-sm md:text-base text-amber-300 font-semibold leading-relaxed">
-                Recrutadores recebem uma análise de compatibilidade do seu currículo.<br />
-                Você nunca teve acesso a essa visão. <span className="text-white">Até agora.</span>
-              </p>
-            </div>
-
-            <div className="max-w-2xl mx-auto text-center mb-6">
-              <p className="text-sm md:text-base text-green-300 font-medium">
-                O TradePro ATS Engine™ analisa seu currículo como um recrutador profissional — identificando habilidades faltantes, ferramentas essenciais, responsabilidades esperadas e melhorias que aumentam sua pontuação ATS.
+            <div className="max-w-xl mx-auto text-center mb-5">
+              <p className="text-sm md:text-base text-amber-300 font-semibold">
+                Recrutadores veem uma análise do seu currículo. Você nunca viu essa análise.{" "}
+                <span className="text-white">Até agora.</span>
               </p>
             </div>
 
