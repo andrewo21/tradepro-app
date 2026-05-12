@@ -179,14 +179,6 @@ export default function BrazilHomePage() {
               </div>
             </div>
 
-            <div className="flex gap-4 flex-wrap justify-center">
-              <Link href="/br/curriculo" className="px-8 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-md transition">
-                {ptBR.landing.cta}
-              </Link>
-              <Link href="/br/precos" className="px-8 py-3 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-md border border-white/30 transition">
-                {ptBR.landing.ctaPricing}
-              </Link>
-            </div>
           </div>
         </motion.div>
       </section>
