@@ -59,7 +59,23 @@ export default function AdminATSPage() {
 
   const [loading, setLoading] = useState(false);
   const [parsing, setParsing] = useState(false);
+  const [cleaning, setCleaning] = useState(false);
   const [result, setResult] = useState<ATSResult | null>(null);
+
+  async function handleCleanJobText() {
+    if (!jobText.trim()) return;
+    setCleaning(true);
+    try {
+      const res = await fetch("/api/ai/br/clean-job-text", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: jobText }),
+      });
+      const json = await res.json();
+      if (json.cleaned) setJobText(json.cleaned);
+    } catch { /* silent */ }
+    finally { setCleaning(false); }
+  }
   const [error, setError] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
 
@@ -248,9 +264,20 @@ export default function AdminATSPage() {
               <span className="font-semibold text-sm text-neutral-800">Comparar com uma vaga específica</span>
             </label>
             {useJob && (
-              <textarea className="w-full border rounded-lg px-3 py-2 text-sm resize-none h-32 focus:ring-2 focus:ring-green-500 focus:outline-none"
-                placeholder="Cole aqui a descrição da vaga para a qual o cliente quer se candidatar…"
-                value={jobText} onChange={e => setJobText(e.target.value)} />
+              <div className="space-y-2">
+                <textarea className="w-full border rounded-lg px-3 py-2 text-sm resize-none h-32 focus:ring-2 focus:ring-green-500 focus:outline-none"
+                  placeholder="Cole o texto da vaga — LinkedIn, WhatsApp, Catho, e-mail, qualquer fonte. Clique em Limpar para extrair só o que importa."
+                  value={jobText} onChange={e => setJobText(e.target.value)} />
+                {jobText.trim().length > 50 && (
+                  <button onClick={handleCleanJobText} disabled={cleaning}
+                    className="w-full py-2 bg-green-700 text-white rounded-lg text-xs font-semibold hover:bg-green-800 disabled:opacity-60 flex items-center justify-center gap-2 transition">
+                    {cleaning ? (
+                      <><span className="inline-block h-3 w-3 border-2 border-white border-t-transparent rounded-full animate-spin" />Limpando texto…</>
+                    ) : "✦ Limpar e Extrair Requisitos da Vaga"}
+                  </button>
+                )}
+                <p className="text-xs text-neutral-400">Cole qualquer texto bruto. A IA remove boilerplate, benefícios e texto legal — mantém só requisitos e responsabilidades.</p>
+              </div>
             )}
             {!useJob && (
               <p className="text-xs text-neutral-400">Sem vaga: analisa a força geral do currículo para a profissão informada.</p>

@@ -92,8 +92,24 @@ export default function BrATSStepPage() {
   const [mode, setMode] = useState<Mode>("general");
   const [jobText, setJobText] = useState("");
   const [loading, setLoading] = useState(false);
+  const [cleaning, setCleaning] = useState(false);
   const [result, setResult] = useState<ATSResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  async function handleCleanJobText() {
+    if (!jobText.trim()) return;
+    setCleaning(true);
+    try {
+      const res = await fetch("/api/ai/br/clean-job-text", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: jobText }),
+      });
+      const json = await res.json();
+      if (json.cleaned) setJobText(json.cleaned);
+    } catch { /* silent — keep original text */ }
+    finally { setCleaning(false); }
+  }
 
   async function handleAnalyze() {
     setLoading(true); setError(null); setResult(null);
@@ -170,15 +186,26 @@ export default function BrATSStepPage() {
 
       {/* Job description input — only in with_job mode */}
       {mode === "with_job" && (
-        <div className="bg-white border border-neutral-200 rounded-xl p-5 mb-5">
-          <label className="block font-semibold text-sm text-neutral-800 mb-2">Descrição da Vaga</label>
-          <textarea
-            className="w-full border border-neutral-200 rounded-lg px-3 py-2.5 text-sm resize-none h-40 focus:outline-none focus:ring-2 focus:ring-green-500"
-            placeholder="Cole aqui o texto completo da vaga para a qual quer se candidatar..."
-            value={jobText}
-            onChange={e => setJobText(e.target.value)}
-          />
-        </div>
+          <div className="bg-white border border-neutral-200 rounded-xl p-5 mb-5">
+            <div className="flex items-center justify-between mb-2">
+              <label className="font-semibold text-sm text-neutral-800">Descrição da Vaga</label>
+              {jobText.trim().length > 50 && (
+                <button onClick={handleCleanJobText} disabled={cleaning}
+                  className="text-xs px-3 py-1.5 bg-green-700 text-white rounded-lg hover:bg-green-800 transition disabled:opacity-60 flex items-center gap-1.5">
+                  {cleaning ? (
+                    <><span className="inline-block h-3 w-3 border-2 border-white border-t-transparent rounded-full animate-spin" />Limpando…</>
+                  ) : "✦ Limpar e Extrair Requisitos"}
+                </button>
+              )}
+            </div>
+            <textarea
+              className="w-full border border-neutral-200 rounded-lg px-3 py-2.5 text-sm resize-none h-40 focus:outline-none focus:ring-2 focus:ring-green-500"
+              placeholder="Cole aqui o texto da vaga — pode ser copiado do LinkedIn, WhatsApp, Catho ou qualquer site. A IA extrai automaticamente os requisitos."
+              value={jobText}
+              onChange={e => setJobText(e.target.value)}
+            />
+            <p className="text-xs text-neutral-400 mt-1">Cole qualquer texto — site, WhatsApp, e-mail. Clique em "Limpar e Extrair" para remover o lixo automaticamente.</p>
+          </div>
       )}
 
       {error && (
