@@ -12,10 +12,6 @@ export default function SkillsPage() {
     removeSkill,
     rewriteSkill,
     acceptSkillSuggestion,
-    certifications,
-    addCertification,
-    updateCertification,
-    removeCertification,
   } = useResumeStore();
 
   // Auto‑rewrite after typing (debounced, using needsRewrite)
@@ -114,37 +110,6 @@ export default function SkillsPage() {
         </button>
       </div>
 
-      {/* Certificates & Licenses */}
-      <div className="bg-white border border-neutral-300 rounded-lg p-4 sm:p-6 shadow-sm max-w-3xl mx-auto mt-8">
-        <h2 className="text-lg font-semibold mb-1">Certificates &amp; Licenses</h2>
-        <p className="text-sm text-neutral-500 mb-4">Add trade licenses, safety certifications, professional credentials, and continuing education.</p>
-        <div className="space-y-3">
-          {(certifications || []).map((cert: any) => (
-            <div key={cert.id} className="flex items-center gap-2">
-              <input
-                type="text"
-                spellCheck={true}
-                value={cert.text}
-                onChange={(e) => updateCertification(cert.id, e.target.value)}
-                placeholder="e.g. OSHA 30, EPA 608, PMP, NR-10, CDL Class A..."
-                className="flex-1 border border-neutral-300 rounded px-3 py-2 text-sm"
-              />
-              <button
-                onClick={() => removeCertification(cert.id)}
-                className="flex-shrink-0 px-3 py-2 bg-neutral-200 rounded hover:bg-neutral-300 text-sm"
-              >
-                Remove
-              </button>
-            </div>
-          ))}
-        </div>
-        <button
-          onClick={() => addCertification()}
-          className="mt-4 px-4 py-2 bg-black text-white rounded hover:bg-neutral-800 text-sm"
-        >
-          + Add Certificate / License
-        </button>
-      </div>
 
       {/* NAVIGATION */}
       <div className="flex justify-between mt-10 max-w-3xl mx-auto">

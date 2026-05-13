@@ -71,7 +71,7 @@ function CheckoutSuccessContent() {
           if (data.entitlements.coverLetter) {
             router.push(isBrazil ? "/br/carta" : "/cover-letter");
           } else if (data.entitlements.resume) {
-            router.push(isBrazil ? "/br/curriculo" : "/resume");
+            router.push(isBrazil ? "/br/curriculo" : "/resume/personal");
           }
         }, 3000);
       } else {
@@ -123,7 +123,7 @@ function CheckoutSuccessContent() {
             <p className="text-sm font-semibold text-gray-700 mb-1">
               {isBrazil ? "O que você quer criar primeiro?" : "What would you like to create first?"}
             </p>
-            <a href={isBrazil ? "/br/curriculo" : "/resume"}
+            <a href={isBrazil ? "/br/curriculo" : "/resume/personal"}
               className="flex items-center gap-3 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium text-sm">
               <span className="text-xl">📄</span>
               {isBrazil ? "Criar Currículo" : "Build My Resume"}

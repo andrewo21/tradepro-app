@@ -8,6 +8,10 @@ export default function EducationPage() {
   const addEducation = useResumeStore((s) => s.addEducation);
   const updateEducation = useResumeStore((s) => s.updateEducation);
   const removeEducation = useResumeStore((s) => s.removeEducation);
+  const certifications = useResumeStore((s: any) => s.certifications || []);
+  const addCertification = useResumeStore((s: any) => s.addCertification);
+  const updateCertification = useResumeStore((s: any) => s.updateCertification);
+  const removeCertification = useResumeStore((s: any) => s.removeCertification);
 
   return (
     <div className="min-h-screen bg-neutral-50 text-neutral-900 px-4 py-8 sm:p-10">
@@ -68,6 +72,40 @@ export default function EducationPage() {
           className="px-4 py-2 bg-neutral-200 rounded-md text-sm hover:bg-neutral-300"
         >
           + Add Education
+        </button>
+      </div>
+
+      {/* Certificates & Licenses */}
+      <div className="bg-white border border-neutral-300 rounded-lg p-4 sm:p-6 shadow-sm mb-10">
+        <h2 className="text-lg font-semibold mb-1">Certificates &amp; Licenses</h2>
+        <p className="text-sm text-neutral-600 mb-4">
+          Add professional certifications, trade licenses, safety credentials, and continuing education.
+        </p>
+        <div className="space-y-3">
+          {certifications.map((cert: any) => (
+            <div key={cert.id} className="flex items-center gap-2">
+              <input
+                type="text"
+                spellCheck={true}
+                value={cert.text}
+                onChange={(e) => updateCertification(cert.id, e.target.value)}
+                placeholder="e.g. PMP, OSHA 30, EPA 608, CDL Class A, AWS Solutions Architect..."
+                className="flex-1 border border-neutral-300 rounded-md px-3 py-2 text-sm"
+              />
+              <button
+                onClick={() => removeCertification(cert.id)}
+                className="flex-shrink-0 px-3 py-2 bg-neutral-200 rounded hover:bg-neutral-300 text-sm"
+              >
+                Remove
+              </button>
+            </div>
+          ))}
+        </div>
+        <button
+          onClick={() => addCertification()}
+          className="mt-4 px-4 py-2 bg-black text-white rounded hover:bg-neutral-800 text-sm"
+        >
+          + Add Certificate / License
         </button>
       </div>
 

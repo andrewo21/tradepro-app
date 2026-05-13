@@ -119,8 +119,10 @@ function jobBlock(
   dotColor = "#374151", titleColor = "#111827", companyColor = "#4b5563", dateColor = "#6b7280",
   onNewPage?: () => void
 ): number {
-  const dates = [job.startDate, job.endDate].filter(Boolean).join(" – ");
-  const dateW = 100;
+  // Clean date strings — strip tabs and normalize whitespace
+  const cleanDate = (d: string) => (d || "").replace(/\t/g, " ").replace(/\s+/g, " ").trim();
+  const dates = [cleanDate(job.startDate), cleanDate(job.endDate)].filter(Boolean).join(" – ");
+  const dateW = 130; // wider to prevent long date strings from wrapping
   const bullets = getBullets(job);
 
   if (y + 30 > PAGE_H - MARGIN) {

@@ -124,12 +124,12 @@ OUTPUT FORMAT (return ONLY valid JSON)
   "personalInfo": {
     "firstName": "",
     "lastName": "",
-    "tradeTitle": "",
+    "tradeTitle": "professional title from the resume header or most recent job title",
     "phone": "",
     "email": "",
     "city": "",
     "state": "",
-    "linkedin": ""
+    "linkedin": "full LinkedIn URL if present"
   },
   "summary": "full professional summary paragraph(s) and any top-level bullets combined into one string",
   "skills": ["skill1", "skill2"],
@@ -137,10 +137,12 @@ OUTPUT FORMAT (return ONLY valid JSON)
     {
       "jobTitle": "",
       "company": "",
+      "city": "city of employer if stated, else empty string",
+      "state": "state/region of employer if stated, else empty string",
       "startDate": "",
       "endDate": "",
-      "roleSummary": "the prose paragraph describing the role — NOT bulleted. Empty string if none.",
-      "responsibilities": ["every bullet point, word for word"],
+      "roleSummary": "the non-bulleted prose intro paragraph for this role. If ALL content is prose (no bullets), put the FIRST paragraph here and remaining paragraphs in responsibilities.",
+      "responsibilities": ["each bullet point OR prose paragraph as a separate item"],
       "achievements": []
     }
   ],

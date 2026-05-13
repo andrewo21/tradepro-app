@@ -20,10 +20,8 @@ export default function BuilderSaveBar() {
     }
     const { data: { session } } = await sb.auth.getSession();
     if (!session) {
-      // Not logged in — prompt them
-      setStatus("error");
-      setTimeout(() => setStatus("idle"), 3000);
-      return;
+      router.push("/login");
+      return false;
     }
 
     setStatus("saving");

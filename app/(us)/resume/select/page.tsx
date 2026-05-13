@@ -133,10 +133,14 @@ export default function SelectPage() {
       </div>
 
       {/* Continue Button */}
-      <div className="mt-10 flex justify-end">
+      <div className="mt-10 flex flex-col items-end gap-2">
+        {hasAccess && !selectedTemplate && (
+          <p className="text-sm text-amber-600 font-medium">← Select a template above to continue</p>
+        )}
         <button
           onClick={handleContinue}
-          className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
+          disabled={hasAccess && !selectedTemplate}
+          className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {hasAccess ? "Continue to Step 2 →" : "Purchase to Continue →"}
         </button>
