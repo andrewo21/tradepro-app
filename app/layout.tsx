@@ -72,6 +72,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="apple-mobile-web-app-title" content="TradePro" />
         <meta name="theme-color" content="#1a1a1a" />
         <link rel="manifest" href="/manifest.json" />
+        {/* Google Analytics */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-PNF5F57ERN"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-PNF5F57ERN');
+          `}
+        </Script>
         <Script
           id="org-schema"
           type="application/ld+json"
