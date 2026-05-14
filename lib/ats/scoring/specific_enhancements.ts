@@ -6,6 +6,7 @@ import type { ResumeExtraction } from "../extraction/extract_resume_data";
 import type { JobExtraction }    from "../extraction/extract_job_data";
 import { normalize }             from "../utils/normalize";
 import { atsPointGains }         from "./final_score";
+import { findUSRoleData }        from "../roles/us_roles";
 
 export interface EnhancementInput {
   resumeExtraction: ResumeExtraction;
@@ -14,6 +15,7 @@ export interface EnhancementInput {
   skillsMissing?: string[];
   skillsFound?: string[];
   profession?: string | null;
+  locale?: string | null;  // "en" uses US library, "pt-BR" uses BR library
 }
 
 // ─── Role library — exact 19 Brazilian job titles ─────────────────────────────
@@ -307,13 +309,88 @@ export function buildSpecificEnhancements(
   return enhancements.slice(0, 7);
 }
 
+// ─── English version for US site ─────────────────────────────────────────────
+
+export function buildSpecificEnhancementsEN(data: ResumeExtraction, role: string): string[] {
+  const enhancements: string[] = [];
+  const roleMatch = findUSRoleData(role);
+  const roleData = roleMatch?.data ?? null;
+  const roleLabel = roleMatch?.role ?? role;
+
+  if (roleData) {
+    const missingSkills = roleData.skills.filter(
+      skill => !data.resume_skills.some(s => s.toLowerCase().includes(skill.toLowerCase()))
+    );
+    if (missingSkills.length > 0) {
+      enhancements.push(
+        `Your resume doesn't mention key skills for ${roleLabel}: ${missingSkills.slice(0, 3).join(", ")}. ` +
+        `If you have these skills, adding them could increase your score by approximately +${atsPointGains.missingSkill} points.`
+      );
+    }
+  }
+
+  if (roleData) {
+    const missingTools = roleData.tools.filter(
+      tool => !data.resume_tools.some(t => t.toLowerCase().includes(tool.toLowerCase()))
+    );
+    if (missingTools.length > 0) {
+      enhancements.push(
+        `${roleLabel}s commonly use ${missingTools.slice(0, 3).join(", ")}. ` +
+        `If you've worked with any of these, add them — it could improve your score by +${atsPointGains.missingToolMin}–${atsPointGains.missingToolMax} points.`
+      );
+    }
+  }
+
+  if (data.bullet_point_count < 5) {
+    const deficit = 5 - data.bullet_point_count;
+    enhancements.push(
+      `Your resume only has ${data.bullet_point_count} experience bullet${data.bullet_point_count !== 1 ? "s" : ""}. ` +
+      `Adding ${deficit} more relevant bullet${deficit !== 1 ? "s" : ""} could increase your structural score by ~+${atsPointGains.missingBullet} points.`
+    );
+  }
+
+  enhancements.push(
+    `Add measurable results to your experience bullets — numbers, percentages, and outcomes make your resume more impactful and can increase your score by up to +${atsPointGains.missingMetrics} points.`
+  );
+
+  if (!data.has_summary) {
+    enhancements.push(
+      `Your resume doesn't have a professional summary. Adding a clear, focused summary could improve your structural score by up to +${atsPointGains.missingSummary} points.`
+    );
+  }
+
+  if (data.word_count < 200) {
+    enhancements.push(
+      `Your resume is too short (${data.word_count} words — minimum recommended: 200). ` +
+      `Expanding your experience descriptions could improve your score by up to +${atsPointGains.lowWordCount} points.`
+    );
+  }
+
+  if (!data.has_skills_section) {
+    enhancements.push(
+      `Your resume doesn't have a skills section. Adding a dedicated skills list could improve your score by up to +${atsPointGains.missingSkillsSection} points.`
+    );
+  }
+
+  const fillers = [
+    `Start each bullet point with a strong action verb (Led, Built, Managed, Reduced, Increased) to make your experience more dynamic.`,
+    `If you have certifications or licenses relevant to your field, add them in a dedicated section — they differentiate your profile.`,
+    `Make sure your professional summary mentions your years of experience and your specific specialty area.`,
+  ];
+  let fi = 0;
+  while (enhancements.length < 4 && fi < fillers.length) enhancements.push(fillers[fi++]);
+
+  return enhancements.slice(0, 7);
+}
+
 // ─── Main export — called by general.ts and with_job.ts ──────────────────────
 
 export function computeSpecificEnhancements(input: EnhancementInput): string[] {
-  const { resumeExtraction: e, mode, jobExtraction, skillsMissing, profession } = input;
+  const { resumeExtraction: e, mode, jobExtraction, skillsMissing, profession, locale } = input;
 
   if (mode === "general") {
-    const role = profession || e.resume_titles?.[0] || "sua área";
+    const role = profession || e.resume_titles?.[0] || (locale === "en" ? "your field" : "sua área");
+    if (locale === "en") return buildSpecificEnhancementsEN(e, role);
     return buildSpecificEnhancements(e, role);
   }
 

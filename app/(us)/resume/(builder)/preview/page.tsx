@@ -197,7 +197,7 @@ export default function ResumePreviewPage() {
 
       <div className="flex justify-between items-center border-b pb-6 mb-6">
         <div>
-          <h1 className="text-3xl font-bold">Final Preview</h1>
+          <h1 className="text-3xl font-bold">Step 8 — Final Preview</h1>
           <p className="text-sm text-slate-500 capitalize tracking-wide">
             Design Style: <span className="text-blue-600 font-bold">{selectedTemplate?.replace('-', ' ') || 'Default'}</span>
           </p>

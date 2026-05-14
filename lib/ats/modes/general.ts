@@ -12,11 +12,12 @@ import { buildOutputGeneral }    from "../output/build_output_json";
 export interface GeneralInput {
   resumeText: string;
   candidateName?: string | null;
-  profession?: string | null;  // used for industry-benchmark suggestions
+  profession?: string | null;
+  locale?: string | null;  // "en" for US, "pt-BR" for Brazil
 }
 
 export async function runGeneral(client: OpenAI, input: GeneralInput) {
-  const { resumeText, candidateName, profession } = input;
+  const { resumeText, candidateName, profession, locale } = input;
 
   // ── Step 1: Extract (AI allowed here only) ────────────────────────────────
   const resumeExtraction = await extractResumeData(client, resumeText);
@@ -32,6 +33,7 @@ export async function runGeneral(client: OpenAI, input: GeneralInput) {
     resumeExtraction,
     mode: "general",
     profession: profession || null,
+    locale: locale || null,
   });
 
   // ── Step 4: Two-tiered suggestions ────────────────────────────────────────

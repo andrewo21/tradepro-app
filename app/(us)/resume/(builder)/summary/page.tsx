@@ -71,7 +71,7 @@ export default function SummaryPage() {
     <div className="min-h-screen bg-neutral-50 text-neutral-900 px-4 py-8 sm:p-10">
 
       <p className="text-sm text-neutral-500 mb-2">
-        Step 6 of 7 — Professional Summary
+        Step 6 of 8 — Professional Summary
       </p>
 
       <h1 className="text-2xl font-semibold text-slate-900 mb-2">
@@ -146,7 +146,7 @@ export default function SummaryPage() {
         </Link>
 
         <Link
-          href="/resume/preview"
+          href="/resume/ats"
           onClick={() => {
             if (localSummary !== summary) {
               updateSummary(localSummary);
@@ -154,7 +154,7 @@ export default function SummaryPage() {
           }}
           className="px-6 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition"
         >
-          Proceed to Full Preview →
+          Step 7: ATS Analysis →
         </Link>
       </div>
     </div>

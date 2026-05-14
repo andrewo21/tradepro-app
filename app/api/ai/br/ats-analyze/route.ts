@@ -55,6 +55,7 @@ export async function POST(req: NextRequest) {
         resumeText:    resume,
         candidateName,
         profession:    profession || null,
+        locale:        body.locale || null,
       });
       return NextResponse.json(result);
     }
