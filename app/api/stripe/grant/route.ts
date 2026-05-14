@@ -5,7 +5,7 @@ import { grantEntitlement, getUserEntitlements } from "@/lib/entitlements";
 import { ProductId, PRODUCT_LABELS } from "@/lib/pricing";
 import { overrides } from "@/config/overrides";
 import { getUserIdFromCookieHeader } from "@/lib/userId";
-import { schedulePostPurchaseEmails } from "@/lib/emailSequences";
+import { schedulePostPurchaseEmails, sendSaleNotification } from "@/lib/emailSequences";
 
 /**
  * POST /api/stripe/grant
@@ -62,6 +62,13 @@ export async function POST(req: NextRequest) {
         if (customerEmail) {
           const productName = PRODUCT_LABELS[productId] || productId;
           schedulePostPurchaseEmails(customerEmail, productName, entitlements.coverLetter, productId);
+
+          // Send internal sale notification for US purchases only
+          const isUS = !productId.startsWith("br_");
+          if (isUS) {
+            const amountTotal: number = session.amount_total ?? 0;
+            sendSaleNotification(productName, amountTotal, customerEmail).catch(console.error);
+          }
         }
       }
     } catch (emailErr: any) {
