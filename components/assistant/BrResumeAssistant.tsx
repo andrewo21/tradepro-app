@@ -147,7 +147,7 @@ export default function BrResumeAssistant() {
 
         if (data.message || (data.suggestions?.length ?? 0) > 0) {
           addMessage({
-            id:          `rex-${Date.now()}`,
+            id:          `gringo-${Date.now()}`,
             role:        "assistant",
             content:     data.message || "",
             suggestions: data.suggestions || [],
@@ -237,7 +237,7 @@ export default function BrResumeAssistant() {
         whileHover={{ scale: 1.06 }}
         whileTap={{  scale: 0.94 }}
         className="relative flex items-end justify-center cursor-pointer"
-        aria-label="Abrir Rex coach de currículo IA"
+        aria-label="Abrir Gringo coach de currículo IA"
       >
         {!isOpen && (
           <span className="absolute inset-0 rounded-full bg-indigo-400 opacity-25 animate-ping" />
@@ -254,7 +254,7 @@ export default function BrResumeAssistant() {
         )}
         {!isOpen && (
           <span className="absolute -bottom-5 left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] font-bold text-indigo-600 bg-white px-2 py-0.5 rounded-full shadow-sm border border-indigo-100">
-            Rex IA
+            Gringo™
           </span>
         )}
       </motion.button>

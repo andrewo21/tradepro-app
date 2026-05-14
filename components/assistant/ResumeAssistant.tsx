@@ -150,7 +150,7 @@ export default function ResumeAssistant({ locale = "en" }: Props) {
 
         if (data.message || (data.suggestions?.length ?? 0) > 0) {
           addMessage({
-            id:          `rex-${Date.now()}`,
+            id:          `cv1-${Date.now()}`,
             role:        "assistant",
             content:     data.message || "",
             suggestions: data.suggestions || [],
@@ -160,7 +160,7 @@ export default function ResumeAssistant({ locale = "en" }: Props) {
 
         setLastAnalyzed(step, currentHash);
 
-        // Auto-open chat when Rex has something to say, on first analysis
+        // Auto-open chat when CV-1 has something to say, on first analysis
         if (!isOpen && (data.suggestions?.length ?? 0) > 0) {
           setTimeout(() => open(), 800);
         }
@@ -257,7 +257,7 @@ export default function ResumeAssistant({ locale = "en" }: Props) {
         whileHover={{ scale: 1.06 }}
         whileTap={{  scale: 0.94 }}
         className="relative flex items-end justify-center cursor-pointer"
-        aria-label="Open Rex AI resume coach"
+        aria-label="Open CV-1 AI resume coach"
       >
         {/* Glow ring when idle */}
         {!isOpen && (
@@ -282,7 +282,7 @@ export default function ResumeAssistant({ locale = "en" }: Props) {
           <span
             className="absolute -bottom-5 left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] font-bold text-indigo-600 bg-white px-2 py-0.5 rounded-full shadow-sm border border-indigo-100"
           >
-            Rex AI
+            CV-1™
           </span>
         )}
       </motion.button>
