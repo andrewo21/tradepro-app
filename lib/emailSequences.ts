@@ -179,6 +179,36 @@ export async function sendDay2EmailPTBR(customerEmail: string) {
   });
 }
 
+// ── Sale notification (internal) ─────────────────────────────────────────────
+
+export async function sendSaleNotification(
+  productName: string,
+  amountCents: number,
+  customerEmail: string
+) {
+  if (!process.env.SENDGRID_API_KEY) return;
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+
+  const amountFormatted = `$${(amountCents / 100).toFixed(2)}`;
+
+  await sgMail.send({
+    to: "andrew@tradeprotech.ai",
+    from: FROM,
+    subject: `New sale: ${productName} (${amountFormatted})`,
+    html: `
+      <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:24px;color:#1a1a1a">
+        <h2 style="font-size:20px;font-weight:700;margin-bottom:16px">New US Sale</h2>
+        <table style="width:100%;border-collapse:collapse;font-size:14px">
+          <tr><td style="padding:8px 0;color:#555;width:140px">Product</td><td style="padding:8px 0;font-weight:600">${productName}</td></tr>
+          <tr><td style="padding:8px 0;color:#555">Amount</td><td style="padding:8px 0;font-weight:600">${amountFormatted}</td></tr>
+          <tr><td style="padding:8px 0;color:#555">Customer</td><td style="padding:8px 0">${customerEmail}</td></tr>
+        </table>
+      </div>
+    `,
+    text: `New US Sale\n\nProduct: ${productName}\nAmount: ${amountFormatted}\nCustomer: ${customerEmail}`,
+  });
+}
+
 // ── Scheduler — queues Day 2 and Day 5 emails ────────────────────────────────
 // Uses setTimeout for serverless (fires async, non-blocking).
 // Detects BR purchases by productId prefix "br_".
