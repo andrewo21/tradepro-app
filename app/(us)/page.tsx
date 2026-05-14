@@ -273,6 +273,96 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ATS SECTION */}
+      <section className="w-full bg-white border-t border-neutral-200 py-16 px-4">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-10">
+            <span className="inline-block bg-neutral-100 text-neutral-700 text-xs font-bold px-3 py-1 rounded-full mb-4 uppercase tracking-wide">
+              TradePro ATS Engine™
+            </span>
+            <h2 className="text-3xl md:text-4xl font-bold text-neutral-900 mb-4">
+              What the recruiter sees — before you apply
+            </h2>
+            <p className="text-neutral-600 text-lg max-w-2xl mx-auto mb-2">
+              Most companies use automated screening software (ATS) to filter resumes before a human ever reads them.
+              Most applicants get eliminated at this step — and never know why.
+            </p>
+            <p className="text-neutral-500 text-base max-w-xl mx-auto">
+              TradePro shows you exactly what those systems see in your resume — and what to fix before you hit submit.
+            </p>
+          </div>
+
+          {/* Before / After */}
+          <div className="mb-10">
+            <div className="text-center mb-3">
+              <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wide">Illustrative Example — fictional character, results vary</p>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div className="bg-red-50 border border-red-200 rounded-2xl p-6">
+                <p className="text-xs font-bold text-red-600 uppercase tracking-wide mb-3">Before — No ATS analysis</p>
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="text-5xl font-bold text-red-600">54</div>
+                  <span className="inline-block bg-amber-100 text-amber-800 text-xs font-bold px-3 py-1 rounded-full">Needs Work</span>
+                </div>
+                <ul className="space-y-1.5 text-sm text-red-700">
+                  <li className="flex gap-2"><span>✗</span>No professional summary</li>
+                  <li className="flex gap-2"><span>✗</span>Only 3 experience bullets</li>
+                  <li className="flex gap-2"><span>✗</span>Missing 3 key skills from job posting</li>
+                  <li className="flex gap-2"><span>✗</span>Main certification not mentioned</li>
+                </ul>
+              </div>
+              <div className="bg-green-50 border border-green-300 rounded-2xl p-6">
+                <p className="text-xs font-bold text-green-700 uppercase tracking-wide mb-3">After — With TradePro ATS Engine™</p>
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="text-5xl font-bold text-green-700">86</div>
+                  <span className="inline-block bg-green-100 text-green-800 text-xs font-bold px-3 py-1 rounded-full">Strong</span>
+                </div>
+                <ul className="space-y-1.5 text-sm text-green-700">
+                  <li className="flex gap-2"><span>✓</span>Summary added (+10 pts)</li>
+                  <li className="flex gap-2"><span>✓</span>5 bullets with measurable results (+5 pts)</li>
+                  <li className="flex gap-2"><span>✓</span>Missing skills added (+10 pts)</li>
+                  <li className="flex gap-2"><span>✓</span>OSHA 30 + certifications listed (+7 pts)</li>
+                </ul>
+              </div>
+            </div>
+            <p className="text-center text-xs text-neutral-400 mt-2">
+              * Illustrative example. TradePro shows your real score and what to improve — results depend on your resume.
+            </p>
+          </div>
+
+          {/* 3 pillars */}
+          <div className="grid md:grid-cols-3 gap-6 mb-10">
+            {[
+              { icon: "🎯", title: "Compare to a job posting", desc: "Paste any job description and see your ATS score, missing skills, and alignment — before you apply." },
+              { icon: "🔧", title: "Trade-specific benchmarks", desc: "Built for electricians, plumbers, HVAC techs, welders, drivers, and 50+ skilled roles. Not generic advice." },
+              { icon: "📊", title: "General strength check too", desc: "No job description? The engine still evaluates your resume against typical expectations for your trade." },
+            ].map(({ icon, title, desc }) => (
+              <div key={title} className="bg-neutral-50 border border-neutral-200 rounded-xl p-5">
+                <div className="text-3xl mb-3">{icon}</div>
+                <h3 className="font-semibold text-neutral-900 mb-2">{title}</h3>
+                <p className="text-neutral-600 text-sm">{desc}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Exclusive positioning */}
+          <div className="bg-neutral-900 rounded-2xl p-6 text-center max-w-2xl mx-auto mb-6">
+            <p className="text-white font-semibold text-base leading-relaxed">
+              Recruiters always had information you didn't.<br />
+              <span className="text-green-400">Now you have the same view — before you submit.</span>
+            </p>
+            <p className="text-neutral-500 text-xs mt-2">Exclusive to TradePro Technologies. You won't find this anywhere else.</p>
+          </div>
+
+          <div className="text-center">
+            <Link href="/resume/select" className="inline-block px-8 py-3 bg-neutral-900 text-white font-semibold rounded-xl hover:bg-neutral-700 transition shadow-md">
+              Build My Resume & Get My ATS Score →
+            </Link>
+            <p className="text-xs text-neutral-400 mt-2">ATS analysis included with every purchase</p>
+          </div>
+        </div>
+      </section>
+
       {/* VIDEO SECTION — placeholder while new videos are being produced */}
       <section className="w-full bg-neutral-50 border-t border-neutral-200 py-16 px-4">
         <div className="max-w-5xl mx-auto text-center">
@@ -356,13 +446,13 @@ export default function HomePage() {
               </p>
             </Link>
 
-            <div className="border border-neutral-200 rounded-md p-4 bg-neutral-50 opacity-60">
+            <div className="border border-blue-200 rounded-md p-4 bg-blue-50">
               <h3 className="font-semibold mb-1 flex items-center justify-between">
-                <span>More Tools</span>
-                <span className="text-[10px] uppercase tracking-wide bg-neutral-200 px-1.5 py-0.5 rounded">In Development</span>
+                <span>ATS Analysis</span>
+                <span className="text-[10px] uppercase tracking-wide bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">Included</span>
               </h3>
               <p className="text-neutral-700">
-                A growing toolkit built around how tradespeople actually work.
+                See your ATS score and exactly what to fix — built for trades and blue collar roles.
               </p>
             </div>
 
