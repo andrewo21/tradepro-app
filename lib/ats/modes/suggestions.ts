@@ -16,6 +16,7 @@ export interface WithJobSuggestionInput {
   skillsMissing: string[];
   resumeExtraction: ResumeExtraction;
   jobExtraction: JobExtraction;
+  locale?: string | null;
 }
 
 export async function generateSuggestionsWithJob(
@@ -24,18 +25,30 @@ export async function generateSuggestionsWithJob(
 ): Promise<string[]> {
   const {
     finalScore, skillsCoverage, semanticMatch, structureScore,
-    skillsMissing, resumeExtraction,
+    skillsMissing, resumeExtraction, locale,
   } = input;
+  const isEnglish = locale === "en";
 
-  const contextLines = [
+  const contextLines = isEnglish ? [
+    `Mode: analysis against job description`,
+    `Final ATS score: ${Math.round(finalScore)}/100`,
+    `Job skills coverage: ${Math.round(skillsCoverage)}%`,
+    `Semantic alignment with job: ${Math.round(semanticMatch)}%`,
+    `Resume structure score: ${Math.round(structureScore)}/100`,
+    `Skills required by job not in resume: ${skillsMissing.slice(0, 6).join(", ") || "none identified"}`,
+    `Has professional summary: ${resumeExtraction.has_summary ? "yes" : "no"}`,
+    `Has experience section: ${resumeExtraction.has_experience_section ? "yes" : "no"}`,
+    `Has skills section: ${resumeExtraction.has_skills_section ? "yes" : "no"}`,
+    `Has education section: ${resumeExtraction.has_education_section ? "yes" : "no"}`,
+    `Experience bullet count: ${resumeExtraction.bullet_point_count}`,
+    `Word count: ${resumeExtraction.word_count}`,
+  ] : [
     `Modo: análise contra descrição de vaga`,
     `Pontuação ATS final: ${Math.round(finalScore)}/100`,
     `Cobertura de habilidades da vaga: ${Math.round(skillsCoverage)}%`,
     `Alinhamento semântico com a vaga: ${Math.round(semanticMatch)}%`,
     `Pontuação de estrutura do currículo: ${Math.round(structureScore)}/100`,
-    `Habilidades exigidas pela vaga que não aparecem no currículo: ${
-      skillsMissing.slice(0, 6).join(", ") || "nenhuma identificada"
-    }`,
+    `Habilidades exigidas pela vaga que não aparecem no currículo: ${skillsMissing.slice(0, 6).join(", ") || "nenhuma identificada"}`,
     `Tem resumo profissional: ${resumeExtraction.has_summary ? "sim" : "não"}`,
     `Tem seção de experiência: ${resumeExtraction.has_experience_section ? "sim" : "não"}`,
     `Tem seção de habilidades: ${resumeExtraction.has_skills_section ? "sim" : "não"}`,
@@ -44,7 +57,7 @@ export async function generateSuggestionsWithJob(
     `Número de palavras: ${resumeExtraction.word_count}`,
   ];
 
-  return callSuggestionsAI(client, contextLines.join("\n"));
+  return callSuggestionsAI(client, contextLines.join("\n"), 4, locale);
 }
 
 // ─── Mode B suggestions ────────────────────────────────────────────────────────
@@ -54,6 +67,7 @@ export interface GeneralSuggestionInput {
   penalties: string[];
   resumeExtraction: ResumeExtraction;
   profession?: string | null;
+  locale?: string | null;
 }
 
 export interface TieredSuggestions {
@@ -65,10 +79,21 @@ export async function generateSuggestionsGeneral(
   client: OpenAI,
   input: GeneralSuggestionInput
 ): Promise<TieredSuggestions> {
-  const { structureScore, penalties, resumeExtraction, profession } = input;
+  const { structureScore, penalties, resumeExtraction, profession, locale } = input;
+  const isEnglish = locale === "en";
 
   // ── Tier 1: General structure hints ─────────────────────────────────────
-  const structureContext = [
+  const structureContext = isEnglish ? [
+    `Resume structure evaluation`,
+    `Score: ${Math.round(structureScore)}/100`,
+    `Issues found: ${penalties.join("; ") || "none"}`,
+    `Has professional summary: ${resumeExtraction.has_summary ? "yes" : "no"}`,
+    `Has experience section: ${resumeExtraction.has_experience_section ? "yes" : "no"}`,
+    `Has skills section: ${resumeExtraction.has_skills_section ? "yes" : "no"}`,
+    `Has education section: ${resumeExtraction.has_education_section ? "yes" : "no"}`,
+    `Experience bullet count: ${resumeExtraction.bullet_point_count}`,
+    `Word count: ${resumeExtraction.word_count}`,
+  ].join("\n") : [
     `Avaliação de estrutura do currículo`,
     `Pontuação: ${Math.round(structureScore)}/100`,
     `Problemas encontrados: ${penalties.join("; ") || "nenhum"}`,
@@ -80,31 +105,39 @@ export async function generateSuggestionsGeneral(
     `Palavras no currículo: ${resumeExtraction.word_count}`,
   ].join("\n");
 
-  const generalSuggestions = await callSuggestionsAI(client, structureContext, 3);
+  const generalSuggestions = await callSuggestionsAI(client, structureContext, 3, locale);
 
   // ── Tier 2: Profession-specific recommendations ─────────────────────────
   let specificSuggestions: string[] = [];
   if (profession?.trim()) {
     const prof = profession.trim();
-    const resumeSkills = resumeExtraction.resume_skills.slice(0, 10).join(", ") || "não listadas";
-    const resumeTitles = resumeExtraction.resume_titles.slice(0, 3).join(", ") || "não listados";
-    const bulletSample = resumeExtraction.resume_experience_bullets.slice(0, 4).join(" | ") || "nenhum";
+    const resumeSkills = resumeExtraction.resume_skills.slice(0, 10).join(", ") || (isEnglish ? "none listed" : "não listadas");
+    const resumeTitles = resumeExtraction.resume_titles.slice(0, 3).join(", ") || (isEnglish ? "none listed" : "não listados");
+    const bulletSample = resumeExtraction.resume_experience_bullets.slice(0, 4).join(" | ") || (isEnglish ? "none" : "nenhum");
 
-    const specificContext = [
+    const specificContext = isEnglish ? [
+      `Candidate's profession: ${prof}`,
+      `Skills the candidate has listed: ${resumeSkills}`,
+      `Previous job titles: ${resumeTitles}`,
+      `Sample experience bullets: ${bulletSample}`,
+      ``,
+      `Compare what the candidate has against what ${prof} professionals typically present.`,
+      `Generate 4-5 specific, actionable recommendations for THIS resume — not generic advice.`,
+      `Examples of the type of recommendation expected:`,
+      `- "Your resume mentions X but doesn't mention Y — a key skill for ${prof}"`,
+      `- "Add measurable results to your ${prof} experience bullets — percentages, dollar amounts, team sizes"`,
+      `- "${prof} professionals typically highlight Z — consider adding this"`,
+    ].join("\n") : [
       `Profissão do candidato: ${prof}`,
       `Habilidades que o candidato tem: ${resumeSkills}`,
       `Cargos que o candidato teve: ${resumeTitles}`,
       `Exemplos de bullets de experiência: ${bulletSample}`,
       ``,
-      `Compare o que o candidato tem com o que profissionais de "${prof}" normalmente precisam apresentar no mercado de trabalho.`,
+      `Compare o que o candidato tem com o que profissionais de "${prof}" normalmente precisam apresentar.`,
       `Gere 4 a 5 recomendações específicas para ESTE currículo — não conselhos genéricos.`,
-      `Exemplos do tipo de recomendação esperada:`,
-      `- "Seu currículo menciona X mas não menciona Y — uma competência-chave para ${prof}"`,
-      `- "Adicione resultados mensuráveis às suas experiências como ${prof}, como percentuais ou volumes"`,
-      `- "Profissionais de ${prof} costumam destacar Z — considere incluir isso"`,
     ].join("\n");
 
-    specificSuggestions = await callSuggestionsAI(client, specificContext, 5);
+    specificSuggestions = await callSuggestionsAI(client, specificContext, 5, locale);
   }
 
   return { general: generalSuggestions, specific: specificSuggestions };
@@ -115,16 +148,23 @@ export async function generateSuggestionsGeneral(
 async function callSuggestionsAI(
   client: OpenAI,
   context: string,
-  count: number = 4
+  count: number = 4,
+  locale?: string | null
 ): Promise<string[]> {
-  const completion = await client.chat.completions.create({
-    model: "gpt-4o",
-    temperature: 0.2,
-    response_format: { type: "json_object" },
-    messages: [
-      {
-        role: "system",
-        content: `Você é um consultor de carreira especializado no mercado de trabalho brasileiro.
+  const isEnglish = locale === "en";
+  const systemPrompt = isEnglish
+    ? `You are a career consultant specializing in the US job market.
+Generate exactly ${count} practical resume improvement suggestions based on the data provided.
+
+RULES:
+- Write in clear, direct American English
+- Generate EXACTLY ${count} specific, actionable suggestions
+- Base EACH suggestion on real data provided — do not invent problems that don't exist
+- NEVER claim the candidate already has something not mentioned
+- NEVER invent skills or experience not in the data
+- Use direct language: "Add...", "Consider...", "Your resume mentions X but not Y..."
+- Return a JSON in this format: { "suggestions": ["suggestion 1", "suggestion 2", ...] }`
+    : `Você é um consultor de carreira especializado no mercado de trabalho brasileiro.
 Gere exatamente ${count} sugestões práticas de melhoria de currículo com base nos dados fornecidos.
 
 REGRAS:
@@ -134,8 +174,14 @@ REGRAS:
 - NUNCA afirme que o candidato já tem algo que não foi mencionado
 - NUNCA invente habilidades ou experiências que não estão nos dados
 - Use linguagem direta: "Adicione...", "Considere...", "Seu currículo menciona X mas não Y..."
-- Retorne um JSON com este formato: { "suggestions": ["sugestão 1", "sugestão 2", ...] }`,
-      },
+- Retorne um JSON com este formato: { "suggestions": ["sugestão 1", "sugestão 2", ...] }`;
+
+  const completion = await client.chat.completions.create({
+    model: "gpt-4o",
+    temperature: 0.2,
+    response_format: { type: "json_object" },
+    messages: [
+      { role: "system", content: systemPrompt },
       { role: "user", content: context },
     ],
   });
