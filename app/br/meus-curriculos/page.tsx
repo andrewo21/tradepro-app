@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabase } from "@/lib/supabase";
 import { useBrResumeStore } from "@/app/store/useBrResumeStore";
@@ -18,7 +18,21 @@ export default function MeusCurriculosPage() {
   const [profile, setProfile] = useState<Profile>({ nome: "", sobrenome: "", telefone: "", cidade: "", estado: "" });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const [renamingId, setRenamingId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState("");
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [exportingId, setExportingId] = useState<string | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const setField = useBrResumeStore((s: any) => s.setField);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setOpenMenu(null);
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
 
   useEffect(() => {
     const sb = getSupabase();
@@ -51,6 +65,81 @@ export default function MeusCurriculosPage() {
     setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
+  }
+
+  async function getSession() {
+    const sb = getSupabase();
+    if (!sb) return null;
+    const { data: { session } } = await sb.auth.getSession();
+    return session;
+  }
+
+  async function handleRename(id: string) {
+    if (!renameValue.trim()) return;
+    const session = await getSession();
+    if (!session) return;
+    await fetch("/api/resume/delete", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
+      body: JSON.stringify({ id, title: renameValue.trim() }),
+    });
+    setResumes(prev => prev.map(r => r.id === id ? { ...r, title: renameValue.trim() } : r));
+    setRenamingId(null); setOpenMenu(null);
+  }
+
+  async function handleDelete(id: string) {
+    const session = await getSession();
+    if (!session) return;
+    setDeletingId(id);
+    await fetch(`/api/resume/delete?id=${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${session.access_token}` } });
+    setResumes(prev => prev.filter(r => r.id !== id));
+    setDeletingId(null); setOpenMenu(null);
+  }
+
+  async function handleExport(id: string) {
+    const session = await getSession();
+    if (!session) return;
+    setExportingId(id);
+    try {
+      const res = await fetch(`/api/resume/load?id=${id}`, { headers: { Authorization: `Bearer ${session.access_token}` } });
+      const json = await res.json();
+      if (!json.resume?.data) return;
+      const d = json.resume.data;
+      const BR_TO_PDF: Record<string, string> = {
+        "br-moderno-azul":"modern-blue","br-clasico-profissional":"standard-classic",
+        "br-verde-tecnico":"sidebar-green","br-simples-direto":"standard-contemporary",
+        "br-executivo-verde":"executive-classic","br-construcao-bold":"modern-elite",
+        "br-tecnico-moderno":"basic-two-column","br-premium-dourado":"executive-luxe","br-minimalista-br":"modern-professional",
+      };
+      const p = d.personalInfo || {};
+      const pdfPayload = {
+        type: "resume", locale: "pt-BR",
+        selectedTemplate: BR_TO_PDF[d.selectedTemplate] || "standard-contemporary",
+        name: `${p.nome || ""} ${p.sobrenome || ""}`.trim(),
+        title: p.tituloProfissional || "",
+        photo: p.foto || undefined,
+        contact: { phone: p.telefone || p.whatsapp || "", email: p.email || "", location: `${p.cidade || ""}${p.cidade && p.estado ? ", " : ""}${p.estado || ""}`, linkedin: p.linkedin || "" },
+        summary: d.resumoProfissional || "",
+        skills: [...(d.habilidadesTecnicas || d.habilidades || []).map((h: any) => h.text || h)].filter(Boolean),
+        softSkills: (d.habilidadesComportamentais || []).map((h: any) => h.text || h).filter(Boolean),
+        experience: (d.experiencia || []).map((exp: any) => ({
+          jobTitle: exp.cargo || "", company: exp.empresa || "", city: exp.cidade || "", state: exp.estado || "",
+          startDate: exp.dataInicio || "", endDate: exp.dataFim || "", roleSummary: exp.roleSummary || "",
+          responsibilities: (exp.responsabilidades || []).map((r: any) => r.text || r).filter(Boolean), achievements: [],
+        })),
+        education: (d.formacao || []).map((f: any) => ({ school: f.instituicao || "", degree: f.curso || "" })),
+        certifications: [...(d.cursosCertificacoes || []).filter((c: any) => c.nome).map((c: any) => c.nome), ...(d.idiomas || []).map((i: any) => `Idioma: ${i.text || i}`).filter(Boolean)],
+      };
+      const pdfRes = await fetch("/api/export/pdf", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(pdfPayload) });
+      if (!pdfRes.ok) return;
+      const blob = await pdfRes.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a"); a.href = url;
+      const resume = resumes.find(r => r.id === id);
+      a.download = `${(resume?.title || "Curriculo").replace(/\s+/g, "-")}.pdf`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } finally { setExportingId(null); setOpenMenu(null); }
   }
 
   async function loadResume(id: string) {
@@ -140,15 +229,50 @@ export default function MeusCurriculosPage() {
               <h2 className="font-semibold text-neutral-900">Currículos Salvos</h2>
               <Link href="/br/curriculo" className="text-sm text-green-700 hover:text-green-900">+ Novo Currículo</Link>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2" ref={menuRef}>
               {resumes.map(r => (
-                <button key={r.id} onClick={() => loadResume(r.id)}
-                  className="w-full text-left px-4 py-3 bg-neutral-50 hover:bg-green-50 border border-neutral-200 hover:border-green-400 rounded-xl transition">
-                  <p className="font-medium text-sm text-neutral-900">{r.title}</p>
-                  <p className="text-xs text-neutral-400 mt-0.5">
-                    Atualizado em {new Date(r.updated_at).toLocaleDateString("pt-BR", { day: "numeric", month: "short", year: "numeric" })}
-                  </p>
-                </button>
+                <div key={r.id} className="relative flex items-center gap-2 px-4 py-3 bg-neutral-50 hover:bg-green-50 border border-neutral-200 hover:border-green-400 rounded-xl transition group">
+                  {renamingId === r.id ? (
+                    <div className="flex-1 flex gap-2">
+                      <input autoFocus type="text" value={renameValue} onChange={e => setRenameValue(e.target.value)}
+                        onKeyDown={e => { if (e.key === "Enter") handleRename(r.id); if (e.key === "Escape") { setRenamingId(null); setOpenMenu(null); } }}
+                        className="flex-1 border border-green-500 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-green-600" />
+                      <button onClick={() => handleRename(r.id)} className="px-3 py-1 bg-green-700 text-white rounded text-xs font-medium hover:bg-green-800">Salvar</button>
+                      <button onClick={() => setRenamingId(null)} className="px-3 py-1 bg-neutral-200 rounded text-xs hover:bg-neutral-300">Cancelar</button>
+                    </div>
+                  ) : (
+                    <button onClick={() => loadResume(r.id)} className="flex-1 text-left">
+                      <p className="font-medium text-sm text-neutral-900">{r.title}</p>
+                      <p className="text-xs text-neutral-400 mt-0.5">
+                        Atualizado em {new Date(r.updated_at).toLocaleDateString("pt-BR", { day: "numeric", month: "short", year: "numeric" })}
+                      </p>
+                    </button>
+                  )}
+                  {renamingId !== r.id && (
+                    <button onClick={e => { e.stopPropagation(); setOpenMenu(openMenu === r.id ? null : r.id); }}
+                      className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-neutral-200 text-neutral-500 hover:text-neutral-800 transition opacity-0 group-hover:opacity-100">
+                      ···
+                    </button>
+                  )}
+                  {openMenu === r.id && (
+                    <div className="absolute right-2 top-12 z-20 bg-white border border-neutral-200 rounded-xl shadow-lg py-1 w-44">
+                      <button onClick={() => { setRenamingId(r.id); setRenameValue(r.title); setOpenMenu(null); }}
+                        className="w-full text-left px-4 py-2.5 text-sm text-neutral-700 hover:bg-neutral-50 flex items-center gap-2">
+                        <span>✏️</span> Renomear
+                      </button>
+                      <button onClick={() => handleExport(r.id)} disabled={exportingId === r.id}
+                        className="w-full text-left px-4 py-2.5 text-sm text-neutral-700 hover:bg-neutral-50 flex items-center gap-2 disabled:opacity-50">
+                        <span>⬇️</span> {exportingId === r.id ? "Exportando…" : "Exportar PDF"}
+                      </button>
+                      <div className="border-t border-neutral-100 my-1" />
+                      <button onClick={() => { if (confirm(`Excluir "${r.title}"? Esta ação não pode ser desfeita.`)) handleDelete(r.id); }}
+                        disabled={deletingId === r.id}
+                        className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 disabled:opacity-50">
+                        <span>🗑️</span> {deletingId === r.id ? "Excluindo…" : "Excluir"}
+                      </button>
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
           </div>
