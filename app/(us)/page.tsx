@@ -277,8 +277,8 @@ export default function HomePage() {
       <section className="w-full bg-white border-t border-neutral-200 py-16 px-4">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-10">
-            <span className="inline-block bg-neutral-100 text-neutral-700 text-xs font-bold px-3 py-1 rounded-full mb-4 uppercase tracking-wide">
-              TradePro ATS Engine™
+            <span className="inline-block bg-neutral-900 text-white text-xs font-bold px-3 py-1 rounded-full mb-4 uppercase tracking-wide">
+              TradePro ATS Engine™ — Proprietary Technology
             </span>
             <h2 className="text-3xl md:text-4xl font-bold text-neutral-900 mb-4">
               What the recruiter sees — before you apply
@@ -343,15 +343,6 @@ export default function HomePage() {
                 <p className="text-neutral-600 text-sm">{desc}</p>
               </div>
             ))}
-          </div>
-
-          {/* Exclusive positioning */}
-          <div className="bg-neutral-900 rounded-2xl p-6 text-center max-w-2xl mx-auto mb-6">
-            <p className="text-white font-semibold text-base leading-relaxed">
-              Recruiters always had information you didn't.<br />
-              <span className="text-green-400">Now you have the same view — before you submit.</span>
-            </p>
-            <p className="text-neutral-500 text-xs mt-2">Exclusive to TradePro Technologies. You won't find this anywhere else.</p>
           </div>
 
           <div className="text-center">
