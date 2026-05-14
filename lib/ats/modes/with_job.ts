@@ -8,7 +8,7 @@ import { extractJobData }       from "../extraction/extract_job_data";
 import { computeStructureScore } from "../scoring/structure_score";
 import { computeSkillsCoverage } from "../scoring/skills_coverage";
 import { computeSemanticMatch }  from "../scoring/semantic_match";
-import { computeFinalScore }     from "../scoring/final_score";
+import { computeFinalScore, getStrengthLabel } from "../scoring/final_score";
 import { computeSpecificEnhancements } from "../scoring/specific_enhancements";
 import { generateSuggestionsWithJob } from "./suggestions";
 import { buildOutputWithJob }    from "../output/build_output_json";
@@ -20,10 +20,11 @@ export interface WithJobInput {
   jobTitle?: string | null;
   companyName?: string | null;
   date?: string | null;
+  locale?: string | null;
 }
 
 export async function runWithJob(client: OpenAI, input: WithJobInput) {
-  const { resumeText, jobDescription, candidateName, jobTitle, companyName, date } = input;
+  const { resumeText, jobDescription, candidateName, jobTitle, companyName, date, locale } = input;
 
   // ── Step 1: Extract (AI allowed here only) ────────────────────────────────
   const [resumeExtraction, jobExtraction] = await Promise.all([
@@ -51,6 +52,12 @@ export async function runWithJob(client: OpenAI, input: WithJobInput) {
     structureResult.score
   );
 
+  // ── Step 6b: Locale-aware final score label ───────────────────────────────
+  const finalResultWithLocale = {
+    ...finalResult,
+    strength_label: getStrengthLabel(finalResult.final_ats_score, locale),
+  };
+
   // ── Step 7b: Specific enhancements — pure deterministic, no AI ───────────
   const specificEnhancements = computeSpecificEnhancements({
     resumeExtraction,
@@ -58,6 +65,7 @@ export async function runWithJob(client: OpenAI, input: WithJobInput) {
     jobExtraction,
     skillsMissing: skillsCoverage.skills_missing,
     skillsFound:   skillsCoverage.skills_found,
+    locale:        locale || null,
   });
 
   // ── Step 8: Suggestions (AI for natural language only, scores are input) ──
@@ -69,12 +77,13 @@ export async function runWithJob(client: OpenAI, input: WithJobInput) {
     skillsMissing:   skillsCoverage.skills_missing,
     resumeExtraction,
     jobExtraction,
+    locale:          locale || null,
   });
 
   // ── Step 9: Build structured output ──────────────────────────────────────
   return buildOutputWithJob({
     candidateName, jobTitle, companyName, date,
-    finalResult,
+    finalResult: finalResultWithLocale,
     skillsCoverageScore:  skillsCoverage.score,
     semanticMatchScore:   semanticMatch.score,
     structureScore:       structureResult.score,

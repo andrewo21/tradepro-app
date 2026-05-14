@@ -394,15 +394,16 @@ export function computeSpecificEnhancements(input: EnhancementInput): string[] {
     return buildSpecificEnhancements(e, role);
   }
 
-  // Mode A — job description comparisons (deterministic from job data)
+  // Mode A — job description comparisons (deterministic, locale-aware)
+  const isEN = locale === "en";
   const items: string[] = [];
 
   // Individual missing skills
   (skillsMissing || []).slice(0, 3).forEach(skill => {
     if (items.length >= 7) return;
-    items.push(
-      `Seu currículo não menciona "${skill}", uma habilidade exigida por esta vaga. ` +
-      `Se você possui essa habilidade, adicione-a — pode aumentar sua pontuação em +${atsPointGains.missingSkill} pontos.`
+    items.push(isEN
+      ? `Your resume doesn't mention "${skill}", a skill required by this job. If you have this skill, add it — it could increase your score by +${atsPointGains.missingSkill} points.`
+      : `Seu currículo não menciona "${skill}", uma habilidade exigida por esta vaga. Se você possui essa habilidade, adicione-a — pode aumentar sua pontuação em +${atsPointGains.missingSkill} pontos.`
     );
   });
 
@@ -414,9 +415,9 @@ export function computeSpecificEnhancements(input: EnhancementInput): string[] {
       .slice(0, 2)
       .forEach(tool => {
         if (items.length >= 7) return;
-        items.push(
-          `A vaga exige "${tool}", que não aparece no seu currículo. ` +
-          `Se você já utilizou, inclua-a — pode melhorar sua pontuação em +${atsPointGains.missingToolMin}–${atsPointGains.missingToolMax} pontos.`
+        items.push(isEN
+          ? `The job requires "${tool}", which doesn't appear in your resume. If you've used it, add it — could improve your score by +${atsPointGains.missingToolMin}–${atsPointGains.missingToolMax} points.`
+          : `A vaga exige "${tool}", que não aparece no seu currículo. Se você já utilizou, inclua-a — pode melhorar sua pontuação em +${atsPointGains.missingToolMin}–${atsPointGains.missingToolMax} pontos.`
         );
       });
   }
@@ -433,8 +434,9 @@ export function computeSpecificEnhancements(input: EnhancementInput): string[] {
       .forEach(resp => {
         if (items.length >= 7) return;
         const short = resp.length > 70 ? resp.slice(0, 67) + "..." : resp;
-        items.push(
-          `A vaga menciona: "${short}". Se você executou isso, crie um bullet descrevendo como — pode aumentar +${atsPointGains.missingResponsibilityMin}–${atsPointGains.missingResponsibilityMax} pontos.`
+        items.push(isEN
+          ? `The job mentions: "${short}". If you've done this, add a bullet describing how — could increase +${atsPointGains.missingResponsibilityMin}–${atsPointGains.missingResponsibilityMax} points.`
+          : `A vaga menciona: "${short}". Se você executou isso, crie um bullet descrevendo como — pode aumentar +${atsPointGains.missingResponsibilityMin}–${atsPointGains.missingResponsibilityMax} pontos.`
         );
       });
   }
@@ -442,17 +444,33 @@ export function computeSpecificEnhancements(input: EnhancementInput): string[] {
   // Structure items
   if (e.bullet_point_count < 5 && items.length < 7) {
     const deficit = 5 - e.bullet_point_count;
-    items.push(`Seu currículo tem apenas ${e.bullet_point_count} tópicos de experiência. Adicionar ${deficit} mais pode aumentar +${atsPointGains.missingBullet} pontos.`);
+    items.push(isEN
+      ? `Your resume only has ${e.bullet_point_count} experience bullets. Adding ${deficit} more could increase your score by +${atsPointGains.missingBullet} points.`
+      : `Seu currículo tem apenas ${e.bullet_point_count} tópicos de experiência. Adicionar ${deficit} mais pode aumentar +${atsPointGains.missingBullet} pontos.`
+    );
   }
   if (!e.has_summary && items.length < 7)
-    items.push(`Adicionar um resumo profissional pode melhorar sua pontuação estrutural em até +${atsPointGains.missingSummary} pontos.`);
+    items.push(isEN
+      ? `Adding a professional summary could improve your structural score by up to +${atsPointGains.missingSummary} points.`
+      : `Adicionar um resumo profissional pode melhorar sua pontuação estrutural em até +${atsPointGains.missingSummary} pontos.`
+    );
   if (!e.has_skills_section && items.length < 7)
-    items.push(`Adicionar uma seção de habilidades pode melhorar sua pontuação em até +${atsPointGains.missingSkillsSection} pontos.`);
+    items.push(isEN
+      ? `Adding a skills section could improve your score by up to +${atsPointGains.missingSkillsSection} points.`
+      : `Adicionar uma seção de habilidades pode melhorar sua pontuação em até +${atsPointGains.missingSkillsSection} pontos.`
+    );
   if (e.word_count < 200 && items.length < 7)
-    items.push(`Seu currículo está muito curto (${e.word_count} palavras). Expandir pode melhorar +${atsPointGains.lowWordCount} pontos.`);
+    items.push(isEN
+      ? `Your resume is too short (${e.word_count} words). Expanding it could improve your score by +${atsPointGains.lowWordCount} points.`
+      : `Seu currículo está muito curto (${e.word_count} palavras). Expandir pode melhorar +${atsPointGains.lowWordCount} pontos.`
+    );
 
   // Padding to minimum 4
-  const fillers = [
+  const fillers = isEN ? [
+    `Add measurable results to your experience bullets — numbers and percentages increase impact and score by up to +${atsPointGains.missingMetrics} points.`,
+    `Start each bullet with a strong action verb (Led, Built, Managed, Reduced) to make your experience more dynamic.`,
+    `If you have certifications relevant to this role, add them in a dedicated section — they differentiate your profile.`,
+  ] : [
     `Inclua resultados mensuráveis nos seus bullets — números e percentuais aumentam o impacto e a pontuação em até +${atsPointGains.missingMetrics} pontos.`,
     `Use verbos de ação no início de cada bullet (Liderou, Implementou, Reduziu, Aumentou) para tornar suas experiências mais dinâmicas.`,
     `Se você possui certificações ou idiomas relevantes, adicione-os em seções dedicadas — isso diferencia seu perfil.`,
