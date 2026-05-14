@@ -299,7 +299,7 @@ export default function HomePage() {
             </div>
             <div className="grid sm:grid-cols-2 gap-4">
               <div className="bg-red-50 border border-red-200 rounded-2xl p-6">
-                <p className="text-xs font-bold text-red-600 uppercase tracking-wide mb-3">Before — No ATS analysis</p>
+                <p className="text-xs font-bold text-red-600 uppercase tracking-wide mb-3">Before — No ATS Analysis</p>
                 <div className="flex items-center gap-4 mb-4">
                   <div className="text-5xl font-bold text-red-600">54</div>
                   <span className="inline-block bg-amber-100 text-amber-800 text-xs font-bold px-3 py-1 rounded-full">Needs Work</span>
