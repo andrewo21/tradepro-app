@@ -5,7 +5,7 @@ import { grantEntitlement, getUserEntitlements } from "@/lib/entitlements";
 import { ProductId, PRODUCT_LABELS } from "@/lib/pricing";
 import { overrides } from "@/config/overrides";
 import { getUserIdFromCookieHeader } from "@/lib/userId";
-import { schedulePostPurchaseEmails } from "@/lib/emailSequences";
+import { schedulePostPurchaseEmails, sendSaleNotification } from "@/lib/emailSequences";
 
 /**
  * POST /api/stripe/grant
@@ -62,6 +62,14 @@ export async function POST(req: NextRequest) {
         if (customerEmail) {
           const productName = PRODUCT_LABELS[productId] || productId;
           schedulePostPurchaseEmails(customerEmail, productName, entitlements.coverLetter, productId);
+
+          // Notify owner of every US sale (Brazil sales excluded)
+          const isBrazilProduct = productId?.startsWith("br_");
+          if (!isBrazilProduct) {
+            const ownerEmail = process.env.OWNER_NOTIFICATION_EMAIL || "andrew@tradeprotech.ai";
+            const amount = session.amount_total ? `$${(session.amount_total / 100).toFixed(2)}` : "unknown amount";
+            await sendSaleNotification(ownerEmail, customerEmail, productName, amount).catch(() => {});
+          }
         }
       }
     } catch (emailErr: any) {

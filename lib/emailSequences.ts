@@ -3,6 +3,35 @@
 
 import sgMail from "@sendgrid/mail";
 
+/** Notify the owner instantly when a US sale is made */
+export async function sendSaleNotification(
+  ownerEmail: string,
+  customerEmail: string,
+  productName: string,
+  amount: string
+) {
+  if (!process.env.SENDGRID_API_KEY) return;
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+  await sgMail.send({
+    to: ownerEmail,
+    from: { name: "TradePro Sales", email: "no-reply@tradeprotech.ai" },
+    subject: `💰 New Sale — ${amount} — ${productName}`,
+    html: `
+      <div style="font-family:sans-serif;max-width:500px;margin:0 auto;padding:24px;color:#1a1a1a">
+        <h2 style="color:#16a34a;margin-bottom:8px">New Sale on TradePro! 🎉</h2>
+        <table style="width:100%;border-collapse:collapse;font-size:14px">
+          <tr><td style="padding:8px 0;color:#555;width:140px">Product</td><td style="padding:8px 0;font-weight:600">${productName}</td></tr>
+          <tr><td style="padding:8px 0;color:#555">Amount</td><td style="padding:8px 0;font-weight:600;color:#16a34a">${amount}</td></tr>
+          <tr><td style="padding:8px 0;color:#555">Customer email</td><td style="padding:8px 0">${customerEmail}</td></tr>
+          <tr><td style="padding:8px 0;color:#555">Time</td><td style="padding:8px 0">${new Date().toLocaleString("en-US", { timeZone: "America/New_York" })} ET</td></tr>
+        </table>
+        <p style="margin-top:16px;font-size:12px;color:#999">TradePro Technologies · tradeprotech.ai</p>
+      </div>
+    `,
+    text: `New TradePro sale!\nProduct: ${productName}\nAmount: ${amount}\nCustomer: ${customerEmail}`,
+  });
+}
+
 const FROM = {
   name: "Andrew from TradePro",
   email: "no-reply@tradeprotech.ai",
