@@ -10,6 +10,7 @@ import { ProductId } from "@/lib/pricing";
 import { overrides } from "@/config/overrides";
 import { getServerUserId } from "@/lib/userId";
 import BuilderSaveBar from "@/components/BuilderSaveBar";
+import ResumeAssistant from "@/components/assistant/ResumeAssistant";
 
 // Server wrapper for async logic
 async function ResumeGate({ children }: { children: ReactNode }) {
@@ -34,6 +35,7 @@ async function ResumeGate({ children }: { children: ReactNode }) {
         {children}
       </div>
       {!devOverride && <BundleUpsell userId={userId} entitlements={entitlements} />}
+      <ResumeAssistant locale="en" />
     </div>
   );
 }
