@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useBrResumeStore } from "@/app/store/useBrResumeStore";
 import { getSupabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
@@ -10,7 +10,20 @@ export default function BrBuilderSaveBar() {
   const store = useBrResumeStore();
   const router = useRouter();
   const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [editing, setEditing] = useState(false);
+  const [resumeName, setResumeName] = useState("Meu Currículo");
   const resumeIdRef = useRef<string | null>(null);
+  const nameInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const p = store.personalInfo || {};
+    const auto = [p.nome, p.sobrenome].filter(Boolean).join(" ");
+    if (auto && resumeName === "Meu Currículo") setResumeName(auto);
+  }, [store.personalInfo?.nome, store.personalInfo?.sobrenome]);
+
+  useEffect(() => {
+    if (editing) nameInputRef.current?.focus();
+  }, [editing]);
 
   const handleSave = useCallback(async (): Promise<boolean> => {
     const sb = getSupabase();
@@ -24,8 +37,7 @@ export default function BrBuilderSaveBar() {
     }
 
     setStatus("saving");
-    const pi = store.personalInfo || {};
-    const autoTitle = [pi.nome, pi.sobrenome].filter(Boolean).join(" ") || "Meu Currículo";
+    const autoTitle = resumeName || "Meu Currículo";
 
     const data = {
       personalInfo: store.personalInfo,
@@ -70,11 +82,36 @@ export default function BrBuilderSaveBar() {
 
   return (
     <div className="flex items-center justify-between px-4 py-2 bg-white border-b border-neutral-200 text-sm">
-      <Link href="/br/meus-curriculos" className="text-green-700 hover:text-green-900 font-medium flex items-center gap-1.5">
+      <Link href="/br/meus-curriculos" className="text-green-700 hover:text-green-900 font-medium flex items-center gap-1.5 flex-shrink-0">
         <span>←</span> Meus Currículos
       </Link>
 
-      <div className="flex items-center gap-3">
+      {/* Nome editável */}
+      <div className="flex-1 mx-4">
+        {editing ? (
+          <input
+            ref={nameInputRef}
+            type="text"
+            value={resumeName}
+            onChange={e => setResumeName(e.target.value)}
+            onBlur={() => setEditing(false)}
+            onKeyDown={e => { if (e.key === "Enter" || e.key === "Escape") setEditing(false); }}
+            className="w-full max-w-xs border border-green-500 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
+            placeholder="Nome do currículo..."
+          />
+        ) : (
+          <button
+            onClick={() => setEditing(true)}
+            className="flex items-center gap-1.5 text-neutral-600 hover:text-neutral-900 transition group max-w-xs truncate"
+            title="Clique para renomear"
+          >
+            <span className="truncate font-medium">{resumeName}</span>
+            <span className="text-neutral-400 group-hover:text-green-600 flex-shrink-0">✏️</span>
+          </button>
+        )}
+      </div>
+
+      <div className="flex items-center gap-3 flex-shrink-0">
         {status === "saved" && <span className="text-green-600 font-medium">✓ Salvo</span>}
         {status === "error" && <span className="text-red-500 text-xs">Entre na conta para salvar</span>}
         {status === "saving" && <span className="text-neutral-400 text-xs animate-pulse">Salvando…</span>}
