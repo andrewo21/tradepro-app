@@ -28,7 +28,7 @@ export const atsPointGains = {
   missingEducationSection:   5,
 } as const;
 
-export type StrengthLabel = "Forte" | "Mediano" | "Precisa de ajustes";
+export type StrengthLabel = "Forte" | "Mediano" | "Precisa de ajustes" | "Strong" | "Good" | "Needs Improvement";
 
 export interface FinalScoreResult {
   final_ats_score: number;
@@ -63,9 +63,10 @@ export function computeFinalScore(
   return { final_ats_score: final, strength_label: label, weights_used: WEIGHTS };
 }
 
-/** Assign a Brazilian Portuguese strength label based on final score */
-export function getStrengthLabel(score: number): StrengthLabel {
-  if (score >= THRESHOLDS.forte)   return "Forte";
-  if (score >= THRESHOLDS.mediano) return "Mediano";
-  return "Precisa de ajustes";
+/** Assign strength label — locale-aware (en = English, default = PT-BR) */
+export function getStrengthLabel(score: number, locale?: string | null): StrengthLabel {
+  const isEN = locale === "en";
+  if (score >= THRESHOLDS.forte)   return isEN ? "Strong"            : "Forte";
+  if (score >= THRESHOLDS.mediano) return isEN ? "Good"              : "Mediano";
+  return                                  isEN ? "Needs Improvement" : "Precisa de ajustes";
 }

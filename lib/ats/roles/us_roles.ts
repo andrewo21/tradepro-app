@@ -281,7 +281,7 @@ export function findUSRoleData(profession: string | null | undefined): { role: s
     { keywords: ["carpenter","framing","woodwork","cabinet"],         role: "Carpenter" },
     { keywords: ["welder","welding","fabricat"],                      role: "Welder" },
     { keywords: ["superintendent","super","construction manager"],    role: "Construction Superintendent" },
-    { keywords: ["project manager","pm","program manager"],          role: "Construction Project Manager" },
+    { keywords: ["project manager","project management","pm","program manager","project lead","sr. leader","senior leader","operations leader","project director"], role: "Construction Project Manager" },
     { keywords: ["foreman","supervisor","lead worker","crew lead"],   role: "Foreman / Site Supervisor" },
     { keywords: ["pipefitter","pipe fitter"],                        role: "Pipefitter" },
     { keywords: ["sheet metal","ductwork","duct"],                   role: "Sheet Metal Worker" },
