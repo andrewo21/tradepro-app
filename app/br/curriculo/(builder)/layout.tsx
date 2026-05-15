@@ -7,6 +7,7 @@ import { overrides } from "@/config/overrides";
 import UpsellModal from "@/components/UpsellModal";
 import { ProductId } from "@/lib/pricing";
 import BrBuilderSaveBar from "@/components/BrBuilderSaveBar";
+import BrResumeAssistant from "@/components/assistant/BrResumeAssistant";
 
 async function BrBuilderGate({ children }: { children: ReactNode }) {
   const userId = await getServerUserId();
@@ -26,6 +27,7 @@ async function BrBuilderGate({ children }: { children: ReactNode }) {
     <div className="min-h-screen bg-neutral-50">
       <BrBuilderSaveBar />
       {children}
+      <BrResumeAssistant />
     </div>
   );
 }

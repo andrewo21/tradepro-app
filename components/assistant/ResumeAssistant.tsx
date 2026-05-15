@@ -1,0 +1,321 @@
+"use client";
+
+import { useEffect, useCallback, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import { MessageCircle } from "lucide-react";
+import { useResumeStore } from "@/app/store/useResumeStore";
+import {
+  useAssistantStore,
+  type AssistantSuggestion,
+} from "@/app/store/useAssistantStore";
+import { pathToStep, resumeHash, buildStepPayload } from "@/lib/assistant/step_context";
+import { AssistantCharacter, type CharacterMood } from "./AssistantCharacter";
+import { AssistantChat } from "./AssistantChat";
+import { SpeechBubble } from "./SpeechBubble";
+
+// ─── Apply suggestion → write to resume store ─────────────────────────────────
+
+function useApplySuggestion() {
+  const store = useResumeStore();
+  return useCallback(
+    (suggestion: AssistantSuggestion) => {
+      const { action } = suggestion;
+      const experience: any[] = store.experience || [];
+
+      switch (action.type) {
+        case "add_responsibility": {
+          const targetId = action.experienceId || experience[0]?.id;
+          if (!targetId) break;
+          store.addResponsibility(targetId);
+          setTimeout(() => {
+            const updated: any[] = useResumeStore.getState().experience;
+            const job = updated.find((e: any) => e.id === targetId);
+            if (!job) return;
+            store.updateResponsibility(targetId, job.responsibilities.length - 1, action.value);
+          }, 50);
+          break;
+        }
+        case "add_achievement": {
+          const targetId = action.experienceId || experience[0]?.id;
+          if (!targetId) break;
+          store.addAchievement(targetId);
+          setTimeout(() => {
+            const updated: any[] = useResumeStore.getState().experience;
+            const job = updated.find((e: any) => e.id === targetId);
+            if (!job) return;
+            store.updateAchievement(targetId, job.achievements.length - 1, action.value);
+          }, 50);
+          break;
+        }
+        case "add_skill":        store.addSkill(action.value); break;
+        case "update_summary":   store.updateSummary(action.value); break;
+        case "add_certification": {
+          store.addCertification();
+          setTimeout(() => {
+            const certs = useResumeStore.getState().certifications;
+            if (certs.length > 0) store.updateCertification(certs[certs.length - 1].id, action.value);
+          }, 50);
+          break;
+        }
+        default: break;
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [store]
+  );
+}
+
+// ─── Main component ───────────────────────────────────────────────────────────
+
+interface Props {
+  locale?: string;
+}
+
+export default function ResumeAssistant({ locale = "en" }: Props) {
+  const pathname = usePathname();
+  const step     = pathToStep(pathname);
+  const isEN     = locale !== "pt-BR";
+  const charName = isEN ? "CV-1" : "Gringo";
+
+  const resumeState = useResumeStore((s) => ({
+    personalInfo:   s.personalInfo,
+    summary:        s.summary,
+    skills:         s.skills,
+    experience:     s.experience,
+    education:      s.education,
+    certifications: s.certifications,
+  }));
+
+  const {
+    isOpen, isThinking, messages,
+    lastAnalyzedStep, lastAnalyzedHash,
+    open, close, toggle, setThinking,
+    addMessage, addUserMessage,
+    acceptSuggestion, dismissSuggestion,
+    setLastAnalyzed, clearNewSuggestions,
+  } = useAssistantStore();
+
+  const [bubbleVisible, setBubbleVisible] = useState(false);
+  const applySuggestion = useApplySuggestion();
+  const analyzeRef = useRef(false);
+
+  // ── Analysis ───────────────────────────────────────────────────────────────
+  const runAnalysis = useCallback(
+    async (userMsg?: string) => {
+      if (analyzeRef.current) return;
+      if (step === "unknown" || step === "preview") return;
+      analyzeRef.current = true;
+      setThinking(true);
+
+      try {
+        const payload     = buildStepPayload(step, resumeState, locale);
+        const currentHash = resumeHash(resumeState as Record<string, unknown>);
+
+        const res = await fetch("/api/ai/assistant/suggest", {
+          method:  "POST",
+          headers: { "Content-Type": "application/json" },
+          body:    JSON.stringify({ ...payload, userMessage: userMsg }),
+        });
+        if (!res.ok) throw new Error("API error");
+        const data = await res.json();
+
+        if (data.message || (data.suggestions?.length ?? 0) > 0) {
+          addMessage({
+            id:          `cv1-${Date.now()}`,
+            role:        "assistant",
+            content:     data.message || "",
+            suggestions: data.suggestions || [],
+            timestamp:   Date.now(),
+          });
+          // Show speech bubble — NOT the full chat panel
+          if (!isOpen) {
+            setTimeout(() => setBubbleVisible(true), 400);
+          }
+        }
+        setLastAnalyzed(step, currentHash);
+      } catch { /* silent */ } finally {
+        setThinking(false);
+        analyzeRef.current = false;
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [step, resumeState, locale]
+  );
+
+  // Fire on step change (debounced)
+  useEffect(() => {
+    const currentHash = resumeHash(resumeState as Record<string, unknown>);
+    const stepChanged = lastAnalyzedStep !== step;
+    const dataChanged = lastAnalyzedHash !== currentHash;
+
+    if (stepChanged || (dataChanged && isOpen)) {
+      setBubbleVisible(false);
+      const timer = setTimeout(() => runAnalysis(), 1500);
+      return () => clearTimeout(timer);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, pathname]);
+
+  // ── Handlers ───────────────────────────────────────────────────────────────
+  function handleAccept(msgId: string, suggId: string) {
+    const msg  = messages.find((m) => m.id === msgId);
+    const sugg = msg?.suggestions?.find((s) => s.id === suggId);
+    if (!sugg) return;
+    applySuggestion(sugg);
+    acceptSuggestion(msgId, suggId);
+  }
+
+  async function handleUserMessage(text: string) {
+    addUserMessage(text);
+    await runAnalysis(text);
+  }
+
+  function handleRefresh() {
+    setLastAnalyzed("__force__", "__force__");
+    setBubbleVisible(false);
+    setTimeout(() => runAnalysis(), 100);
+  }
+
+  function handleOpenChat() {
+    setBubbleVisible(false);
+    clearNewSuggestions();
+    open();
+  }
+
+  function handleRobotClick() {
+    if (isOpen) {
+      close();
+      return;
+    }
+    // If there's a bubble, clicking robot opens full chat
+    if (bubbleVisible) {
+      handleOpenChat();
+      return;
+    }
+    // No analysis yet — run it and open chat
+    if (messages.length === 0) {
+      open();
+      runAnalysis();
+      return;
+    }
+    // Has messages — toggle chat
+    toggle();
+    clearNewSuggestions();
+  }
+
+  // ── Mood ──────────────────────────────────────────────────────────────────
+  let mood: CharacterMood = "idle";
+  if (isThinking)                              mood = "thinking";
+  else if (messages.length === 0)              mood = "waving";
+  else if (bubbleVisible && !isOpen)           mood = "talking";
+  else if (isOpen)                             mood = "happy";
+
+  const latestMsg = messages.length > 0 ? messages[messages.length - 1] : null;
+
+  const pendingCount = messages
+    .flatMap((m) => m.suggestions || [])
+    .filter((s) => !s.accepted && !s.dismissed).length;
+
+  return (
+    <div className="fixed bottom-4 right-4 z-50 flex flex-col items-end gap-0">
+
+      {/* ── Full chat panel (slides up above robot) ── */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 30, scale: 0.92 }}
+            animate={{ opacity: 1, y: 0,  scale: 1     }}
+            exit={{   opacity: 0, y: 30, scale: 0.92   }}
+            transition={{ type: "spring", stiffness: 380, damping: 30 }}
+            className="mb-3"
+          >
+            <AssistantChat
+              messages={messages}
+              isThinking={isThinking}
+              locale={locale}
+              onClose={() => { close(); clearNewSuggestions(); }}
+              onAccept={handleAccept}
+              onDismiss={dismissSuggestion}
+              onSendMessage={handleUserMessage}
+              onRefresh={handleRefresh}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Speech bubble (above robot, only when chat is closed) ── */}
+      <AnimatePresence>
+        {bubbleVisible && !isOpen && latestMsg && (
+          <div className="mb-2 mr-2">
+            <SpeechBubble
+              message={latestMsg}
+              isThinking={isThinking}
+              locale={locale}
+              name={charName}
+              onAccept={handleAccept}
+              onDismiss={dismissSuggestion}
+              onOpenChat={handleOpenChat}
+              onClose={() => setBubbleVisible(false)}
+            />
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Robot character — always visible, always the star ── */}
+      <div className="relative flex flex-col items-center">
+        <motion.button
+          onClick={handleRobotClick}
+          whileHover={{ scale: 1.07, y: -2 }}
+          whileTap={{  scale: 0.93        }}
+          className="relative cursor-pointer focus:outline-none"
+          aria-label={`Open ${charName} AI resume coach`}
+        >
+          {/* Glow pulse behind robot when it has something to say */}
+          {(bubbleVisible || isThinking) && !isOpen && (
+            <motion.span
+              className="absolute inset-0 rounded-full bg-indigo-400 opacity-20"
+              animate={{ scale: [1, 1.5, 1], opacity: [0.2, 0, 0.2] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            />
+          )}
+
+          <AssistantCharacter mood={mood} size={88} variant="us" />
+
+          {/* Pending badge */}
+          {!isOpen && !bubbleVisible && pendingCount > 0 && (
+            <motion.span
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              className="absolute -top-1 -right-1 min-w-[22px] h-[22px] bg-rose-500 text-white text-xs font-bold rounded-full flex items-center justify-center shadow-lg px-1"
+            >
+              {pendingCount}
+            </motion.span>
+          )}
+
+          {/* "Open chat" icon when chat is closed and we have history */}
+          {isOpen && (
+            <motion.span
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              className="absolute -top-1 -right-1 w-6 h-6 bg-indigo-600 text-white rounded-full flex items-center justify-center shadow-lg"
+            >
+              <MessageCircle className="w-3.5 h-3.5" />
+            </motion.span>
+          )}
+        </motion.button>
+
+        {/* Name tag below robot */}
+        <motion.div
+          initial={{ opacity: 0, y: -4 }}
+          animate={{ opacity: 1, y: 0   }}
+          className="mt-1 px-3 py-0.5 bg-white rounded-full shadow-md border border-indigo-100 text-center"
+        >
+          <span className="text-[11px] font-bold text-indigo-600 tracking-wide">
+            {charName}™
+          </span>
+        </motion.div>
+      </div>
+    </div>
+  );
+}
