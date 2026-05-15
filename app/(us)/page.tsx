@@ -345,12 +345,19 @@ export default function HomePage() {
             ))}
           </div>
 
-          <div className="text-center">
-            <Link href="/resume/select" className="inline-block px-8 py-3 bg-neutral-900 text-white font-semibold rounded-xl hover:bg-neutral-700 transition shadow-md">
-              Build My Resume & Get My ATS Score →
+          <div className="text-center flex flex-col sm:flex-row items-center justify-center gap-4">
+            {/* Primary: let CV-1 write it */}
+            <Link href="/resume/start" className="inline-flex items-center gap-2 px-8 py-3.5 bg-neutral-900 text-white font-bold rounded-xl hover:bg-neutral-700 transition shadow-lg text-base">
+              🤖 Let CV-1 Write It →
             </Link>
-            <p className="text-xs text-neutral-400 mt-2">ATS analysis included with every purchase</p>
+            {/* Secondary: do it yourself */}
+            <Link href="/resume/select" className="inline-block px-6 py-3 bg-white text-neutral-800 font-semibold rounded-xl border-2 border-neutral-300 hover:bg-neutral-50 transition text-sm">
+              I&apos;ll build it myself
+            </Link>
           </div>
+          <p className="text-center text-xs text-neutral-400 mt-3">
+            CV-1 asks simple questions and writes everything — preview before you pay.
+          </p>
         </div>
       </section>
 
