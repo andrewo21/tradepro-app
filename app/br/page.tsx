@@ -253,12 +253,21 @@ export default function BrazilHomePage() {
             ))}
           </div>
 
-          <div className="text-center">
+          <div className="text-center flex flex-col sm:flex-row items-center justify-center gap-4">
+            {/* Primary: let Gringo write it */}
+            <Link href="/br/curriculo/gringo"
+              className="inline-flex items-center gap-2 px-8 py-3.5 bg-green-700 text-white font-bold rounded-xl hover:bg-green-800 transition shadow-lg text-base">
+              🤖 Deixa o Gringo escrever →
+            </Link>
+            {/* Secondary: build it yourself */}
             <Link href="/br/curriculo"
-              className="inline-block px-8 py-3 bg-green-700 text-white font-semibold rounded-xl hover:bg-green-800 transition shadow-md">
-              Criar meu currículo →
+              className="inline-block px-6 py-3 bg-white text-green-800 font-semibold rounded-xl border-2 border-green-700 hover:bg-green-50 transition text-sm">
+              Prefiro preencher sozinho
             </Link>
           </div>
+          <p className="text-center text-xs text-neutral-500 mt-3">
+            O Gringo faz perguntas simples e monta tudo para você — veja antes de pagar.
+          </p>
         </div>
       </section>
 
