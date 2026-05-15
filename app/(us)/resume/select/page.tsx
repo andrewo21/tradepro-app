@@ -83,18 +83,18 @@ export default function SelectPage() {
             <CV1Hero size={80} />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-blue-300 text-xs font-bold uppercase tracking-widest mb-1">CV-1™ AI Resume Coach</p>
+            <p className="text-blue-300 text-xs font-bold uppercase tracking-widest mb-1">CV-1™ AI Resume Assistant</p>
             <p className="text-white font-bold text-base leading-snug mb-1">
-              Let CV-1 write your entire resume through conversation.
+              Don&apos;t have an existing resume? CV-1 will guide you through every step.
             </p>
             <p className="text-blue-200/70 text-sm">
-              Answer simple questions — CV-1 fills in every section for you. Faster than any form.
+              CV-1 is built into the step-by-step builder — your personal assistant for every section, from start to finish.
             </p>
           </div>
           <div className="flex-shrink-0">
             <a href="/resume/start"
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-500 hover:bg-blue-400 text-white text-sm font-bold rounded-xl transition shadow-lg shadow-blue-500/20 whitespace-nowrap">
-              🤖 Let CV-1 Write It
+              Start with CV-1 →
             </a>
           </div>
         </div>
