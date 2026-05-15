@@ -112,7 +112,9 @@ export function SpeechBubble({
                     className="flex-1 flex items-center justify-center gap-1.5 py-2 text-sm font-bold text-indigo-600 hover:bg-indigo-100 transition-colors"
                   >
                     <Check className="w-3.5 h-3.5" />
-                    {isEN ? "Add it" : "Adicionar"}
+                    {firstPending.action.type.startsWith("update_")
+                      ? (isEN ? "Replace it" : "Substituir")
+                      : (isEN ? "Add it"     : "Adicionar")}
                   </button>
                   <div className="w-px bg-indigo-100" />
                   <button

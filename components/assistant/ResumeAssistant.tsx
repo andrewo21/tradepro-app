@@ -37,6 +37,14 @@ function useApplySuggestion() {
           }, 50);
           break;
         }
+        case "update_responsibility": {
+          // Replace an existing bullet in-place
+          const targetId  = action.experienceId || experience[0]?.id;
+          const bulletIdx = typeof action.bulletIndex === "number" ? action.bulletIndex : null;
+          if (!targetId || bulletIdx === null) break;
+          store.updateResponsibility(targetId, bulletIdx, action.value);
+          break;
+        }
         case "add_achievement": {
           const targetId = action.experienceId || experience[0]?.id;
           if (!targetId) break;
@@ -47,6 +55,13 @@ function useApplySuggestion() {
             if (!job) return;
             store.updateAchievement(targetId, job.achievements.length - 1, action.value);
           }, 50);
+          break;
+        }
+        case "update_achievement": {
+          const targetId  = action.experienceId || experience[0]?.id;
+          const bulletIdx = typeof action.bulletIndex === "number" ? action.bulletIndex : null;
+          if (!targetId || bulletIdx === null) break;
+          store.updateAchievement(targetId, bulletIdx, action.value);
           break;
         }
         case "add_skill":        store.addSkill(action.value); break;
