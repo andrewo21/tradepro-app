@@ -7,7 +7,7 @@ import { Send, Eye, ChevronRight, Check } from "lucide-react";
 import { useBrResumeStore } from "@/app/store/useBrResumeStore";
 import { useResumeStore }   from "@/app/store/useResumeStore";
 import { AssistantCharacter } from "./AssistantCharacter";
-import type { WriterMessage, StoreAction } from "@/app/api/ai/ringo-writer/route";
+import type { WriterMessage, StoreAction } from "@/app/api/ai/gringo-writer/route";
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
@@ -332,7 +332,7 @@ export default function RingoWriter({ locale, previewHref }: Props) {
 
     setLoading(true);
     try {
-      const res = await fetch("/api/ai/ringo-writer", {
+      const res = await fetch("/api/ai/gringo-writer", {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
         body:    JSON.stringify({ history: newHistory, locale }),

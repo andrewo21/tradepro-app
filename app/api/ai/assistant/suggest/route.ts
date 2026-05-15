@@ -1,5 +1,5 @@
 // app/api/ai/assistant/suggest/route.ts
-// CV-1™ (US) / Ringo™ (BR) AI assistant — personalized, step-aware resume suggestions.
+// CV-1™ (US) / Gringo™ (BR) AI assistant — personalized, step-aware resume suggestions.
 // Returns JSON: { message, suggestions[] }
 
 import { NextRequest, NextResponse } from "next/server";
@@ -112,7 +112,7 @@ Return ONLY valid JSON. No markdown. No explanation outside the JSON.`;
 }
 
 function buildSystemPromptPT(step: string, name: string, jobTitle: string): string {
-  return `Você é Ringo, um coach especialista em currículos incorporado em um criador de currículos profissional.
+  return `Você é Gringo, um coach especialista em currículos incorporado em um criador de currículos profissional.
 Você tem personalidade calorosa e levemente bem-humorada — o assistente que entende exatamente o que os recrutadores brasileiros querem ver.
 Sua função é revisar os dados do currículo do usuário na etapa atual e dar sugestões personalizadas e acionáveis.
 
@@ -141,7 +141,7 @@ REGRAS DE SUGESTÃO:
 
 FORMATO DE RESPOSTA (JSON estrito):
 {
-  "message": "Oi ${name}! Aqui é o Ringo. [1-2 frases sobre o que foi encontrado e o que pode ser feito]",
+  "message": "Oi ${name}! Aqui é o Gringo. [1-2 frases sobre o que foi encontrado e o que pode ser feito]",
   "suggestions": [
     {
       "label": "Rótulo curto de ação (máx 5 palavras)",

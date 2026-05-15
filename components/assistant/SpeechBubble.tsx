@@ -9,7 +9,7 @@ interface Props {
   message: AssistantMessage | null;
   isThinking: boolean;
   locale: string;
-  name: string;           // "CV-1" or "Ringo"
+  name: string;           // "CV-1" or "Gringo"
   onAccept: (msgId: string, suggId: string) => void;
   onDismiss: (msgId: string, suggId: string) => void;
   onOpenChat: () => void;

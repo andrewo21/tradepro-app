@@ -134,7 +134,7 @@ export default function BrResumeAssistant() {
 
         if (data.message || (data.suggestions?.length ?? 0) > 0) {
           addMessage({
-            id:          `ringo-${Date.now()}`,
+            id:          `gringo-${Date.now()}`,
             role:        "assistant",
             content:     data.message || "",
             suggestions: data.suggestions || [],
@@ -239,7 +239,7 @@ export default function BrResumeAssistant() {
               message={latestMsg}
               isThinking={isThinking}
               locale="pt-BR"
-              name="Ringo"
+              name="Gringo"
               onAccept={handleAccept}
               onDismiss={dismissSuggestion}
               onOpenChat={handleOpenChat}
@@ -255,7 +255,7 @@ export default function BrResumeAssistant() {
           whileHover={{ scale: 1.07, y: -2 }}
           whileTap={{  scale: 0.93        }}
           className="relative cursor-pointer focus:outline-none"
-          aria-label="Abrir Ringo coach de currículo IA"
+          aria-label="Abrir Gringo coach de currículo IA"
         >
           {(bubbleVisible || isThinking) && !isOpen && (
             <motion.span
@@ -293,7 +293,7 @@ export default function BrResumeAssistant() {
           animate={{ opacity: 1, y: 0   }}
           className="mt-1 px-3 py-0.5 bg-white rounded-full shadow-md border border-indigo-100"
         >
-          <span className="text-[11px] font-bold text-indigo-600 tracking-wide">Ringo™</span>
+          <span className="text-[11px] font-bold text-indigo-600 tracking-wide">Gringo™</span>
         </motion.div>
       </div>
     </div>

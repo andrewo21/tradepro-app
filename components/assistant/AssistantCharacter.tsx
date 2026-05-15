@@ -38,30 +38,30 @@ const PALETTE = {
     hand:           "#3730a3",
   },
   br: {
-    // Brazil national jersey — green body, gold/yellow accents
-    antennaStroke:  "#009B3A",
-    antennaBall:    "#FFDF00",
-    antennaThink:   "#007A2E",
-    head:           "#005C1F",
-    headSheen:      "#007A2E",
-    visor:          "#001a09",
-    visorSheen:     "#004d18",
-    eyeIdle:        "#FFDF00",
-    eyeHappy:       "#FFD700",
-    eyePupil:       "#002d0e",
-    mouth:          "#FFDF00",
-    mouthHappy:     "#FFD700",
-    neck:           "#003d14",
-    neckAccent:     "#005C1F",
-    body:           "#009B3A",   // Brazil green jersey
-    bodySheen:      "#00C44A",
-    chest:          "#003d14",
-    led1:           "#FFDF00",   // gold LEDs
-    led2:           "#FFE44D",
-    btnOuter:       "#005C1F",
-    btnInner:       "#FFDF00",   // gold power button
-    arm:            "#009B3A",
-    hand:           "#005C1F",
+    // Gringo: white/silver robot body, Brazil yellow jersey, blue glowing eyes
+    antennaStroke:  "#94a3b8",   // hidden under hat — silver
+    antennaBall:    "#cbd5e1",
+    antennaThink:   "#64748b",
+    head:           "#e2e8f0",   // white/silver head
+    headSheen:      "#f8fafc",
+    visor:          "#0f172a",   // dark visor
+    visorSheen:     "#1e293b",
+    eyeIdle:        "#3b82f6",   // BLUE glowing eyes (matches image)
+    eyeHappy:       "#60a5fa",
+    eyePupil:       "#0f172a",
+    mouth:          "#3b82f6",
+    mouthHappy:     "#60a5fa",
+    neck:           "#cbd5e1",   // silver neck
+    neckAccent:     "#e2e8f0",
+    body:           "#FACC15",   // Brazil YELLOW jersey
+    bodySheen:      "#FDE047",
+    chest:          "#0f172a",   // dark chest panel
+    led1:           "#3b82f6",   // blue LEDs
+    led2:           "#60a5fa",
+    btnOuter:       "#15803d",   // green button
+    btnInner:       "#22c55e",
+    arm:            "#e2e8f0",   // white/silver arms (like the image)
+    hand:           "#cbd5e1",
   },
 } as const;
 
@@ -171,13 +171,18 @@ export function AssistantCharacter({ mood, variant = "us", size = 88 }: Props) {
         <rect x="6" y="57" width="60" height="34" rx="12" fill={p.body}/>
         <rect x="6" y="57" width="60" height="14" rx="12" fill={p.bodySheen} opacity="0.35"/>
 
-        {/* Brazil jersey collar stripe */}
+        {/* Brazil jersey details */}
         {isBR && (
           <>
-            <path d="M 26 57 Q 36 63 46 57" stroke="#FFDF00" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
-            {/* Sleeve stripes — gold bands on arms */}
-            <rect x="0"  y="64" width="8" height="3" rx="1.5" fill="#FFDF00" opacity="0.9"/>
-            <rect x="64" y="64" width="8" height="3" rx="1.5" fill="#FFDF00" opacity="0.9"/>
+            {/* Green V-collar */}
+            <path d="M 24 57 Q 36 67 48 57" stroke="#15803d" strokeWidth="3" fill="none" strokeLinecap="round"/>
+            <path d="M 27 57 Q 36 64 45 57" stroke="#16a34a" strokeWidth="1.5" fill="none" strokeLinecap="round" opacity="0.6"/>
+            {/* Green sleeve cuffs on arms */}
+            <rect x="0"  y="72" width="8" height="4" rx="2" fill="#15803d"/>
+            <rect x="64" y="72" width="8" height="4" rx="2" fill="#15803d"/>
+            {/* "BR" badge on chest */}
+            <circle cx="52" cy="65" r="5" fill="#15803d"/>
+            <text x="52" y="68" textAnchor="middle" fill="white" fontSize="5" fontWeight="bold">BR</text>
           </>
         )}
 
@@ -210,6 +215,25 @@ export function AssistantCharacter({ mood, variant = "us", size = 88 }: Props) {
           <rect x="64" y="60" width="8" height="24" rx="4" fill={p.arm}/>
           <ellipse cx="68" cy="86" rx="5" ry="5" fill={p.hand}/>
         </g>
+
+        {/* ── Straw hat (Gringo / BR only) ── */}
+        {isBR && (
+          <g>
+            {/* Wide brim */}
+            <ellipse cx="36" cy="18" rx="30" ry="5.5" fill="#C8943A"/>
+            <ellipse cx="36" cy="17" rx="30" ry="5"   fill="#D4A853"/>
+            {/* Crown */}
+            <path d="M 20 17 Q 19 4 36 2 Q 53 4 52 17 Z" fill="#D4A853"/>
+            <path d="M 22 17 Q 21 5 36 3 Q 51 5 50 17 Z" fill="#E8BC6A"/>
+            {/* Straw texture lines */}
+            <path d="M 25 16 Q 24 7 36 5" stroke="#C8943A" strokeWidth="0.8" fill="none" opacity="0.5"/>
+            <path d="M 36 3 L 36 16"      stroke="#C8943A" strokeWidth="0.8" fill="none" opacity="0.5"/>
+            <path d="M 47 16 Q 48 7 36 5" stroke="#C8943A" strokeWidth="0.8" fill="none" opacity="0.5"/>
+            {/* Hat band — Brazil green with yellow stripe */}
+            <rect x="20" y="14" width="32" height="4"   rx="1"    fill="#15803d" opacity="0.9"/>
+            <rect x="20" y="14" width="32" height="1.5" rx="0.75" fill="#FACC15" opacity="0.7"/>
+          </g>
+        )}
 
       </g>
     </svg>
