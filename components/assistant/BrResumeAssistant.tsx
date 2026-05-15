@@ -265,7 +265,7 @@ export default function BrResumeAssistant() {
             />
           )}
 
-          <AssistantCharacter mood={mood} size={88} />
+          <AssistantCharacter mood={mood} size={88} variant="br" />
 
           {!isOpen && !bubbleVisible && pendingCount > 0 && (
             <motion.span

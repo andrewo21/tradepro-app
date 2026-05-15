@@ -38,7 +38,7 @@ export default function MaintenancePage() {
             <g className="rb">
               <line x1="36" y1="4" x2="36" y2="14" stroke="#6366f1" strokeWidth="2.5" strokeLinecap="round"/>
               <circle cx="36" cy="4" r="5" fill="#818cf8" style={{animation:"pulse 1.8s ease-in-out infinite"}}/>
-              <rect x="10" y="14" width="52" height="36" rx="12" fill="#312e81"/>
+              <rect x="10" y="14" width="52" height="36" rx="12" fill="#3730a3"/>
               <rect x="15" y="19" width="42" height="26" rx="8" fill="#1e1b4b"/>
               <g className="re"><ellipse cx="26" cy="32" rx="5.5" ry="5" fill="#818cf8"/><ellipse cx="26" cy="32" rx="3" ry="2.5" fill="#312e81"/><circle cx="27.5" cy="30.5" r="1.2" fill="white" opacity="0.85"/></g>
               <g className="re2"><ellipse cx="46" cy="32" rx="5.5" ry="5" fill="#818cf8"/><ellipse cx="46" cy="32" rx="3" ry="2.5" fill="#312e81"/><circle cx="47.5" cy="30.5" r="1.2" fill="white" opacity="0.85"/></g>

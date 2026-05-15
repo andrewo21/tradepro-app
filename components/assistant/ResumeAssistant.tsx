@@ -280,7 +280,7 @@ export default function ResumeAssistant({ locale = "en" }: Props) {
             />
           )}
 
-          <AssistantCharacter mood={mood} size={88} />
+          <AssistantCharacter mood={mood} size={88} variant="us" />
 
           {/* Pending badge */}
           {!isOpen && !bubbleVisible && pendingCount > 0 && (
