@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
           label:     s.label     || (isEN ? "Suggested improvement" : "Melhoria sugerida"),
           preview:   s.preview   || s.value || "",
           reason:    s.reason    || "",
-          pointGain: Number(s.pointGain) || 5,
+          pointGain: Math.min(5, Number(s.pointGain) || 3),
           action: {
             type:         s.action?.type  || "add_responsibility",
             experienceId: s.action?.experienceId || null,
@@ -102,8 +102,14 @@ SUGGESTION RULES:
    Format: "Add to [Job Title] at [Company]" — use displayLabel from data.
    Set action.experienceId to the specific job id.
 
-6. pointGain: Metric bullet = 7-10. Missing skill added = 4-6. Structure fix = 3-5. Summary = 5-8.
-7. Max 4 suggestions. Prioritize Missing Data fixes first, then metric improvements.
+6. pointGain: MUST be realistic and small. Metric bullet replacement = 3-4. New skill = 2-3.
+   Structure fix (add dates, summary) = 2-4. Summary improvement = 3-5. NEVER claim more than 5.
+   The total ATS score caps at 72 without a job description — suggestions combined must not
+   imply a total above that cap. Be conservative.
+7. Max 3 suggestions per step. Prioritize Missing Data fixes first, then metric improvements.
+8. For experience step: scan ALL existing bullets. If a bullet is weak (no metrics, no action verb,
+   vague), suggest REPLACING it using action type "update_responsibility" or "update_achievement"
+   with the bulletIndex field set. Show the original text and your improved version.
 
 RESPONSE FORMAT (strict JSON):
 {
@@ -115,9 +121,10 @@ RESPONSE FORMAT (strict JSON):
       "reason": "Why this specific change helps (1 sentence, specific)",
       "pointGain": 7,
       "action": {
-        "type": "add_responsibility" | "add_achievement" | "add_skill" | "update_summary" | "add_certification" | "update_personal",
-        "experienceId": "<job id from data, or null>",
-        "value": "The exact text to insert"
+        "type": "add_responsibility" | "update_responsibility" | "add_achievement" | "update_achievement" | "add_skill" | "update_summary" | "add_certification" | "update_personal",
+        "experienceId": "<job id from data, required for experience actions>",
+        "bulletIndex": <0-based index of bullet to replace, only for update_ types>,
+        "value": "The exact text to insert or replace with"
       }
     }
   ]

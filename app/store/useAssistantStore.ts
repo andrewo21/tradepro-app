@@ -6,16 +6,19 @@ import { create } from "zustand";
 
 export type SuggestionActionType =
   | "add_responsibility"
+  | "update_responsibility"
   | "add_achievement"
+  | "update_achievement"
   | "add_skill"
   | "update_summary"
   | "add_certification"
   | "update_personal";
 
 export interface SuggestionAction {
-  type: SuggestionActionType;
+  type:          SuggestionActionType;
   experienceId?: string;
-  value: string;
+  bulletIndex?:  number;  // 0-based index for update_responsibility / update_achievement
+  value:         string;
 }
 
 export interface AssistantSuggestion {
