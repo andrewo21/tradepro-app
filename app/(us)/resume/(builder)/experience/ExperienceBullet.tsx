@@ -48,7 +48,7 @@ export default function ExperienceBullet({
           {showTip && value.trim() && (
             <div className="absolute -top-10 left-0 right-0 z-20 bg-indigo-600 text-white text-xs rounded-lg px-3 py-2 shadow-lg pointer-events-none flex items-center gap-1.5">
               <span className="text-base">✨</span>
-              <span>CV-1: Want this bullet stronger? Ask me — I&apos;ll give you an optimized replacement.</span>
+              <span>CV-1: I have a stronger version of this bullet if you&apos;d like to see it — just ask me in the chat.</span>
               <div className="absolute -bottom-1.5 left-4 w-3 h-3 bg-indigo-600 rotate-45" />
             </div>
           )}

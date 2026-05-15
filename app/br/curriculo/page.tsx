@@ -107,7 +107,7 @@ export default function BrCurriculoSelectPage() {
           <div className="flex-1 min-w-0">
             <p className="text-green-300 text-xs font-bold uppercase tracking-widest mb-1">Gringo™ — Escritor de Currículo IA</p>
             <p className="text-white font-bold text-base leading-snug mb-1">
-              Deixa o Gringo escrever seu currículo por você.
+              Gringo te guia passo a passo — você sempre decide o que entra.
             </p>
             <p className="text-green-200/70 text-sm">
               Ele faz perguntas simples e monta tudo na hora. Veja antes de pagar.
@@ -116,7 +116,7 @@ export default function BrCurriculoSelectPage() {
           <div className="flex-shrink-0">
             <a href="/br/curriculo/gringo"
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-green-500 hover:bg-green-400 text-white text-sm font-bold rounded-xl transition shadow-lg shadow-green-500/20 whitespace-nowrap">
-              🤖 Gringo escreve pra mim
+              🤖 Criar com a ajuda do Gringo
             </a>
           </div>
         </div>
