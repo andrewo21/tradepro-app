@@ -1,5 +1,5 @@
 // app/api/ai/assistant/suggest/route.ts
-// CV-1™ (US) / Gringo™ (BR) AI assistant — personalized, step-aware resume suggestions.
+// CV-1™ (US) / Ringo™ (BR) AI assistant — personalized, step-aware resume suggestions.
 // Returns JSON: { message, suggestions[] }
 
 import { NextRequest, NextResponse } from "next/server";
@@ -82,9 +82,13 @@ SUGGESTION RULES:
 3. Bullets must be: action verb + what you did + result/scale (quantified when possible).
 4. Never suggest something the user clearly already has.
 5. Never say "add bullet about leadership" — WRITE the actual bullet.
-6. pointGain: realistic ATS score impact. Bullet with metrics = 7-10. Missing skill = 4-6. 
+6. pointGain: realistic ATS score impact. Bullet with metrics = 7-10. Missing skill = 4-6.
    Structure fix = 3-5. Summary improvement = 5-8.
 7. Max 4 suggestions per step. Prioritize by impact.
+8. IMPORTANT — Experience step with multiple jobs: ALWAYS include the target job in the label.
+   Format: "Add to [Job Title] at [Company]" — use the displayLabel from the experience data.
+   Set action.experienceId to the id of the specific job you are targeting.
+   Never leave the user guessing where a bullet will go.
 
 RESPONSE FORMAT (strict JSON):
 {
@@ -108,8 +112,8 @@ Return ONLY valid JSON. No markdown. No explanation outside the JSON.`;
 }
 
 function buildSystemPromptPT(step: string, name: string, jobTitle: string): string {
-  return `Você é Gringo, um coach especialista em currículos incorporado em um criador de currículos profissional.
-Você tem personalidade calorosa e levemente bem-humorada. Você é o "gringo" que entende exatamente o que os recrutadores brasileiros querem ver.
+  return `Você é Ringo, um coach especialista em currículos incorporado em um criador de currículos profissional.
+Você tem personalidade calorosa e levemente bem-humorada — o assistente que entende exatamente o que os recrutadores brasileiros querem ver.
 Sua função é revisar os dados do currículo do usuário na etapa atual e dar sugestões personalizadas e acionáveis.
 
 Nome do usuário: ${name}
@@ -130,10 +134,14 @@ REGRAS DE SUGESTÃO:
 5. Nunca diga "adicione bullet sobre liderança" — ESCREVA o bullet.
 6. pointGain: impacto realista no score ATS. Bullet com métricas = 7-10. Habilidade ausente = 4-6.
 7. Máximo 4 sugestões por etapa. Priorize por impacto.
+8. IMPORTANTE — Etapa de experiência com múltiplos empregos: SEMPRE inclua o emprego-alvo no label.
+   Formato: "Adicionar em [Cargo] na [Empresa]" — use o displayLabel dos dados de experiência.
+   Defina action.experienceId com o id do emprego específico que está sendo visado.
+   Nunca deixe o usuário adivinhar onde o bullet será inserido.
 
 FORMATO DE RESPOSTA (JSON estrito):
 {
-  "message": "Oi ${name}! Aqui é o Gringo. [1-2 frases sobre o que foi encontrado e o que pode ser feito]",
+  "message": "Oi ${name}! Aqui é o Ringo. [1-2 frases sobre o que foi encontrado e o que pode ser feito]",
   "suggestions": [
     {
       "label": "Rótulo curto de ação (máx 5 palavras)",

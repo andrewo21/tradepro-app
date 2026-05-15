@@ -7,7 +7,7 @@ import { Send, Eye, ChevronRight, Check } from "lucide-react";
 import { useBrResumeStore } from "@/app/store/useBrResumeStore";
 import { useResumeStore }   from "@/app/store/useResumeStore";
 import { AssistantCharacter } from "./AssistantCharacter";
-import type { WriterMessage, StoreAction } from "@/app/api/ai/gringo-writer/route";
+import type { WriterMessage, StoreAction } from "@/app/api/ai/ringo-writer/route";
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
@@ -294,10 +294,10 @@ function ProgressBar({ step, locale }: { step: string; locale: string }) {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export default function GringoWriter({ locale, previewHref }: Props) {
+export default function RingoWriter({ locale, previewHref }: Props) {
   const router     = useRouter();
   const isEN       = locale !== "pt-BR";
-  const charName   = isEN ? "CV-1" : "Gringo";
+  const charName   = isEN ? "CV-1" : "Ringo";
   const charVariant: "us" | "br" = isEN ? "us" : "br";
 
   const [history,    setHistory]    = useState<WriterMessage[]>([]);
@@ -332,7 +332,7 @@ export default function GringoWriter({ locale, previewHref }: Props) {
 
     setLoading(true);
     try {
-      const res = await fetch("/api/ai/gringo-writer", {
+      const res = await fetch("/api/ai/ringo-writer", {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
         body:    JSON.stringify({ history: newHistory, locale }),

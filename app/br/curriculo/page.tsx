@@ -7,6 +7,7 @@ import Link from "next/link";
 import { getOrCreateUserId } from "@/lib/userId";
 import Watermark from "@/components/Watermark";
 import BrResumeUpload from "@/components/BrResumeUpload";
+import RingoHero from "@/components/assistant/RingoHero";
 import InstallPrompt from "@/components/InstallPrompt";
 import BrModernoAzul from "@/components/templates/brazil/BrModernoAzul";
 import BrClasicoProfissional from "@/components/templates/brazil/BrClasicoProfissional";
@@ -95,6 +96,30 @@ export default function BrCurriculoSelectPage() {
           Selecione o modelo que preferir, visualize ao lado e avance. Gostou de um?{" "}
           <strong>Chame no WhatsApp</strong> e nós fazemos para você.
         </p>
+      </div>
+
+      {/* Ringo banner */}
+      <div className="mb-8 rounded-2xl overflow-hidden bg-gradient-to-r from-green-950 via-green-900 to-green-950 border border-green-700/40 shadow-lg">
+        <div className="flex items-center gap-6 px-6 py-5">
+          <div className="flex-shrink-0 hidden sm:block">
+            <RingoHero size={80} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-green-300 text-xs font-bold uppercase tracking-widest mb-1">Ringo™ — Escritor de Currículo IA</p>
+            <p className="text-white font-bold text-base leading-snug mb-1">
+              Deixa o Ringo escrever seu currículo por você.
+            </p>
+            <p className="text-green-200/70 text-sm">
+              Ele faz perguntas simples e monta tudo na hora. Veja antes de pagar.
+            </p>
+          </div>
+          <div className="flex-shrink-0">
+            <a href="/br/curriculo/ringo"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-green-500 hover:bg-green-400 text-white text-sm font-bold rounded-xl transition shadow-lg shadow-green-500/20 whitespace-nowrap">
+              🤖 Ringo escreve pra mim
+            </a>
+          </div>
+        </div>
       </div>
 
       {/* Resume drop-in */}

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import Footer from "@/components/Footer";
+import CV1Hero from "@/components/assistant/CV1Hero";
 
 function NewsletterSignup() {
   const [email, setEmail] = useState("");
@@ -273,91 +274,58 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ATS SECTION */}
-      <section className="w-full bg-white border-t border-neutral-200 py-16 px-4">
+      {/* CV-1 INTRODUCTION SECTION */}
+      <section className="w-full bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 py-20 px-4 overflow-hidden">
         <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-10">
-            <span className="inline-block bg-neutral-900 text-white text-xs font-bold px-3 py-1 rounded-full mb-4 uppercase tracking-wide">
-              TradePro ATS Engine™ — Proprietary Technology
-            </span>
-            <h2 className="text-3xl md:text-4xl font-bold text-neutral-900 mb-4">
-              What the recruiter sees — before you apply
-            </h2>
-            <p className="text-neutral-600 text-lg max-w-2xl mx-auto mb-2">
-              Most companies use automated screening software (ATS) to filter resumes before a human ever reads them.
-              Most applicants get eliminated at this step — and never know why.
-            </p>
-            <p className="text-neutral-500 text-base max-w-xl mx-auto">
-              TradePro shows you exactly what those systems see in your resume — and what to fix before you hit submit.
-            </p>
-          </div>
+          <div className="flex flex-col lg:flex-row items-center gap-12">
 
-          {/* Before / After */}
-          <div className="mb-10">
-            <div className="text-center mb-3">
-              <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wide">Illustrative Example — fictional character, results vary</p>
-            </div>
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div className="bg-red-50 border border-red-200 rounded-2xl p-6">
-                <p className="text-xs font-bold text-red-600 uppercase tracking-wide mb-3">Before — No ATS Analysis</p>
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="text-5xl font-bold text-red-600">54</div>
-                  <span className="inline-block bg-amber-100 text-amber-800 text-xs font-bold px-3 py-1 rounded-full">Needs Work</span>
-                </div>
-                <ul className="space-y-1.5 text-sm text-red-700">
-                  <li className="flex gap-2"><span>✗</span>No professional summary</li>
-                  <li className="flex gap-2"><span>✗</span>Only 3 experience bullets</li>
-                  <li className="flex gap-2"><span>✗</span>Missing 3 key skills from job posting</li>
-                  <li className="flex gap-2"><span>✗</span>Main certification not mentioned</li>
-                </ul>
+            {/* Left — text */}
+            <div className="flex-1 text-center lg:text-left">
+              <span className="inline-block bg-blue-500/20 text-blue-300 text-xs font-bold px-3 py-1 rounded-full mb-5 uppercase tracking-widest border border-blue-500/30">
+                Introducing CV-1™
+              </span>
+              <h2 className="text-3xl md:text-4xl font-bold text-white mb-5 leading-tight">
+                Your personal AI resume<br className="hidden md:block" /> coach. Built into every step.
+              </h2>
+              <p className="text-blue-100/80 text-lg mb-6 leading-relaxed">
+                CV-1 doesn&apos;t wait for you to finish. From the moment you start, he reads your resume, spots what&apos;s missing, and writes it for you — right then and there.
+              </p>
+              <ul className="space-y-3 mb-8 text-sm text-blue-100/70 text-left max-w-md mx-auto lg:mx-0">
+                {[
+                  "Knows you're an HVAC tech — suggests HVAC-specific skills",
+                  "Sees a weak bullet — rewrites it with real metrics",
+                  "One click adds it directly to your resume",
+                  "Preview the complete resume before you pay anything",
+                ].map(item => (
+                  <li key={item} className="flex items-start gap-2">
+                    <span className="text-blue-400 mt-0.5 flex-shrink-0">✦</span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <div className="flex flex-col sm:flex-row items-center lg:items-start gap-4">
+                <Link href="/resume/start" className="inline-flex items-center gap-2 px-8 py-3.5 bg-blue-500 text-white font-bold rounded-xl hover:bg-blue-400 transition shadow-lg shadow-blue-500/30 text-base">
+                  🤖 Let CV-1 Write My Resume →
+                </Link>
+                <Link href="/resume/select" className="inline-block px-6 py-3.5 text-blue-300 font-semibold rounded-xl border border-blue-500/40 hover:bg-blue-500/10 transition text-sm">
+                  I&apos;ll build it myself
+                </Link>
               </div>
-              <div className="bg-green-50 border border-green-300 rounded-2xl p-6">
-                <p className="text-xs font-bold text-green-700 uppercase tracking-wide mb-3">After — With TradePro ATS Engine™</p>
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="text-5xl font-bold text-green-700">86</div>
-                  <span className="inline-block bg-green-100 text-green-800 text-xs font-bold px-3 py-1 rounded-full">Strong</span>
-                </div>
-                <ul className="space-y-1.5 text-sm text-green-700">
-                  <li className="flex gap-2"><span>✓</span>Summary added (+10 pts)</li>
-                  <li className="flex gap-2"><span>✓</span>5 bullets with measurable results (+5 pts)</li>
-                  <li className="flex gap-2"><span>✓</span>Missing skills added (+10 pts)</li>
-                  <li className="flex gap-2"><span>✓</span>OSHA 30 + certifications listed (+7 pts)</li>
-                </ul>
+              <p className="text-xs text-blue-400/60 mt-3 lg:text-left text-center">
+                Answer simple questions — CV-1 writes everything. Preview before you pay.
+              </p>
+            </div>
+
+            {/* Right — 3D robot */}
+            <div className="flex-shrink-0 flex flex-col items-center gap-3">
+              <CV1Hero size={240} />
+              <div className="flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 rounded-full px-4 py-2">
+                <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
+                <span className="text-blue-300 text-xs font-semibold tracking-wide">CV-1™ — Active</span>
               </div>
             </div>
-            <p className="text-center text-xs text-neutral-400 mt-2">
-              * Illustrative example. TradePro shows your real score and what to improve — results depend on your resume.
-            </p>
-          </div>
 
-          {/* 3 pillars */}
-          <div className="grid md:grid-cols-3 gap-6 mb-10">
-            {[
-              { icon: "🎯", title: "Compare to a job posting", desc: "Paste any job description and see your ATS score, missing skills, and alignment — before you apply." },
-              { icon: "🔧", title: "Trade-specific benchmarks", desc: "Built for electricians, plumbers, HVAC techs, welders, drivers, and 50+ skilled roles. Not generic advice." },
-              { icon: "📊", title: "General strength check too", desc: "No job description? The engine still evaluates your resume against typical expectations for your trade." },
-            ].map(({ icon, title, desc }) => (
-              <div key={title} className="bg-neutral-50 border border-neutral-200 rounded-xl p-5">
-                <div className="text-3xl mb-3">{icon}</div>
-                <h3 className="font-semibold text-neutral-900 mb-2">{title}</h3>
-                <p className="text-neutral-600 text-sm">{desc}</p>
-              </div>
-            ))}
           </div>
-
-          <div className="text-center flex flex-col sm:flex-row items-center justify-center gap-4">
-            {/* Primary: let CV-1 write it */}
-            <Link href="/resume/start" className="inline-flex items-center gap-2 px-8 py-3.5 bg-neutral-900 text-white font-bold rounded-xl hover:bg-neutral-700 transition shadow-lg text-base">
-              🤖 Let CV-1 Write It →
-            </Link>
-            {/* Secondary: do it yourself */}
-            <Link href="/resume/select" className="inline-block px-6 py-3 bg-white text-neutral-800 font-semibold rounded-xl border-2 border-neutral-300 hover:bg-neutral-50 transition text-sm">
-              I&apos;ll build it myself
-            </Link>
-          </div>
-          <p className="text-center text-xs text-neutral-400 mt-3">
-            CV-1 asks simple questions and writes everything — preview before you pay.
-          </p>
         </div>
       </section>
 
@@ -446,11 +414,11 @@ export default function HomePage() {
 
             <div className="border border-blue-200 rounded-md p-4 bg-blue-50">
               <h3 className="font-semibold mb-1 flex items-center justify-between">
-                <span>ATS Analysis</span>
+                <span>CV-1™ AI Coach</span>
                 <span className="text-[10px] uppercase tracking-wide bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">Included</span>
               </h3>
               <p className="text-neutral-700">
-                See your ATS score and exactly what to fix — built for trades and blue collar roles.
+                Your personal AI coach guides every step — suggests missing skills, rewrites weak bullets, and adds them with one click.
               </p>
             </div>
 
