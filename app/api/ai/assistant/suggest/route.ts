@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
   const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
   try {
     const body = await req.json();
-    const { step, firstName, jobTitle, data, issues, locale, userMessage } = body;
+    const { step, firstName, jobTitle, data, issues, locale, userMessage, liveScore, globalFlags } = body;
 
     const isEN = locale !== "pt-BR";
     const name = firstName || (isEN ? "there" : "aí");
@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
       ? buildSystemPromptEN(step, name, jobTitle)
       : buildSystemPromptPT(step, name, jobTitle);
 
-    const userContent = buildUserContent({ step, data, issues, userMessage, isEN });
+    const userContent = buildUserContent({ step, data, issues, userMessage, isEN, liveScore, globalFlags });
 
     const completion = await client.chat.completions.create({
       model: "gpt-4o",
@@ -77,18 +77,33 @@ PERSONA:
 - Keep your message under 3 sentences.
 
 SUGGESTION RULES:
-1. Suggest things that are REALISTIC for their background. Infer from what's already there.
-2. For bullet inserts: write a COMPLETE, polished bullet in the same voice as existing bullets.
-3. Bullets must be: action verb + what you did + result/scale (quantified when possible).
-4. Never suggest something the user clearly already has.
-5. Never say "add bullet about leadership" — WRITE the actual bullet.
-6. pointGain: realistic ATS score impact. Bullet with metrics = 7-10. Missing skill = 4-6.
-   Structure fix = 3-5. Summary improvement = 5-8.
-7. Max 4 suggestions per step. Prioritize by impact.
-8. IMPORTANT — Experience step with multiple jobs: ALWAYS include the target job in the label.
-   Format: "Add to [Job Title] at [Company]" — use the displayLabel from the experience data.
-   Set action.experienceId to the id of the specific job you are targeting.
-   Never leave the user guessing where a bullet will go.
+1. ANTI-HALLUCINATION: Only suggest things that map to real fields in the current step schema.
+   - Personal step: firstName, lastName, tradeTitle, phone, email, city, state, linkedin ONLY.
+   - Experience step: jobTitle, company, startDate, endDate, responsibilities, achievements ONLY.
+   - Skills step: skill text entries ONLY. Never suggest "academic highlights" or non-existent fields.
+   - Education step: school, degree, gpa ONLY.
+   - Summary step: summary text ONLY.
+   NEVER invent fields that don't exist in the schema.
+
+2. MISSING DATA PRIORITY: If the detected issues include missing dates, empty bullets, or blank
+   required fields — flag these FIRST before suggesting improvements. Use this format in message:
+   "⚠️ I noticed [field] is missing — that flags as Missing Data to recruiters."
+
+3. X-Y-Z FORMULA: All bullet point suggestions MUST use this structure:
+   "Accomplished [X], as measured by [Y], by doing [Z]"
+   Example: "Reduced project completion time by 18%, delivering $1.2M highway contract 3 weeks early,
+   by coordinating daily stand-ups across 4 subcontractor crews."
+   NEVER write vague bullets like "Demonstrated leadership skills" or "Contributed to team goals."
+
+4. METRICS REQUIRED: Every bullet suggestion must contain at least one number, %, or $ value.
+   Infer realistic numbers from context (job title, company size, industry, existing bullets).
+
+5. EXPERIENCE TARGETING: With multiple jobs, ALWAYS name the target job in the label.
+   Format: "Add to [Job Title] at [Company]" — use displayLabel from data.
+   Set action.experienceId to the specific job id.
+
+6. pointGain: Metric bullet = 7-10. Missing skill added = 4-6. Structure fix = 3-5. Summary = 5-8.
+7. Max 4 suggestions. Prioritize Missing Data fixes first, then metric improvements.
 
 RESPONSE FORMAT (strict JSON):
 {
@@ -161,17 +176,28 @@ Retorne APENAS JSON válido. Sem markdown. Sem explicação fora do JSON.`;
 }
 
 function buildUserContent({
-  step, data, issues, userMessage, isEN,
+  step, data, issues, userMessage, isEN, liveScore, globalFlags,
 }: {
   step: string;
   data: any;
   issues: string[];
   userMessage?: string;
   isEN: boolean;
+  liveScore?: number;
+  globalFlags?: string[];
 }): string {
+  const scoreCtx = liveScore !== undefined
+    ? (isEN ? `\nCurrent live ATS score: ${liveScore}/95` : `\nScore ATS atual: ${liveScore}/95`)
+    : "";
+  const flagCtx = (globalFlags?.length ?? 0) > 0
+    ? (isEN
+        ? `\n\nAll active validation flags across resume:\n${globalFlags!.map(f => `- ${f}`).join("\n")}`
+        : `\n\nTodas as flags de validação ativas:\n${globalFlags!.map(f => `- ${f}`).join("\n")}`)
+    : "";
+
   const header = isEN
-    ? `Analyzing step: ${step}\n\nResume data:\n${JSON.stringify(data, null, 2)}\n\nDetected issues:\n${issues.map((i) => `- ${i}`).join("\n") || "None"}`
-    : `Analisando etapa: ${step}\n\nDados do currículo:\n${JSON.stringify(data, null, 2)}\n\nProblemas detectados:\n${issues.map((i) => `- ${i}`).join("\n") || "Nenhum"}`;
+    ? `Analyzing step: ${step}${scoreCtx}\n\nResume data:\n${JSON.stringify(data, null, 2)}\n\nStep-specific issues:\n${issues.map((i) => `- ${i}`).join("\n") || "None"}${flagCtx}`
+    : `Analisando etapa: ${step}${scoreCtx}\n\nDados do currículo:\n${JSON.stringify(data, null, 2)}\n\nProblemas desta etapa:\n${issues.map((i) => `- ${i}`).join("\n") || "Nenhum"}${flagCtx}`;
 
   if (userMessage) {
     return `${header}\n\n${isEN ? "The user also said:" : "O usuário também disse:"} "${userMessage}"`;

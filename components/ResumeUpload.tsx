@@ -47,6 +47,12 @@ export default function ResumeUpload() {
 
       const d = json.data;
 
+      // Wipe old resume data before populating new one — prevent merging
+      // Preserve selectedTemplate since user already chose it
+      const savedTemplate = store.selectedTemplate;
+      store.clearAll();
+      if (savedTemplate) store.setSelectedTemplate(savedTemplate);
+
       // Personal info — all fields including linkedin
       if (d.personalInfo) {
         const p = d.personalInfo;

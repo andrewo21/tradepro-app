@@ -2,6 +2,8 @@
 // Builds a structured analysis of the current resume step.
 // Pure functions — no AI, no side effects. Feeds the AI prompt.
 
+import { computeLiveAtsScore } from "../ats/live/liveAtsScore";
+
 export type BuilderStep =
   | "personal"
   | "experience"
@@ -57,25 +59,25 @@ export function buildStepPayload(step: BuilderStep, resumeData: any, locale: str
   const firstName = resumeData?.personalInfo?.firstName || "there";
   const jobTitle  = resumeData?.personalInfo?.tradeTitle || "";
 
+  // Live ATS score + all validation flags passed to CV-1 for full context
+  const liveAts    = computeLiveAtsScore(resumeData);
+  const globalFlags = liveAts.flags.map(f => `[${f.severity.toUpperCase()}] ${f.message}`);
+
   switch (step) {
     case "personal":
       return {
-        step,
-        firstName,
-        jobTitle,
-        locale,
-        data: {
-          personalInfo: resumeData.personalInfo,
-        },
+        step, firstName, jobTitle, locale,
+        liveScore: liveAts.score,
+        globalFlags,
+        data:   { personalInfo: resumeData.personalInfo },
         issues: buildPersonalIssues(resumeData.personalInfo),
       };
 
     case "experience":
       return {
-        step,
-        firstName,
-        jobTitle,
-        locale,
+        step, firstName, jobTitle, locale,
+        liveScore: liveAts.score,
+        globalFlags,
         data: {
           experience: resumeData.experience?.map((job: any, idx: number) => ({
             id:           job.id,
@@ -100,10 +102,9 @@ export function buildStepPayload(step: BuilderStep, resumeData: any, locale: str
 
     case "skills":
       return {
-        step,
-        firstName,
-        jobTitle,
-        locale,
+        step, firstName, jobTitle, locale,
+        liveScore: liveAts.score,
+        globalFlags,
         data: {
           skills: resumeData.skills?.map((s: any) => s.text).filter(Boolean) || [],
         },
@@ -112,10 +113,9 @@ export function buildStepPayload(step: BuilderStep, resumeData: any, locale: str
 
     case "summary":
       return {
-        step,
-        firstName,
-        jobTitle,
-        locale,
+        step, firstName, jobTitle, locale,
+        liveScore: liveAts.score,
+        globalFlags,
         data: {
           summary: resumeData.summary || "",
           wordCount: (resumeData.summary || "").trim().split(/\s+/).filter(Boolean).length,
@@ -125,10 +125,9 @@ export function buildStepPayload(step: BuilderStep, resumeData: any, locale: str
 
     case "education":
       return {
-        step,
-        firstName,
-        jobTitle,
-        locale,
+        step, firstName, jobTitle, locale,
+        liveScore: liveAts.score,
+        globalFlags,
         data: {
           education:       resumeData.education || [],
           certifications:  resumeData.certifications || [],
