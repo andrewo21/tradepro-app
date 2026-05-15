@@ -1,126 +1,75 @@
 "use client";
 
-import { X, Sparkles } from "lucide-react";
-import { useResumeStore } from "@/app/store/useResumeStore";
+// ExperienceBullet — CV-1 is the exclusive AI interface.
+// Generic rewrite/accept/decline buttons removed per architecture rules.
+// Tooltip on focus nudges user toward CV-1 instead.
+
+import { useState } from "react";
+import { X } from "lucide-react";
 
 interface ExperienceBulletProps {
-  jobId: string;
-  index: number;
-  value: string;
-  type: "responsibility" | "achievement";
+  jobId:       string;
+  index:       number;
+  value:       string;
+  type:        "responsibility" | "achievement";
   placeholder?: string;
-  onChange: (value: string) => void;
-  onRemove: () => void;
+  onChange:    (value: string) => void;
+  onRemove:    () => void;
 }
 
 export default function ExperienceBullet({
-  jobId,
-  index,
-  value,
-  type,
-  placeholder,
-  onChange,
-  onRemove,
+  value, placeholder, onChange, onRemove,
 }: ExperienceBulletProps) {
-  const experience = useResumeStore((s) => s.experience);
-  const rewriteResponsibility = useResumeStore((s) => s.rewriteResponsibility);
-  const rewriteAchievement = useResumeStore((s) => s.rewriteAchievement);
-  const acceptResponsibilitySuggestion = useResumeStore((s) => s.acceptResponsibilitySuggestion);
-  const acceptAchievementSuggestion = useResumeStore((s) => s.acceptAchievementSuggestion);
+  const [showTip, setShowTip] = useState(false);
 
-  // Discard actions — set suggestion to null without accepting
-  const discardResponsibility = useResumeStore((s: any) => s.discardResponsibilitySuggestion);
-  const discardAchievement = useResumeStore((s: any) => s.discardAchievementSuggestion);
-
-  const bullet =
-    type === "responsibility"
-      ? experience.find((j) => j.id === jobId)?.responsibilities[index]
-      : experience.find((j) => j.id === jobId)?.achievements[index];
-
-  function triggerRewrite() {
-    if (!value.trim() || !bullet) return;
-    if (type === "responsibility") {
-      rewriteResponsibility(jobId, index);
-    } else {
-      rewriteAchievement(jobId, index);
-    }
-  }
-
-  function acceptSuggestion() {
-    if (!bullet?.suggestion) return;
-    if (type === "responsibility") {
-      acceptResponsibilitySuggestion(jobId, index);
-    } else {
-      acceptAchievementSuggestion(jobId, index);
-    }
-  }
-
-  function discardSuggestion() {
-    if (type === "responsibility" && discardResponsibility) {
-      discardResponsibility(jobId, index);
-    } else if (type === "achievement" && discardAchievement) {
-      discardAchievement(jobId, index);
-    }
-  }
+  const hasMetrics = /[\d$%]/.test(value);
+  const isWeak     = value.trim().length > 0 && !hasMetrics;
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-start gap-2">
-        <textarea
-          spellCheck={true}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:ring-1 focus:ring-neutral-500"
-          rows={2}
-        />
+    <div className="space-y-1">
+      <div className="relative flex items-start gap-2">
+        <div className="relative flex-1">
+          <textarea
+            spellCheck
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            onFocus={() => setShowTip(true)}
+            onBlur={() => setTimeout(() => setShowTip(false), 200)}
+            placeholder={placeholder}
+            rows={2}
+            className={`w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-1 transition-colors ${
+              isWeak
+                ? "border-amber-300 focus:border-amber-400 focus:ring-amber-300"
+                : "border-neutral-300 focus:border-blue-400 focus:ring-blue-300"
+            }`}
+          />
 
-        {/* AI Rewrite button */}
-        <button
-          type="button"
-          onClick={triggerRewrite}
-          disabled={!value.trim() || bullet?.loading}
-          title="AI Rewrite"
-          className="mt-1 text-blue-500 hover:text-blue-700 disabled:opacity-30 disabled:cursor-not-allowed flex-shrink-0"
-        >
-          <Sparkles size={16} />
-        </button>
+          {/* CV-1 tooltip on focus */}
+          {showTip && value.trim() && (
+            <div className="absolute -top-10 left-0 right-0 z-20 bg-indigo-600 text-white text-xs rounded-lg px-3 py-2 shadow-lg pointer-events-none flex items-center gap-1.5">
+              <span className="text-base">✨</span>
+              <span>CV-1: Want this bullet stronger? Ask me — I&apos;ll give you an optimized replacement.</span>
+              <div className="absolute -bottom-1.5 left-4 w-3 h-3 bg-indigo-600 rotate-45" />
+            </div>
+          )}
+        </div>
 
         <button
           type="button"
           onClick={onRemove}
-          className="mt-1 text-neutral-400 hover:text-red-500 flex-shrink-0"
+          className="mt-1 text-neutral-400 hover:text-red-500 flex-shrink-0 transition-colors"
+          title="Remove bullet"
         >
           <X size={16} />
         </button>
       </div>
 
-      {bullet?.loading && (
-        <div className="text-xs text-neutral-400 pl-1 flex items-center gap-1">
-          <span className="inline-block h-2 w-2 border border-neutral-400 border-t-transparent rounded-full animate-spin" />
-          Improving...
-        </div>
-      )}
-
-      {bullet?.suggestion && !bullet.hasAcceptedSuggestion && (
-        <div className="rounded-md bg-blue-50 border border-blue-200 p-3 text-xs space-y-2">
-          <p className="text-[10px] font-semibold text-blue-700 uppercase tracking-wide">✦ AI Suggestion</p>
-          <div className="text-neutral-800 leading-relaxed">{bullet.suggestion}</div>
-          <div className="flex gap-2 pt-1">
-            <button
-              onClick={acceptSuggestion}
-              className="px-3 py-1 bg-blue-600 text-white rounded font-medium hover:bg-blue-700 transition"
-            >
-              Accept
-            </button>
-            <button
-              onClick={discardSuggestion}
-              className="px-3 py-1 bg-neutral-200 text-neutral-700 rounded font-medium hover:bg-neutral-300 transition"
-            >
-              Decline
-            </button>
-          </div>
-        </div>
+      {/* Subtle metric nudge — no AI button, just a hint */}
+      {isWeak && value.trim().length > 15 && (
+        <p className="text-[11px] text-amber-600 pl-1 flex items-center gap-1">
+          <span>⚡</span>
+          Add a number, %, or $ value — metric bullets score higher with recruiters.
+        </p>
       )}
     </div>
   );

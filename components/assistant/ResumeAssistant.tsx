@@ -10,6 +10,7 @@ import {
   type AssistantSuggestion,
 } from "@/app/store/useAssistantStore";
 import { pathToStep, resumeHash, buildStepPayload } from "@/lib/assistant/step_context";
+import { computeLiveAtsScore, atsLabelColor } from "@/lib/ats/live/liveAtsScore";
 import { AssistantCharacter, type CharacterMood } from "./AssistantCharacter";
 import { AssistantChat } from "./AssistantChat";
 import { SpeechBubble } from "./SpeechBubble";
@@ -97,6 +98,7 @@ export default function ResumeAssistant({ locale = "en" }: Props) {
   } = useAssistantStore();
 
   const [bubbleVisible, setBubbleVisible] = useState(false);
+  const [toast, setToast]               = useState<string | null>(null);
   const applySuggestion = useApplySuggestion();
   const analyzeRef = useRef(false);
 
@@ -164,6 +166,9 @@ export default function ResumeAssistant({ locale = "en" }: Props) {
     if (!sugg) return;
     applySuggestion(sugg);
     acceptSuggestion(msgId, suggId);
+    // Toast showing exact location + points gained
+    setToast(`✓ Added: ${sugg.label} (+${sugg.pointGain} pts)`);
+    setTimeout(() => setToast(null), 3500);
   }
 
   async function handleUserMessage(text: string) {
@@ -203,6 +208,10 @@ export default function ResumeAssistant({ locale = "en" }: Props) {
     toggle();
     clearNewSuggestions();
   }
+
+  // ── Live ATS score ────────────────────────────────────────────────────────
+  const liveAts  = computeLiveAtsScore(resumeState);
+  const scoreColor = atsLabelColor(liveAts.label);
 
   // ── Mood ──────────────────────────────────────────────────────────────────
   let mood: CharacterMood = "idle";
@@ -305,17 +314,44 @@ export default function ResumeAssistant({ locale = "en" }: Props) {
           )}
         </motion.button>
 
-        {/* Name tag below robot */}
+        {/* Live ATS score + name tag */}
         <motion.div
           initial={{ opacity: 0, y: -4 }}
           animate={{ opacity: 1, y: 0   }}
-          className="mt-1 px-3 py-0.5 bg-white rounded-full shadow-md border border-indigo-100 text-center"
+          className="mt-1 flex flex-col items-center gap-0.5"
         >
-          <span className="text-[11px] font-bold text-indigo-600 tracking-wide">
+          {/* Score pill */}
+          <div
+            className="px-2.5 py-0.5 rounded-full shadow-md border text-center flex items-center gap-1.5"
+            style={{ backgroundColor: scoreColor + "15", borderColor: scoreColor + "40" }}
+          >
+            <span className="text-[10px] font-bold" style={{ color: scoreColor }}>
+              ATS
+            </span>
+            <span className="text-sm font-black" style={{ color: scoreColor }}>
+              {liveAts.score}
+            </span>
+            <span className="text-[9px] font-medium text-neutral-400">/95</span>
+          </div>
+          <span className="text-[10px] font-bold text-indigo-600 tracking-wide">
             {charName}™
           </span>
         </motion.div>
       </div>
+
+      {/* Acceptance toast */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0  }}
+            exit={{   opacity: 0, y: 10  }}
+            className="fixed bottom-4 right-4 bg-emerald-600 text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-xl z-50 max-w-xs"
+          >
+            {toast}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

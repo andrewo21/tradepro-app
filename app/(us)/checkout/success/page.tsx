@@ -71,7 +71,9 @@ function CheckoutSuccessContent() {
           if (data.entitlements.coverLetter) {
             router.push(isBrazil ? "/br/carta" : "/cover-letter");
           } else if (data.entitlements.resume) {
-            router.push(isBrazil ? "/br/curriculo" : "/resume/select");
+            // Go straight to the builder — template selection is preserved
+            // in localStorage from before payment, no need to re-select
+            router.push(isBrazil ? "/br/curriculo/pessoal" : "/resume/personal");
           }
         }, 3000);
       } else {
