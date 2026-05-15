@@ -6,6 +6,14 @@ alwaysApply: true
 
 # 🚨 CRITICAL ARCHITECTURAL CONSTRAINTS FOR CV-1 ARCHITECTURE
 
+## 0. THE CARDINAL RULE — USER IS ALWAYS IN CONTROL
+* **CV-1 and Gringo are ASSISTANTS, not autonomous agents.** They suggest. The user decides.
+* Every action CV-1 or Gringo can take MUST be presented as an option, never executed automatically.
+* Language must always be suggestive: "I can...", "Would you like me to...", "Here's an option..." — NEVER "I've done this" or "I added" before the user clicks.
+* The user must always see what will change BEFORE it changes. No surprises.
+* Buttons must reflect choice: "Add this", "Replace this", "Use this" — the user taps to confirm.
+* This rule applies to BOTH the US (CV-1) and Brazil (Gringo) versions of the assistant.
+
 You are a Senior Frontend Architect and Principal AI Engineer. Stop generating generic AI logic. We are implementing a strict, character-driven AI agent named **CV-1**.
 
 ## 1. UI CLEANUP & AI CONSOLIDATION

@@ -39,7 +39,7 @@ export default function SummaryPage() {
       <p className="text-sm text-neutral-600 mb-6 max-w-2xl">
         Write your summary in your own words — any style is fine.{" "}
         <span className="text-indigo-600 font-medium">
-          CV-1 is watching and can rewrite it for you — just ask in the chat.
+          CV-1 can offer you a stronger version — your call whenever you&apos;re ready.
         </span>
       </p>
 

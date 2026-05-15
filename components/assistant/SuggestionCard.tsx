@@ -23,9 +23,9 @@ export function SuggestionCard({ msgId, suggestion, onAccept, onDismiss, locale 
       <div className="flex items-center gap-2 px-3 py-2 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-700">
         <Check className="w-4 h-4 flex-shrink-0" />
         <span className="font-medium">
-          {isEN ? "Added!" : "Adicionado!"}{" "}
+          {isEN ? "Done! Good call." : "Feito! Boa escolha."}{" "}
           <span className="font-normal opacity-75">
-            +{suggestion.pointGain} {isEN ? "pts" : "pts"}
+            +{suggestion.pointGain} pts
           </span>
         </span>
       </div>
@@ -78,8 +78,8 @@ export function SuggestionCard({ msgId, suggestion, onAccept, onDismiss, locale 
         >
           <Check className="w-3.5 h-3.5" />
           {suggestion.action.type.startsWith("update_")
-            ? (isEN ? "Replace it" : "Substituir")
-            : (isEN ? "Add it"     : "Adicionar")}
+                      ? (isEN ? "Yes, replace it" : "Sim, substituir")
+                      : (isEN ? "Yes, add this"   : "Sim, adicionar")}
         </button>
         <div className="w-px bg-gray-100" />
         <button
@@ -87,7 +87,7 @@ export function SuggestionCard({ msgId, suggestion, onAccept, onDismiss, locale 
           className="flex-1 flex items-center justify-center gap-1.5 py-2 text-sm text-gray-400 hover:bg-gray-50 hover:text-gray-600 transition-colors"
         >
           <X className="w-3.5 h-3.5" />
-          {isEN ? "Skip" : "Pular"}
+          {isEN ? "Not now" : "Agora não"}
         </button>
       </div>
     </div>

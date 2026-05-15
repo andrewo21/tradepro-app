@@ -305,14 +305,14 @@ export default function HomePage() {
               </ul>
               <div className="flex flex-col sm:flex-row items-center lg:items-start gap-4">
                 <Link href="/resume/start" className="inline-flex items-center gap-2 px-8 py-3.5 bg-blue-500 text-white font-bold rounded-xl hover:bg-blue-400 transition shadow-lg shadow-blue-500/30 text-base">
-                  🤖 Let CV-1 Write My Resume →
+                  🤖 Build with CV-1's Help →
                 </Link>
                 <Link href="/resume/select" className="inline-block px-6 py-3.5 text-blue-300 font-semibold rounded-xl border border-blue-500/40 hover:bg-blue-500/10 transition text-sm">
                   I&apos;ll build it myself
                 </Link>
               </div>
               <p className="text-xs text-blue-400/60 mt-3 lg:text-left text-center">
-                Answer simple questions — CV-1 writes everything. Preview before you pay.
+                Answer simple questions — CV-1 guides you step by step. You approve every change before you pay.
               </p>
             </div>
 

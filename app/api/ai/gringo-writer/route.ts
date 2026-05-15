@@ -1,5 +1,5 @@
 // app/api/ai/gringo-writer/route.ts
-// Powers the full Ggringo / CV-1 writer mode.
+// Powers the full Gringo / CV-1 writer mode.
 // Each call returns: the next question to ask + any store actions to execute.
 
 import { NextRequest, NextResponse } from "next/server";
@@ -23,7 +23,7 @@ export interface StoreAction {
 }
 
 export interface WriterResponse {
-  message:    string;           // Ggringo's next message
+  message:    string;           // Gringo's next message
   actions:    StoreAction[];    // zero or more store writes to execute
   done:       boolean;          // true = resume is complete
   step:       string;           // which section we're on
@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
 
     const isEN   = locale !== "pt-BR";
     const name   = firstName || (isEN ? "there" : "você");
-    const bot    = isEN ? "CV-1" : "Ggringo";
+    const bot    = isEN ? "CV-1" : "Gringo";
 
     const system = isEN
       ? buildSystemEN(name, bot)

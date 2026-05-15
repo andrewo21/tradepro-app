@@ -113,15 +113,15 @@ export function SpeechBubble({
                   >
                     <Check className="w-3.5 h-3.5" />
                     {firstPending.action.type.startsWith("update_")
-                      ? (isEN ? "Replace it" : "Substituir")
-                      : (isEN ? "Add it"     : "Adicionar")}
+                      ? (isEN ? "Yes, replace it" : "Sim, substituir")
+                      : (isEN ? "Yes, add this"   : "Sim, adicionar")}
                   </button>
                   <div className="w-px bg-indigo-100" />
                   <button
                     onClick={() => message && onDismiss(message.id, firstPending.id)}
                     className="flex-1 flex items-center justify-center py-2 text-xs text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors"
                   >
-                    {isEN ? "Skip" : "Pular"}
+                    {isEN ? "Not now" : "Agora não"}
                   </button>
                 </motion.div>
               )}
