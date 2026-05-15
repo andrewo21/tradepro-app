@@ -288,7 +288,7 @@ export default function HomePage() {
                 Your personal AI resume<br className="hidden md:block" /> coach. Built into every step.
               </h2>
               <p className="text-blue-100/80 text-lg mb-6 leading-relaxed">
-                CV-1 doesn&apos;t wait for you to finish. From the moment you start, he reads your resume, spots what&apos;s missing, and writes it for you — right then and there.
+                CV-1 is here to guide you throughout your entire resume building experience.
               </p>
               <ul className="space-y-3 mb-8 text-sm text-blue-100/70 text-left max-w-md mx-auto lg:mx-0">
                 {[
