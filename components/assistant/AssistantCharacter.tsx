@@ -7,7 +7,7 @@ interface Props {
   size?: number;
 }
 
-export function AssistantCharacter({ mood, size = 72 }: Props) {
+export function AssistantCharacter({ mood, size = 88 }: Props) {
   const h = Math.round(size * 1.28);
   const eyeColor  = mood === "happy" ? "#34d399" : "#a5b4fc";
   const mouthHappy = mood === "happy" || mood === "waving";
