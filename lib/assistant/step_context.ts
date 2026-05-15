@@ -77,13 +77,16 @@ export function buildStepPayload(step: BuilderStep, resumeData: any, locale: str
         jobTitle,
         locale,
         data: {
-          experience: resumeData.experience?.map((job: any) => ({
-            id: job.id,
-            jobTitle: job.jobTitle,
-            company: job.company,
-            startDate: job.startDate,
-            endDate: job.endDate,
-            roleSummary: job.roleSummary,
+          experience: resumeData.experience?.map((job: any, idx: number) => ({
+            id:           job.id,
+            index:        idx,
+            jobTitle:     job.jobTitle,
+            company:      job.company,
+            startDate:    job.startDate,
+            endDate:      job.endDate,
+            roleSummary:  job.roleSummary,
+            // Label for display: "Job Title at Company"
+            displayLabel: [job.jobTitle, job.company].filter(Boolean).join(" at ") || `Job ${idx + 1}`,
             responsibilities: (job.responsibilities || [])
               .filter((b: any) => b.text?.trim())
               .map((b: any) => b.text),

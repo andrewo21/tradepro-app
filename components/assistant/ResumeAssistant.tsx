@@ -218,7 +218,7 @@ export default function ResumeAssistant({ locale = "en" }: Props) {
     .filter((s) => !s.accepted && !s.dismissed).length;
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 flex flex-col items-end gap-0">
+    <div className="fixed bottom-24 right-4 z-50 flex flex-col items-end gap-0">
 
       {/* ── Full chat panel (slides up above robot) ── */}
       <AnimatePresence>

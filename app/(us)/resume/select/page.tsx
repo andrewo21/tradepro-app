@@ -10,6 +10,7 @@ import Link from "next/link";
 import { getOrCreateUserId } from "@/lib/userId";
 import ResumeUpload from "@/components/ResumeUpload";
 import InstallPrompt from "@/components/InstallPrompt";
+import CV1Hero from "@/components/assistant/CV1Hero";
 
 export default function SelectPage() {
   const selectedTemplate = useResumeStore((s) => s.selectedTemplate);
@@ -74,6 +75,30 @@ export default function SelectPage() {
       )}
 
       <InstallPrompt />
+
+      {/* CV-1 banner */}
+      <div className="mb-8 rounded-2xl overflow-hidden bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 border border-blue-800/40 shadow-lg">
+        <div className="flex items-center gap-6 px-6 py-5">
+          <div className="flex-shrink-0 hidden sm:block">
+            <CV1Hero size={80} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-blue-300 text-xs font-bold uppercase tracking-widest mb-1">CV-1™ AI Resume Coach</p>
+            <p className="text-white font-bold text-base leading-snug mb-1">
+              Let CV-1 write your entire resume through conversation.
+            </p>
+            <p className="text-blue-200/70 text-sm">
+              Answer simple questions — CV-1 fills in every section for you. Faster than any form.
+            </p>
+          </div>
+          <div className="flex-shrink-0">
+            <a href="/resume/start"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-500 hover:bg-blue-400 text-white text-sm font-bold rounded-xl transition shadow-lg shadow-blue-500/20 whitespace-nowrap">
+              🤖 Let CV-1 Write It
+            </a>
+          </div>
+        </div>
+      </div>
 
       {/* Upload existing resume */}
       <div className="mb-8 rounded-2xl overflow-hidden border border-neutral-200 shadow-sm bg-white">
