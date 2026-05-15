@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import GringoWriter from "@/components/assistant/GringoWriter";
 
 export const metadata = { title: "CV-1 — Your AI Resume Writer" };
