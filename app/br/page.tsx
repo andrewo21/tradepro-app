@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { ptBR } from "@/lib/i18n/pt-BR";
-import RingoHero from "@/components/assistant/RingoHero";
+import GringoHero from "@/components/assistant/GringoHero";
 
 const TYPED_WORDS = ptBR.landing.skills.words;
 
@@ -257,17 +257,17 @@ export default function BrazilHomePage() {
           {/* Ringo intro + CTAs */}
           <div className="mt-12 bg-gradient-to-br from-green-950 via-green-900 to-green-950 rounded-2xl border border-green-700/40 p-8 text-center">
             <div className="flex justify-center mb-4">
-              <RingoHero size={160} />
+              <GringoHero size={160} />
             </div>
-            <p className="text-green-300 text-xs font-bold uppercase tracking-widest mb-3">Ringo™ — Escritor de Currículo IA</p>
-            <h3 className="text-2xl font-bold text-white mb-3">Deixa o Ringo fazer por você.</h3>
+            <p className="text-green-300 text-xs font-bold uppercase tracking-widest mb-3">Gringo™ — Escritor de Currículo IA</p>
+            <h3 className="text-2xl font-bold text-white mb-3">Deixa o Gringo fazer por você.</h3>
             <p className="text-green-200/80 text-base mb-6 max-w-md mx-auto leading-relaxed">
-              Ringo faz perguntas simples sobre sua experiência e monta o currículo completo enquanto você responde. Veja tudo antes de pagar.
+              Gringo faz perguntas simples sobre sua experiência e monta o currículo completo enquanto você responde. Veja tudo antes de pagar.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link href="/br/curriculo/ringo"
                 className="inline-flex items-center gap-2 px-8 py-3.5 bg-green-500 text-white font-bold rounded-xl hover:bg-green-400 transition shadow-lg shadow-green-500/20 text-base">
-                🤖 Deixa o Ringo escrever →
+                🤖 Deixa o Gringo escrever →
               </Link>
               <Link href="/br/curriculo"
                 className="inline-block px-6 py-3.5 text-green-300 font-semibold rounded-xl border border-green-500/40 hover:bg-green-500/10 transition text-sm">

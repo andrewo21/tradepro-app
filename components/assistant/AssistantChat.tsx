@@ -164,7 +164,7 @@ export function AssistantChat({
           <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-lg animate-pulse" />
           <div>
             <p className="text-sm font-bold leading-none tracking-wide">
-              {isEN ? "CV-1™" : "Ringo™"}
+              {isEN ? "CV-1™" : "Gringo™"}
             </p>
             <p className="text-xs text-indigo-200 leading-none mt-0.5">
               {isEN ? "AI Resume Coach" : "Coach de Currículo IA"}
@@ -194,7 +194,7 @@ export function AssistantChat({
           <div className="text-center py-8 text-gray-400 text-sm">
             {isEN
               ? "CV-1 is scanning your resume…"
-              : "Ringo está analisando seu currículo…"}
+              : "Gringo está analisando seu currículo…"}
           </div>
         )}
 
@@ -220,7 +220,7 @@ export function AssistantChat({
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={isEN ? "Ask CV-1 anything…" : "Pergunte ao Ringo…"}
+          placeholder={isEN ? "Ask CV-1 anything…" : "Pergunte ao Gringo…"}
           className="flex-1 text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-200 transition-all placeholder:text-gray-400"
         />
         <button

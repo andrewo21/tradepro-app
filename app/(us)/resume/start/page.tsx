@@ -1,10 +1,10 @@
-import RingoWriter from "@/components/assistant/RingoWriter";
+import GringoWriter from "@/components/assistant/GringoWriter";
 
 export const metadata = { title: "CV-1 — Your AI Resume Writer" };
 
 export default function CV1StartPage() {
   return (
-    <RingoWriter
+    <GringoWriter
       locale="en"
       previewHref="/resume/preview"
     />
