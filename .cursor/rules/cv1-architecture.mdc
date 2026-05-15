@@ -1,0 +1,36 @@
+---
+description: Strict behavioral and architecture constraints for the CV-1 AI Resume Engine
+globs: src/components/**/*, src/state/**/*, src/pages/**/*
+alwaysApply: true
+---
+
+# 🚨 CRITICAL ARCHITECTURAL CONSTRAINTS FOR CV-1 ARCHITECTURE
+
+You are a Senior Frontend Architect and Principal AI Engineer. Stop generating generic AI logic. We are implementing a strict, character-driven AI agent named **CV-1**.
+
+## 1. UI CLEANUP & AI CONSOLIDATION
+* **DELETION REQUIRED:** Remove ALL generic "AI Assist" buttons, "AI Summary Generators," and independent AI text boxes from the DOM across all steps.
+* **SINGLE POINT OF INGESTION:** CV-1 is the ONLY interface allowed to provide AI capabilities.
+
+## 2. STATE AWARENESS (STOP HALLUCINATING FIELDS)
+* CV-1 must be bounded strictly by the active components rendered on the page state.
+* Before CV-1 generates any contextual suggestion, it MUST parse the available input field keys.
+* **NEVER** suggest fields or data structures that do not exist on the form (e.g., Do NOT suggest "academic highlights" if the Education schema only contains School, Degree, and Dates).
+* Handle empty date validation natively: If fields or dates are blank during a walkthrough, CV-1 must flag them clearly as "Missing Data" rather than skipping them silently.
+
+## 3. REAL-TIME ATS SCORE MONITORING (STEPS 1-6)
+* Implement a reactive global state provider (`AtsScoreContext` or unified state) that tracks resume strength.
+* The ATS score tracking must calculate and update dynamically from Step 1 through to the final preview.
+* **THE SCORE IS NEVER 100 BY DEFAULT.** Base the score calculation on real criteria (keyword density, formatting completeness, action-verb usage, complete dates).
+* Display this dynamic score visibly in CV-1's UI component so the user watches it change as they build.
+
+## 4. BULLET POINT & EXPANSION REWRITES (ANTI-VAGUE FILTER)
+* CV-1's copy suggestions must be hyper-specific, metrics-driven, and brief.
+* Eliminate vague text injections. If a user asks for an upgrade, replace the bullet completely with a stronger X-Y-Z formula variant (e.g., "Accomplished [X], as measured by [Y], by doing [Z]").
+* Implement the contextual reminder hook. When a user hovers over or focuses on a professional summary or experience bullet point, CV-1 should trigger a helpful tooltip message: *"Hey, if you want this bullet point to be stronger, just ask me and I will offer you a high-converting replacement."*
+
+## 5. THE STEP 7 REFACTOR (JOB COMPARISON MATRIX)
+* **REMOVE** the legacy Step 7 layout completely.
+* CV-1 must deliver the comprehensive ATS breakdown, resume strength analysis, and optimization feedback **BEFORE** the final preview page is accepted.
+* Re-purpose Step 7 exclusively as an interactive **Job Target Compare Feature**.
+* Provide an open text area component titled "Compare Your Resume to a Target Job". When a user pastes a job description, CV-1 must map the resume state against the text, call out missing skill gaps, and adjust the projected ATS compatibility score.
