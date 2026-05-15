@@ -265,7 +265,7 @@ export default function BrazilHomePage() {
               Gringo faz perguntas simples sobre sua experiência e monta o currículo completo enquanto você responde. Veja tudo antes de pagar.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link href="/br/curriculo/ringo"
+              <Link href="/br/curriculo/gringo"
                 className="inline-flex items-center gap-2 px-8 py-3.5 bg-green-500 text-white font-bold rounded-xl hover:bg-green-400 transition shadow-lg shadow-green-500/20 text-base">
                 🤖 Deixa o Gringo escrever →
               </Link>

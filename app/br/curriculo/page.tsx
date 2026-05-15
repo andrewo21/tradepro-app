@@ -114,7 +114,7 @@ export default function BrCurriculoSelectPage() {
             </p>
           </div>
           <div className="flex-shrink-0">
-            <a href="/br/curriculo/ringo"
+            <a href="/br/curriculo/gringo"
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-green-500 hover:bg-green-400 text-white text-sm font-bold rounded-xl transition shadow-lg shadow-green-500/20 whitespace-nowrap">
               🤖 Gringo escreve pra mim
             </a>
