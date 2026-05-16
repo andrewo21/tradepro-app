@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import Footer from "@/components/Footer";
-import CV1Hero from "@/components/assistant/CV1Hero";
+import CV1Dynamic from "@/components/assistant/CV1Dynamic";
 
 function NewsletterSignup() {
   const [email, setEmail] = useState("");
@@ -318,7 +318,7 @@ export default function HomePage() {
 
             {/* Right — 3D robot */}
             <div className="flex-shrink-0 flex flex-col items-center gap-3">
-              <CV1Hero size={240} />
+              <CV1Dynamic size={240} />
               <div className="flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 rounded-full px-4 py-2">
                 <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
                 <span className="text-blue-300 text-xs font-semibold tracking-wide">CV-1™ — Active</span>
