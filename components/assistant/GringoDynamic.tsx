@@ -1,28 +1,23 @@
 "use client";
 
-// Dynamic wrapper — loads GringoViewer only in the browser (no SSR).
-// This prevents the WebGL crash during Vercel's server-side build.
-
 import dynamic from "next/dynamic";
 import GringoHero from "./GringoHero";
 
-const GringoViewer = dynamic(
-  () => import("./GringoViewer"),
-  {
-    ssr:     false,
-    loading: () => <GringoHero size={280} />,  // shows static image while 3D loads
-  }
-);
-
-interface Props {
-  size?: number;
-  className?: string;
-}
-
-export default function GringoDynamic({ size = 280, className = "" }: Props) {
-  return (
-    <div className={className}>
-      <GringoViewer size={size} />
+const GringoViewer = dynamic(() => import("./GringoViewer"), {
+  ssr: false,
+  loading: ({ isLoading }) => (
+    <div className="relative">
+      <GringoHero size={280} />
+      {isLoading && (
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-black/50 text-white text-xs px-3 py-1.5 rounded-full">
+          <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          Loading 3D…
+        </div>
+      )}
     </div>
-  );
+  ),
+});
+
+export default function GringoDynamic({ size = 280, className = "" }: { size?: number; className?: string }) {
+  return <div className={className}><GringoViewer size={size} /></div>;
 }
