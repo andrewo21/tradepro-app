@@ -3,6 +3,7 @@
 import { useEffect, useCallback, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { useDraggable } from "@/hooks/useDraggable";
 import { MessageCircle } from "lucide-react";
 import { useBrResumeStore } from "@/app/store/useBrResumeStore";
 import {
@@ -112,6 +113,7 @@ export default function BrResumeAssistant() {
   } = useAssistantStore();
 
   const [bubbleVisible, setBubbleVisible] = useState(false);
+  const { pos, isDragging, wasDragged, dragHandlers } = useDraggable("gringo-assistant");
 
   const runAnalysis = useCallback(
     async (userMsg?: string) => {
@@ -207,7 +209,10 @@ export default function BrResumeAssistant() {
     .filter((s) => !s.accepted && !s.dismissed).length;
 
   return (
-    <div className="fixed bottom-24 right-4 z-50 flex flex-col items-end gap-0">
+    <div
+      className="fixed z-50 flex flex-col items-end gap-0"
+      style={{ left: pos.x, top: pos.y, cursor: isDragging ? "grabbing" : "grab" }}
+    >
 
       <AnimatePresence>
         {isOpen && (
@@ -251,10 +256,12 @@ export default function BrResumeAssistant() {
 
       <div className="relative flex flex-col items-center">
         <motion.button
-          onClick={handleRobotClick}
-          whileHover={{ scale: 1.07, y: -2 }}
-          whileTap={{  scale: 0.93        }}
-          className="relative cursor-pointer focus:outline-none"
+          onClick={() => { if (!wasDragged()) handleRobotClick(); }}
+          {...dragHandlers}
+          whileHover={isDragging ? {} : { scale: 1.07, y: -2 }}
+          whileTap={isDragging ? {} : { scale: 0.93 }}
+          className="relative focus:outline-none select-none"
+          style={{ cursor: isDragging ? "grabbing" : "grab" }}
           aria-label="Abrir Gringo coach de currículo IA"
         >
           {(bubbleVisible || isThinking) && !isOpen && (
