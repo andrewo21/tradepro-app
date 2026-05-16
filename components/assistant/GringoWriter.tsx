@@ -294,10 +294,10 @@ function ProgressBar({ step, locale }: { step: string; locale: string }) {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export default function RingoWriter({ locale, previewHref }: Props) {
+export default function GringoWriter({ locale, previewHref }: Props) {
   const router     = useRouter();
   const isEN       = locale !== "pt-BR";
-  const charName   = isEN ? "CV-1" : "Ringo";
+  const charName   = isEN ? "CV-1" : "Gringo";
   const charVariant: "us" | "br" = isEN ? "us" : "br";
 
   const [history,    setHistory]    = useState<WriterMessage[]>([]);
