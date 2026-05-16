@@ -1,23 +1,43 @@
 "use client";
 
-import dynamic from "next/dynamic";
+import { useEffect, useState } from "react";
 import CV1Hero from "./CV1Hero";
 
-const CV1Viewer = dynamic(() => import("./CV1Viewer"), {
-  ssr: false,
-  loading: ({ isLoading }) => (
-    <div className="relative">
-      <CV1Hero size={280} />
-      {isLoading && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-black/50 text-white text-xs px-3 py-1.5 rounded-full">
-          <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
-          Loading 3D…
-        </div>
+export default function CV1Dynamic({ size = 280, className = "" }: { size?: number; className?: string }) {
+  const [ready, setReady] = useState(false);
+  const h = Math.round(size * 1.25);
+
+  useEffect(() => {
+    if (customElements.get("model-viewer")) { setReady(true); return; }
+    const script = document.createElement("script");
+    script.type  = "module";
+    script.src   = "https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js";
+    script.onload = () => setReady(true);
+    document.head.appendChild(script);
+  }, []);
+
+  return (
+    <div className={`relative ${className}`} style={{ width: size, height: h }}>
+      {/* Blue glow */}
+      <div className="absolute inset-0 rounded-full opacity-20 pointer-events-none"
+        style={{ background: "radial-gradient(circle, #3b82f6 0%, #1d4ed8 60%, transparent 80%)", filter: "blur(24px)", transform: "scale(1.2)" }} />
+
+      {!ready && <CV1Hero size={size} />}
+
+      {ready && (
+        // @ts-ignore
+        <model-viewer
+          src="/cv1.glb"
+          alt="CV-1 3D"
+          auto-rotate
+          rotation-per-second="30deg"
+          camera-controls
+          disable-zoom
+          shadow-intensity="1"
+          exposure="1.2"
+          style={{ width: "100%", height: "100%", background: "transparent" }}
+        />
       )}
     </div>
-  ),
-});
-
-export default function CV1Dynamic({ size = 280, className = "" }: { size?: number; className?: string }) {
-  return <div className={className}><CV1Viewer size={size} /></div>;
+  );
 }

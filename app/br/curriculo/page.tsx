@@ -98,7 +98,7 @@ export default function BrCurriculoSelectPage() {
         </p>
       </div>
 
-      {/* Ringo banner */}
+      {/* Gringo banner */}
       <div className="mb-8 rounded-2xl overflow-hidden bg-gradient-to-r from-green-950 via-green-900 to-green-950 border border-green-700/40 shadow-lg">
         <div className="flex items-center gap-6 px-6 py-5">
           <div className="flex-shrink-0 hidden sm:block">
