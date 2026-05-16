@@ -35,10 +35,8 @@ export default function CV1Dynamic({ size = 280, className = "" }: { size?: numb
           disable-zoom
           shadow-intensity="0.8"
           exposure="1.1"
-          camera-orbit="0deg 80deg 2m"
-          min-camera-orbit="auto auto 1.5m"
-          max-camera-orbit="auto auto 3m"
-          field-of-view="30deg"
+          camera-orbit="0deg 75deg auto"
+          field-of-view="auto"
           interaction-prompt="none"
           style={{ width: "100%", height: "100%", background: "transparent" }}
         />

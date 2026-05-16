@@ -11,7 +11,7 @@ import {
   type AssistantSuggestion,
 } from "@/app/store/useAssistantStore";
 import { pathToStep, resumeHash } from "@/lib/assistant/step_context";
-import { AssistantCharacter, type CharacterMood } from "./AssistantCharacter";
+import Image from "next/image";
 import { AssistantChat } from "./AssistantChat";
 import { SpeechBubble } from "./SpeechBubble";
 
@@ -197,11 +197,7 @@ export default function BrResumeAssistant() {
     clearNewSuggestions();
   }
 
-  let mood: CharacterMood = "idle";
-  if (isThinking)                    mood = "thinking";
-  else if (messages.length === 0)    mood = "waving";
-  else if (bubbleVisible && !isOpen) mood = "talking";
-  else if (isOpen)                   mood = "happy";
+  const isThinkingState = isThinking;
 
   const latestMsg = messages.length > 0 ? messages[messages.length - 1] : null;
   const pendingCount = messages
@@ -272,7 +268,10 @@ export default function BrResumeAssistant() {
             />
           )}
 
-          <AssistantCharacter mood={mood} size={88} variant="br" />
+          <Image src="/gringo-hero.png" alt="Gringo" width={88} height={114}
+            className="object-contain drop-shadow-lg select-none"
+            style={{ filter: isThinkingState ? "brightness(0.85) saturate(1.5)" : "none" }}
+            draggable={false} />
 
           {!isOpen && !bubbleVisible && pendingCount > 0 && (
             <motion.span

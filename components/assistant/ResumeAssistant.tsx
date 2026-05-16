@@ -12,7 +12,7 @@ import {
 } from "@/app/store/useAssistantStore";
 import { pathToStep, resumeHash, buildStepPayload } from "@/lib/assistant/step_context";
 import { computeLiveAtsScore, atsLabelColor } from "@/lib/ats/live/liveAtsScore";
-import { AssistantCharacter, type CharacterMood } from "./AssistantCharacter";
+import Image from "next/image";
 import { AssistantChat } from "./AssistantChat";
 import { SpeechBubble } from "./SpeechBubble";
 
@@ -227,15 +227,8 @@ export default function ResumeAssistant({ locale = "en" }: Props) {
   }
 
   // ── Live ATS score ────────────────────────────────────────────────────────
-  const liveAts  = computeLiveAtsScore(resumeState);
+  const liveAts    = computeLiveAtsScore(resumeState);
   const scoreColor = atsLabelColor(liveAts.label);
-
-  // ── Mood ──────────────────────────────────────────────────────────────────
-  let mood: CharacterMood = "idle";
-  if (isThinking)                              mood = "thinking";
-  else if (messages.length === 0)              mood = "waving";
-  else if (bubbleVisible && !isOpen)           mood = "talking";
-  else if (isOpen)                             mood = "happy";
 
   const latestMsg = messages.length > 0 ? messages[messages.length - 1] : null;
 
@@ -311,7 +304,10 @@ export default function ResumeAssistant({ locale = "en" }: Props) {
             />
           )}
 
-          <AssistantCharacter mood={mood} size={88} variant="us" />
+          <Image src="/cv1-hero.png" alt="CV-1" width={88} height={110}
+            className="object-contain drop-shadow-lg select-none"
+            style={{ filter: isThinking ? "brightness(0.85) saturate(1.5)" : "none" }}
+            draggable={false} />
 
           {/* Pending badge */}
           {!isOpen && !bubbleVisible && pendingCount > 0 && (
