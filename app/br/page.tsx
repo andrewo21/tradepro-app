@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { ptBR } from "@/lib/i18n/pt-BR";
-import GringoSpline from "@/components/assistant/GringoSpline";
+import GringoDynamic from "@/components/assistant/GringoDynamic";
 
 const TYPED_WORDS = ptBR.landing.skills.words;
 
@@ -257,7 +257,7 @@ export default function BrazilHomePage() {
           {/* Ringo intro + CTAs */}
           <div className="mt-12 bg-gradient-to-br from-green-950 via-green-900 to-green-950 rounded-2xl border border-green-700/40 p-8 text-center">
             <div className="flex justify-center mb-4">
-              <GringoSpline size={160} />
+              <GringoDynamic size={160} />
             </div>
             <p className="text-green-300 text-xs font-bold uppercase tracking-widest mb-3">Gringo™ — Escritor de Currículo IA</p>
             <h3 className="text-2xl font-bold text-white mb-3">Gringo te guia em cada etapa.</h3>
