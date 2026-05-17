@@ -88,8 +88,14 @@ export function SpeechBubble({
                 <span className="text-xs font-bold text-indigo-700">+{firstPending.pointGain} pts</span>
                 <span className="text-xs font-semibold text-gray-700 truncate">{firstPending.label}</span>
               </div>
-              {firstPending.reason && (
-                <p className="text-xs text-gray-500 leading-snug">{firstPending.reason}</p>
+              {/* Always show the actual replacement text */}
+              {firstPending.preview && (
+                <p className="text-xs text-gray-800 bg-indigo-50 rounded-lg p-2 leading-relaxed border border-indigo-100 mt-1">
+                  &ldquo;{firstPending.preview}&rdquo;
+                </p>
+              )}
+              {firstPending.reason && !firstPending.action.type.startsWith("update_") && (
+                <p className="text-xs text-gray-500 leading-snug mt-1">{firstPending.reason}</p>
               )}
             </div>
 

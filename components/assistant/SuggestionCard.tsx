@@ -13,7 +13,9 @@ interface Props {
 }
 
 export function SuggestionCard({ msgId, suggestion, onAccept, onDismiss, locale }: Props) {
-  const [expanded, setExpanded] = useState(false);
+  // Auto-expand if this is a bullet replacement — user must see what they're accepting
+  const isReplacement = suggestion.action.type.startsWith("update_");
+  const [expanded, setExpanded] = useState(isReplacement);
   const isEN = locale !== "pt-BR";
 
   if (suggestion.dismissed) return null;
@@ -61,10 +63,13 @@ export function SuggestionCard({ msgId, suggestion, onAccept, onDismiss, locale 
         </button>
       </div>
 
-      {/* Preview text */}
+      {/* Preview text — always shown for replacements, toggle for others */}
       {expanded && suggestion.preview && (
         <div className="px-3 pb-2">
-          <p className="text-xs text-gray-600 bg-gray-50 rounded-lg p-2 leading-relaxed italic border border-gray-100">
+          <p className="text-[10px] font-semibold text-indigo-500 uppercase tracking-wide mb-1 px-1">
+            {isReplacement ? "Proposed replacement:" : "Preview:"}
+          </p>
+          <p className="text-sm text-gray-800 bg-indigo-50 rounded-lg p-2.5 leading-relaxed border border-indigo-100">
             &ldquo;{suggestion.preview}&rdquo;
           </p>
         </div>
