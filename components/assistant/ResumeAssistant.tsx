@@ -120,6 +120,9 @@ export default function ResumeAssistant({ locale = "en" }: Props) {
   const applySuggestion = useApplySuggestion();
   const analyzeRef = useRef(false);
 
+  // Declare firstName early — used in useEffects below
+  const firstName = resumeState.personalInfo?.firstName || "there";
+
   // ── Analysis ───────────────────────────────────────────────────────────────
   const runAnalysis = useCallback(
     async (userMsg?: string) => {
@@ -224,8 +227,6 @@ export default function ResumeAssistant({ locale = "en" }: Props) {
       .finally(() => { setThinking(false); analyzeRef.current = false; });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pendingBulletRequest]);
-
-  const firstName = resumeState.personalInfo?.firstName || "there";
 
   // Fire on step change (debounced)
   useEffect(() => {
