@@ -12,7 +12,7 @@ import {
 } from "@/app/store/useAssistantStore";
 import { pathToStep, resumeHash, buildStepPayload } from "@/lib/assistant/step_context";
 import { computeLiveAtsScore, atsLabelColor } from "@/lib/ats/live/liveAtsScore";
-import Image from "next/image";
+import AssistantFloat from "./AssistantFloat";
 import { AssistantChat } from "./AssistantChat";
 import { SpeechBubble } from "./SpeechBubble";
 
@@ -304,10 +304,13 @@ export default function ResumeAssistant({ locale = "en" }: Props) {
             />
           )}
 
-          <Image src="/cv1-hero.png" alt="CV-1" width={88} height={110}
-            className="object-contain drop-shadow-lg select-none"
-            style={{ filter: isThinking ? "brightness(0.85) saturate(1.5)" : "none" }}
-            draggable={false} />
+          <AssistantFloat
+            src="/cv1.glb"
+            fallback="/cv1-hero.png"
+            alt="CV-1"
+            size={120}
+            isThinking={isThinking}
+          />
 
           {/* Pending badge */}
           {!isOpen && !bubbleVisible && pendingCount > 0 && (

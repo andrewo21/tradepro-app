@@ -11,7 +11,7 @@ import {
   type AssistantSuggestion,
 } from "@/app/store/useAssistantStore";
 import { pathToStep, resumeHash } from "@/lib/assistant/step_context";
-import Image from "next/image";
+import AssistantFloat from "./AssistantFloat";
 import { AssistantChat } from "./AssistantChat";
 import { SpeechBubble } from "./SpeechBubble";
 
@@ -268,10 +268,13 @@ export default function BrResumeAssistant() {
             />
           )}
 
-          <Image src="/gringo-hero.png" alt="Gringo" width={88} height={114}
-            className="object-contain drop-shadow-lg select-none"
-            style={{ filter: isThinkingState ? "brightness(0.85) saturate(1.5)" : "none" }}
-            draggable={false} />
+          <AssistantFloat
+            src="/gringo.glb"
+            fallback="/gringo-hero.png"
+            alt="Gringo"
+            size={120}
+            isThinking={isThinkingState}
+          />
 
           {!isOpen && !bubbleVisible && pendingCount > 0 && (
             <motion.span

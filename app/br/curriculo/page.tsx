@@ -102,7 +102,7 @@ export default function BrCurriculoSelectPage() {
       <div className="mb-8 rounded-2xl overflow-hidden bg-gradient-to-r from-green-950 via-green-900 to-green-950 border border-green-700/40 shadow-lg">
         <div className="flex items-center gap-6 px-6 py-5">
           <div className="flex-shrink-0 hidden sm:block">
-            <GringoDynamic size={80} />
+            <GringoDynamic size={120} />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-green-300 text-xs font-bold uppercase tracking-widest mb-1">Gringo™ — Escritor de Currículo IA</p>
