@@ -5,7 +5,7 @@
 // bullet + job context directly to CV-1 for a targeted rewrite.
 
 import { useState } from "react";
-import { X, Sparkles } from "lucide-react";
+import { X } from "lucide-react";
 import { useAssistantStore } from "@/app/store/useAssistantStore";
 
 interface ExperienceBulletProps {
@@ -57,22 +57,24 @@ export default function ExperienceBullet({
           {/* CV-1 tooltip on focus */}
           {showTip && value.trim() && (
             <div className="absolute -top-10 left-0 right-10 z-20 bg-indigo-600 text-white text-xs rounded-lg px-3 py-2 shadow-lg pointer-events-none flex items-center gap-1.5">
-              <span>✨</span>
-              <span>CV-1: I can suggest a stronger version — click the spark button.</span>
+              <span>CV-1: I can rewrite this stronger — click the button.</span>
               <div className="absolute -bottom-1.5 left-4 w-3 h-3 bg-indigo-600 rotate-45" />
             </div>
           )}
         </div>
 
-        {/* Ask CV-1 to improve */}
+        {/* CV-1 AI Rewrite button */}
         {value.trim() && (
           <button
             type="button"
             onClick={handleAskCV1}
-            title={`Ask CV-1 to improve this ${type}`}
-            className="mt-1 flex-shrink-0 p-1.5 text-indigo-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+            title="CV-1: rewrite this bullet"
+            className="mt-1 flex-shrink-0 flex items-center gap-1 px-2.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-[11px] font-bold rounded-lg transition-colors shadow-sm select-none whitespace-nowrap"
           >
-            <Sparkles size={15} />
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+            </svg>
+            CV-1
           </button>
         )}
 
