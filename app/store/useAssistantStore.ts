@@ -42,6 +42,16 @@ export interface AssistantMessage {
 
 // ─── Store ────────────────────────────────────────────────────────────────────
 
+export interface BulletRequest {
+  bulletText:  string;
+  jobTitle:    string;
+  company:     string;
+  jobId:       string;
+  bulletIndex: number;
+  bulletType:  "responsibility" | "achievement";
+  locale:      string;
+}
+
 interface AssistantState {
   isOpen: boolean;
   isThinking: boolean;
@@ -49,10 +59,13 @@ interface AssistantState {
   lastAnalyzedStep: string | null;
   lastAnalyzedHash: string | null;
   hasNewSuggestions: boolean;
+  pendingBulletRequest: BulletRequest | null;
 
   open: () => void;
   close: () => void;
   toggle: () => void;
+  requestBulletImprovement: (req: BulletRequest) => void;
+  clearBulletRequest: () => void;
   setThinking: (val: boolean) => void;
   addMessage: (msg: AssistantMessage) => void;
   addUserMessage: (content: string) => void;
@@ -70,10 +83,13 @@ export const useAssistantStore = create<AssistantState>((set) => ({
   lastAnalyzedStep: null,
   lastAnalyzedHash: null,
   hasNewSuggestions: false,
+  pendingBulletRequest: null,
 
   open: () => set({ isOpen: true }),
   close: () => set({ isOpen: false }),
   toggle: () => set((s) => ({ isOpen: !s.isOpen })),
+  requestBulletImprovement: (req) => set({ pendingBulletRequest: req, isOpen: true }),
+  clearBulletRequest: () => set({ pendingBulletRequest: null }),
   setThinking: (val) => set({ isThinking: val }),
 
   addMessage: (msg) =>

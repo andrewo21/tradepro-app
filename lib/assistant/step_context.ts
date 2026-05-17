@@ -65,10 +65,13 @@ export function buildStepPayload(step: BuilderStep, resumeData: any, locale: str
 
   switch (step) {
     case "personal":
+      // Personal step: ONLY flag blank fields. Never suggest bullets or experience improvements.
       return {
         step, firstName, jobTitle, locale,
         liveScore: liveAts.score,
-        globalFlags,
+        // No globalFlags — personal step is strictly limited to personal info fields
+        globalFlags: [],
+        schema: ["firstName","lastName","tradeTitle","phone","email","city","state","linkedin"],
         data:   { personalInfo: resumeData.personalInfo },
         issues: buildPersonalIssues(resumeData.personalInfo),
       };

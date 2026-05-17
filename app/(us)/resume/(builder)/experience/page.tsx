@@ -243,13 +243,13 @@ export default function ExperiencePage() {
                   <ExperienceBullet
                     key={r.id}
                     jobId={job.id}
+                    jobTitle={job.jobTitle}
+                    company={job.company}
                     index={i}
                     type="responsibility"
                     value={r.text}
                     placeholder="Describe a responsibility..."
-                    onChange={(val) =>
-                      updateResponsibility(job.id, i, val)
-                    }
+                    onChange={(val) => updateResponsibility(job.id, i, val)}
                     onRemove={() => removeResponsibility(job.id, i)}
                   />
                 ))}
@@ -283,6 +283,8 @@ export default function ExperiencePage() {
                     <ExperienceBullet
                       key={a.id}
                       jobId={job.id}
+                      jobTitle={job.jobTitle}
+                      company={job.company}
                       index={i}
                       type="achievement"
                       value={a.text}

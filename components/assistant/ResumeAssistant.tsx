@@ -111,6 +111,7 @@ export default function ResumeAssistant({ locale = "en" }: Props) {
     addMessage, addUserMessage,
     acceptSuggestion, dismissSuggestion,
     setLastAnalyzed, clearNewSuggestions,
+    pendingBulletRequest, clearBulletRequest,
   } = useAssistantStore();
 
   const [bubbleVisible, setBubbleVisible] = useState(false);
@@ -161,6 +162,70 @@ export default function ResumeAssistant({ locale = "en" }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [step, resumeState, locale]
   );
+
+  // ── Handle bullet improvement request from "Ask CV-1" button ─────────────
+  useEffect(() => {
+    if (!pendingBulletRequest) return;
+    const req = pendingBulletRequest;
+    clearBulletRequest();
+
+    const userMsg = `Hey CV-1 — can you improve this ${req.bulletType} bullet for my role as ${req.jobTitle} at ${req.company}? Here it is: "${req.bulletText}"`;
+    addUserMessage(userMsg);
+
+    // Fire targeted analysis
+    setThinking(true);
+    analyzeRef.current = true;
+    fetch("/api/ai/assistant/suggest", {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        step:       "experience",
+        firstName,
+        jobTitle:   req.jobTitle,
+        locale:     req.locale,
+        liveScore:  computeLiveAtsScore(resumeState).score,
+        globalFlags: [],
+        userMessage: userMsg,
+        data: {
+          experience: [{
+            id:          req.jobId,
+            index:       0,
+            jobTitle:    req.jobTitle,
+            company:     req.company,
+            displayLabel: `${req.jobTitle} at ${req.company}`,
+            responsibilities: req.bulletType === "responsibility" ? [req.bulletText] : [],
+            achievements:     req.bulletType === "achievement"    ? [req.bulletText] : [],
+          }],
+        },
+        issues: [`Bullet to improve: "${req.bulletText}"`],
+      }),
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (data.message || data.suggestions?.length) {
+          addMessage({
+            id:          `cv1-${Date.now()}`,
+            role:        "assistant",
+            content:     data.message || "",
+            suggestions: (data.suggestions || []).map((s: any) => ({
+              ...s,
+              action: {
+                ...s.action,
+                type:        req.bulletType === "responsibility" ? "update_responsibility" : "update_achievement",
+                experienceId: req.jobId,
+                bulletIndex:  req.bulletIndex,
+              },
+            })),
+            timestamp: Date.now(),
+          });
+        }
+      })
+      .catch(() => {})
+      .finally(() => { setThinking(false); analyzeRef.current = false; });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingBulletRequest]);
+
+  const firstName = resumeState.personalInfo?.firstName || "there";
 
   // Fire on step change (debounced)
   useEffect(() => {
