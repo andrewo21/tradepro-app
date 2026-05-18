@@ -141,6 +141,30 @@ export function buildStepPayload(step: BuilderStep, resumeData: any, locale: str
         issues: buildEducationIssues(resumeData.education || [], resumeData.certifications || []),
       };
 
+    case "ats":
+      // On the ATS/review step, give CV-1 the full resume context
+      return {
+        step, firstName, jobTitle, locale,
+        liveScore: liveAts.score,
+        globalFlags,
+        data: {
+          summary:        resumeData.summary,
+          skills:         (resumeData.skills || []).map((s: any) => s.text || s).filter(Boolean),
+          certifications: (resumeData.certifications || []).map((c: any) => c.text || c).filter(Boolean),
+          experience: (resumeData.experience || []).map((e: any) => ({
+            id:          e.id,
+            jobTitle:    e.jobTitle,
+            company:     e.company,
+            startDate:   e.startDate,
+            endDate:     e.endDate,
+            displayLabel: `${e.jobTitle} at ${e.company}`,
+            responsibilities: (e.responsibilities || []).filter((b: any) => b.text?.trim()).map((b: any) => b.text),
+            achievements:     (e.achievements     || []).filter((b: any) => b.text?.trim()).map((b: any) => b.text),
+          })),
+        },
+        issues: liveAts.flags.map(f => f.message),
+      };
+
     default:
       return { step, firstName, jobTitle, locale, data: {}, issues: [] };
   }
