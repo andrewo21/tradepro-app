@@ -416,13 +416,42 @@ export async function POST(req: NextRequest) {
       } else if (isProjectList) {
         drawProjectPortfolio(doc, data);
       } else if (isResume) {
-        const templateId = data.selectedTemplate || "standard-contemporary";
-        // Use vector renderer if available, fall back to legacy renderer
+        const templateId = (data.selectedTemplate || "standard-contemporary").trim().toLowerCase();
         const vectorDraw = PDF_TEMPLATE_REGISTRY[templateId];
         const legacyDraw = templateRegistry[templateId] || drawStandardContemporary;
         const draw = vectorDraw || legacyDraw;
-        draw(doc, data);
-        // Add page numbers to every page after content is rendered
+
+        // Normalise data fields — support both old (applicantName) and new (name) payload shapes
+        const normData = {
+          ...data,
+          // New shape fields used by pdfTemplates.ts vector renderers
+          name:    data.name    || [data.firstName, data.lastName].filter(Boolean).join(" ") || data.applicantName || "",
+          title:   data.title   || data.tradeTitle   || "",
+          contact: data.contact || {
+            phone:    data.applicantPhone    || "",
+            email:    data.applicantEmail    || "",
+            location: data.applicantAddress  || "",
+            linkedin: data.linkedin          || "",
+          },
+          // Guarantee arrays exist
+          skills:         Array.isArray(data.skills)         ? data.skills         : [],
+          experience:     Array.isArray(data.experience)     ? data.experience     : [],
+          education:      Array.isArray(data.education)      ? data.education      : [],
+          certifications: Array.isArray(data.certifications) ? data.certifications : [],
+        };
+
+        try {
+          draw(doc, normData);
+        } catch (drawErr: any) {
+          console.error(`PDF draw error [template=${templateId}]:`, drawErr?.message, drawErr?.stack);
+          // Fall back to standard-contemporary if chosen template crashes
+          if (templateId !== "standard-contemporary") {
+            const fallback = PDF_TEMPLATE_REGISTRY["standard-contemporary"];
+            fallback(doc, normData);
+          } else {
+            throw drawErr;
+          }
+        }
         addPageNumbers(doc);
       } else {
         // Cover letter — choose style based on template param

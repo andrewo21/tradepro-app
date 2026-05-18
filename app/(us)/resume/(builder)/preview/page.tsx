@@ -97,7 +97,10 @@ export default function ResumePreviewPage() {
         body: JSON.stringify(pdfPayload),
       });
 
-      if (!pdfRes.ok) throw new Error("PDF generation failed");
+      if (!pdfRes.ok) {
+        const errData = await pdfRes.json().catch(() => ({}));
+        throw new Error(errData.detail || errData.error || `PDF generation failed (${pdfRes.status})`);
+      }
 
       const blob = await pdfRes.blob();
       const url = window.URL.createObjectURL(blob);
@@ -122,8 +125,8 @@ export default function ResumePreviewPage() {
           clearAll();
         }
       }
-    } catch (err) {
-      alert("PDF Error. Please try again.");
+    } catch (err: any) {
+      alert(`PDF Error: ${err?.message || "Please try again."}`);
     } finally {
       setLoading(false);
     }
