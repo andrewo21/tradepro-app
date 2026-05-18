@@ -6,7 +6,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Send, Eye, ChevronRight, Check } from "lucide-react";
 import { useBrResumeStore } from "@/app/store/useBrResumeStore";
 import { useResumeStore }   from "@/app/store/useResumeStore";
-import { AssistantCharacter } from "./AssistantCharacter";
+import CV1Character from "./CV1Character";
+import type { CV1Mood } from "./CV1Character";
 import type { WriterMessage, StoreAction } from "@/app/api/ai/gringo-writer/route";
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -242,11 +243,7 @@ function BotMessage({ text, isLatest, charVariant }: {
   return (
     <div className="flex items-start gap-3">
       <div className="flex-shrink-0 mt-1">
-        <AssistantCharacter
-          mood={isLatest && !typeDone ? "talking" : "happy"}
-          variant={charVariant}
-          size={40}
-        />
+        <CV1Character mood={isLatest && !typeDone ? "talking" : "idle"} size={52} />
       </div>
       <div className="flex-1 bg-white rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm border border-gray-100 text-sm text-gray-800 leading-relaxed">
         {displayed}
@@ -391,11 +388,7 @@ export default function GringoWriter({ locale, previewHref }: Props) {
       {/* ── Top bar ── */}
       <div className="flex items-center justify-between px-4 py-3 bg-white border-b border-gray-200 shadow-sm">
         <div className="flex items-center gap-3">
-          <AssistantCharacter
-            mood={loading ? "thinking" : isDone ? "happy" : "talking"}
-            variant={charVariant}
-            size={44}
-          />
+          <CV1Character mood={loading ? "thinking" : isDone ? "celebrate" : "talking"} size={56} />
           <div>
             <p className="font-bold text-gray-900 text-sm leading-none">
               {charName}™
@@ -449,7 +442,7 @@ export default function GringoWriter({ locale, previewHref }: Props) {
 
         {loading && (
           <div className="flex items-center gap-3">
-            <AssistantCharacter mood="thinking" variant={charVariant} size={40} />
+            <CV1Character mood="thinking" size={52} />
             <div className="bg-white rounded-2xl px-4 py-3 shadow-sm border border-gray-100 flex gap-1 items-center">
               {[0,1,2].map(i => (
                 <span key={i} className="w-2 h-2 bg-indigo-400 rounded-full"
@@ -466,7 +459,7 @@ export default function GringoWriter({ locale, previewHref }: Props) {
             animate={{ opacity: 1, y: 0 }}
             className="flex flex-col items-center gap-3 py-6"
           >
-            <AssistantCharacter mood="happy" variant={charVariant} size={80} />
+            <CV1Character mood="celebrate" size={100} />
             <div className="text-center">
               <p className="font-bold text-gray-900 text-lg">
                 {isEN ? "Resume complete!" : "Currículo pronto!"}

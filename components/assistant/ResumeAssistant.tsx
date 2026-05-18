@@ -12,7 +12,8 @@ import {
 } from "@/app/store/useAssistantStore";
 import { pathToStep, resumeHash, buildStepPayload } from "@/lib/assistant/step_context";
 import { computeLiveAtsScore, atsLabelColor } from "@/lib/ats/live/liveAtsScore";
-import AssistantFloat from "./AssistantFloat";
+import CV1Character from "./CV1Character";
+import type { CV1Mood } from "./CV1Character";
 import { AssistantChat } from "./AssistantChat";
 import { SpeechBubble } from "./SpeechBubble";
 
@@ -114,8 +115,9 @@ export default function ResumeAssistant({ locale = "en" }: Props) {
     pendingBulletRequest, clearBulletRequest,
   } = useAssistantStore();
 
-  const [bubbleVisible, setBubbleVisible] = useState(false);
-  const [toast, setToast]               = useState<string | null>(null);
+  const [bubbleVisible, setBubbleVisible]   = useState(false);
+  const [toast, setToast]                   = useState<string | null>(null);
+  const [moodOverride, setMoodOverride]     = useState<CV1Mood | null>(null);
   const { pos, isDragging, wasDragged, dragHandlers } = useDraggable("cv1-assistant");
   const applySuggestion = useApplySuggestion();
   const analyzeRef = useRef(false);
@@ -249,9 +251,10 @@ export default function ResumeAssistant({ locale = "en" }: Props) {
     if (!sugg) return;
     applySuggestion(sugg);
     acceptSuggestion(msgId, suggId);
-    // Toast showing exact location + points gained
+    // Toast + CV-1 celebrates
     setToast(`✓ Added: ${sugg.label} (+${sugg.pointGain} pts)`);
-    setTimeout(() => setToast(null), 3500);
+    setMoodOverride("celebrate");
+    setTimeout(() => { setToast(null); setMoodOverride(null); }, 2000);
   }
 
   async function handleUserMessage(text: string) {
@@ -295,6 +298,14 @@ export default function ResumeAssistant({ locale = "en" }: Props) {
   // ── Live ATS score ────────────────────────────────────────────────────────
   const liveAts    = computeLiveAtsScore(resumeState);
   const scoreColor = atsLabelColor(liveAts.label);
+
+  // ── CV-1 mood based on current state ─────────────────────────────────────
+  let cv1Mood: CV1Mood = moodOverride ?? "idle";
+  if (!moodOverride) {
+    if (isThinking)                    cv1Mood = "thinking";
+    else if (messages.length === 0)    cv1Mood = "wave";
+    else if (bubbleVisible && !isOpen) cv1Mood = "talking";
+  }
 
   const latestMsg = messages.length > 0 ? messages[messages.length - 1] : null;
 
@@ -370,13 +381,7 @@ export default function ResumeAssistant({ locale = "en" }: Props) {
             />
           )}
 
-          <AssistantFloat
-            src="/cv1.glb"
-            fallback="/cv1-hero.png"
-            alt="CV-1"
-            size={120}
-            isThinking={isThinking}
-          />
+          <CV1Character mood={cv1Mood} size={100} />
 
           {/* Pending badge */}
           {!isOpen && !bubbleVisible && pendingCount > 0 && (
