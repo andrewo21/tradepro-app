@@ -53,12 +53,12 @@ const GRINGO_FRAME = "/gringo-hero.png";
 export default function CV1Character({ mood = "idle", size = 120, className = "", variant = "us" }: Props) {
   // BR variant: use Gringo image
   if (variant === "br") {
-    const h = Math.round(size * 2);
+    const h = Math.round(size * 1.8);
     return (
       <div className={`relative flex-shrink-0 ${className}`} style={{ width: size, height: h }}>
-        <div className={`${ANIMATION[mood]}`}>
+        <div className={`${ANIMATION[mood]} w-full h-full`}>
           <Image src={GRINGO_FRAME} alt="Gringo" width={size} height={h}
-            className="object-contain select-none" draggable={false} priority />
+            className="object-contain object-top select-none w-full h-full" draggable={false} priority />
         </div>
       </div>
     );
@@ -126,7 +126,7 @@ export default function CV1Character({ mood = "idle", size = 120, className = ""
             alt={`CV-1 ${current}`}
             width={size}
             height={h}
-            className="object-contain select-none"
+            className="object-contain object-top select-none"
             draggable={false}
             priority
           />
