@@ -81,6 +81,9 @@ export default function JobTargetStep() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
+  // Detect empty store — user navigated here directly without building
+  const hasResumeData = mounted && !!(store.personalInfo?.firstName || store.experience?.some((e: any) => e.jobTitle));
+
   const firstName  = mounted ? (store.personalInfo?.firstName || "there") : "there";
 
   let liveAts = EMPTY_ATS;
@@ -140,6 +143,19 @@ export default function JobTargetStep() {
           </p>
         </div>
       </div>
+
+      {/* ── Empty state: navigated here directly without building ── */}
+      {mounted && !hasResumeData && (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 mb-6 text-center">
+          <p className="text-amber-800 font-semibold mb-2">No resume data found</p>
+          <p className="text-amber-700 text-sm mb-4">
+            It looks like you navigated here directly. Please start from Step 1 to build your resume — CV-1 will be with you the whole way.
+          </p>
+          <Link href="/resume/personal" className="inline-block px-6 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition">
+            Start Building →
+          </Link>
+        </div>
+      )}
 
       {/* ── Live score panel ── */}
       <div className="bg-white border border-neutral-200 rounded-2xl p-6 mb-6 shadow-sm">
