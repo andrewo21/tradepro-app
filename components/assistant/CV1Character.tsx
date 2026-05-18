@@ -51,14 +51,14 @@ interface Props {
 const GRINGO_FRAME = "/gringo-hero.png";
 
 export default function CV1Character({ mood = "idle", size = 120, className = "", variant = "us" }: Props) {
-  // BR variant: use Gringo image
+  // Both variants: square container, crop to upper body (face + chest + arms)
   if (variant === "br") {
-    const h = Math.round(size * 1.8);
     return (
-      <div className={`relative flex-shrink-0 overflow-hidden ${className}`} style={{ width: size, height: h }}>
-        <div className={`${ANIMATION[mood]} w-full h-full`}>
-          <Image src={GRINGO_FRAME} alt="Gringo" width={size} height={h}
-            className="object-cover object-top select-none w-full h-full" draggable={false} priority />
+      <div className={`relative flex-shrink-0 overflow-hidden rounded-xl ${className}`}
+        style={{ width: size, height: size }}>
+        <div className={`${ANIMATION[mood]} w-full h-full`} style={{ transform: "scale(1.4)", transformOrigin: "50% 25%" }}>
+          <Image src={GRINGO_FRAME} alt="Gringo" fill
+            className="object-contain select-none" draggable={false} priority />
         </div>
       </div>
     );
@@ -117,16 +117,16 @@ export default function CV1Character({ mood = "idle", size = 120, className = ""
       `}</style>
 
       <div
-        className={`relative flex-shrink-0 overflow-hidden ${className}`}
-        style={{ width: size, height: h }}
+        className={`relative flex-shrink-0 overflow-hidden rounded-xl ${className}`}
+        style={{ width: size, height: size }}
       >
-        <div className={`${ANIMATION[current]} ${fading ? "cv1-fade-out" : "cv1-fade-in"}`}>
+        <div className={`${ANIMATION[current]} ${fading ? "cv1-fade-out" : "cv1-fade-in"} w-full h-full`}
+          style={{ transform: "scale(1.4)", transformOrigin: "50% 22%" }}>
           <Image
             src={FRAME[current]}
             alt={`CV-1 ${current}`}
-            width={size}
-            height={h}
-            className="object-cover object-top select-none w-full h-full"
+            fill
+            className="object-contain select-none"
             draggable={false}
             priority
           />

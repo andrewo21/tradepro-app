@@ -18,22 +18,47 @@ import {
 // ─── Resume text builder for ATS analysis ────────────────────────────────────
 
 function buildResumeText(store: any): string {
+  // Build the richest possible resume text for semantic comparison.
+  // More content = better embeddings = more accurate job match score.
   const p = store.personalInfo || {};
   const parts: string[] = [];
+
   const name = [p.firstName, p.lastName].filter(Boolean).join(" ");
-  if (name)       parts.push(`Name: ${name}`);
-  if (p.tradeTitle) parts.push(`Title: ${p.tradeTitle}`);
-  if (store.summary?.trim()) parts.push(`\nSummary:\n${store.summary.trim()}`);
-  const skills = (store.skills || []).map((s: any) => s.text || "").filter(Boolean);
-  if (skills.length) parts.push(`\nSkills: ${skills.join(", ")}`);
-  const certs = (store.certifications || []).map((c: any) => c.text || "").filter(Boolean);
-  if (certs.length) parts.push(`Certifications: ${certs.join(", ")}`);
-  (store.experience || []).filter((e: any) => e.jobTitle || e.company).forEach((exp: any) => {
-    parts.push(`\n${exp.jobTitle || ""} | ${exp.company || ""} (${exp.startDate || "?"} – ${exp.endDate || "?"})`);
-    [...(exp.responsibilities || []), ...(exp.achievements || [])].forEach((b: any) => {
-      if (b.text?.trim()) parts.push(`• ${b.text.trim()}`);
+  if (name)         parts.push(`Name: ${name}`);
+  if (p.tradeTitle) parts.push(`Professional Title: ${p.tradeTitle}`);
+  if (p.city || p.state) parts.push(`Location: ${[p.city, p.state].filter(Boolean).join(", ")}`);
+
+  if (store.summary?.trim()) parts.push(`\nProfessional Summary:\n${store.summary.trim()}`);
+
+  const skills = (store.skills || []).map((s: any) => (typeof s === "string" ? s : s.text || "")).filter(Boolean);
+  if (skills.length) parts.push(`\nCore Skills: ${skills.join(", ")}`);
+
+  const certs = (store.certifications || []).map((c: any) => (typeof c === "string" ? c : c.text || "")).filter(Boolean);
+  if (certs.length) parts.push(`Certifications & Licenses: ${certs.join(", ")}`);
+
+  const edu = (store.education || []).filter((e: any) => e.school || e.degree);
+  if (edu.length) {
+    parts.push(`\nEducation:`);
+    edu.forEach((e: any) => {
+      if (e.degree || e.school) parts.push(`${e.degree || ""} ${e.school ? "— " + e.school : ""}`.trim());
     });
-  });
+  }
+
+  const experience = (store.experience || []).filter((e: any) => e.jobTitle || e.company);
+  if (experience.length) {
+    parts.push(`\nWork Experience:`);
+    experience.forEach((exp: any) => {
+      const dates = [exp.startDate, exp.endDate].filter(Boolean).join(" – ");
+      const loc   = [exp.city, exp.state].filter(Boolean).join(", ");
+      parts.push(`\n${exp.jobTitle || ""}${exp.company ? " | " + exp.company : ""}${loc ? " | " + loc : ""}${dates ? " (" + dates + ")" : ""}`);
+      if (exp.roleSummary?.trim()) parts.push(exp.roleSummary.trim());
+      [...(exp.responsibilities || []), ...(exp.achievements || [])].forEach((b: any) => {
+        const txt = typeof b === "string" ? b.trim() : (b.text || "").trim();
+        if (txt) parts.push(`• ${txt}`);
+      });
+    });
+  }
+
   return parts.join("\n");
 }
 
@@ -116,7 +141,13 @@ export default function JobTargetStep() {
       const res  = await fetch("/api/ai/br/ats-analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ resumeText, jobDescription: jobText, locale: "en" }),
+        body: JSON.stringify({
+          resumeText,
+          jobDescription: jobText,
+          locale: "en",
+          // Pass job title for semantic floor calculation
+          candidateTitle: store.personalInfo?.tradeTitle || null,
+        }),
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.detail || json.error || `Error ${res.status}`);

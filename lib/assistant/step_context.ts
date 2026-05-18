@@ -59,9 +59,12 @@ export function buildStepPayload(step: BuilderStep, resumeData: any, locale: str
   const firstName = resumeData?.personalInfo?.firstName || "there";
   const jobTitle  = resumeData?.personalInfo?.tradeTitle || "";
 
-  // Live ATS score + all validation flags passed to CV-1 for full context
-  const liveAts    = computeLiveAtsScore(resumeData);
-  const globalFlags = liveAts.flags.map(f => `[${f.severity.toUpperCase()}] ${f.message}`);
+  // Live ATS score + flags filtered to current step only
+  const liveAts     = computeLiveAtsScore(resumeData);
+  // Only show flags relevant to the current step — prevents education step
+  // from showing experience advice, personal step from showing bullet advice, etc.
+  const stepFlags   = liveAts.flags.filter(f => f.step === step || f.step === "general");
+  const globalFlags = stepFlags.map(f => `[${f.severity.toUpperCase()}] ${f.message}`);
 
   switch (step) {
     case "personal":

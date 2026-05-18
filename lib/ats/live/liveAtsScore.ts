@@ -1,17 +1,18 @@
 // lib/ats/live/liveAtsScore.ts
-// Deterministic resume strength scorer.
-// Calibration targets:
-//   Empty resume      → ~5
-//   Name + title only → ~15
-//   Basic info filled → ~25
-//   Decent resume     → ~40-50
-//   Strong resume     → ~60-70
-//   With job match    → up to 88
+// Proportionate ATS scoring. Starts at 0. Every real improvement moves the number.
+//
+// Design principles:
+//   - 0 on a blank resume. No participation trophies.
+//   - Quality of content matters, not just presence.
+//   - A weak bullet scores less than a strong one.
+//   - Max 80 without a job description.
+//   - With JD comparison (Step 7): up to 95.
 
 export interface LiveAtsFlag {
   field:    string;
   message:  string;
   severity: "error" | "warning" | "info";
+  step:     string;   // which step this flag belongs to
 }
 
 export interface LiveAtsBreakdown {
@@ -24,137 +25,155 @@ export interface LiveAtsBreakdown {
 }
 
 export interface LiveAtsResult {
-  score:     number;
+  score:     number;          // 0–80 (95 with JD match)
   flags:     LiveAtsFlag[];
   breakdown: LiveAtsBreakdown;
-  label:     "Needs Work" | "Building" | "Good" | "Strong";
+  label:     "Not Started" | "Weak" | "Building" | "Good" | "Strong";
 }
 
-const BASE          = 5;
-const CAP_NO_JD     = 72;   // hard cap without job description
-const CAP_WITH_JD   = 88;   // Job Target Compare can push to here
+const CAP = 80;
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function hasMetrics(text: string): boolean {
   return /[\d$%]/.test(text);
 }
 
 function hasActionVerb(text: string): boolean {
-  return /^(led|managed|built|created|developed|designed|improved|increased|reduced|delivered|executed|implemented|oversaw|directed|coordinated|spearheaded|launched|established|achieved|generated|saved|grew|trained|mentored|supervised|negotiated|secured|optimized|streamlined|deployed|maintained|operated|inspected|repaired|installed|configured|troubleshot|handled|completed|performed|resolved|supported|produced)/i
+  return /^(led|managed|built|created|developed|designed|improved|increased|reduced|delivered|executed|implemented|oversaw|directed|coordinated|spearheaded|launched|established|achieved|generated|saved|grew|trained|mentored|supervised|negotiated|secured|optimized|streamlined|deployed|maintained|operated|inspected|repaired|installed|configured|resolved|handled|completed|produced|supported|performed|coordinated|facilitated|administered|analyzed|planned|overseeded|motivated|recruited|evaluated)/i
     .test(text.trim());
 }
 
+function bulletQuality(text: string): number {
+  if (!text.trim()) return 0;
+  let pts = 0.5;                              // exists
+  if (text.trim().length > 30) pts += 0.5;   // has substance
+  if (hasActionVerb(text))     pts += 1.0;   // starts with action verb
+  if (hasMetrics(text))        pts += 2.0;   // has numbers/$ (highest reward)
+  return pts;
+}
+
+// ─── Main scorer ──────────────────────────────────────────────────────────────
+
 export function computeLiveAtsScore(store: any): LiveAtsResult {
-  let raw = BASE;
   const flags: LiveAtsFlag[] = [];
   const bd: LiveAtsBreakdown = {
     personal: 0, summary: 0, experience: 0,
     skills:   0, education: 0, certifications: 0,
   };
 
-  // ── Personal (max 9) ──────────────────────────────────────────────────────
+  // ── PERSONAL (max 12) ─────────────────────────────────────────────────────
   const p = store.personalInfo || {};
-  if (p.firstName && p.lastName) { raw += 2.5; bd.personal += 2.5; }
-  else flags.push({ field: "personalInfo.firstName", message: "Full name is missing", severity: "error" });
+  if (p.firstName && p.lastName) { bd.personal += 3; }
+  else flags.push({ field: "personalInfo.firstName", message: "Full name is missing", severity: "error", step: "personal" });
 
-  if (p.tradeTitle) { raw += 2.5; bd.personal += 2.5; }
-  else flags.push({ field: "personalInfo.tradeTitle", message: "Professional title is missing", severity: "error" });
+  if (p.tradeTitle) { bd.personal += 4; }
+  else flags.push({ field: "personalInfo.tradeTitle", message: "Professional title is missing", severity: "error", step: "personal" });
 
-  if (p.phone)    { raw += 1;   bd.personal += 1;   }
-  if (p.email)    { raw += 1;   bd.personal += 1;   }
-  if (p.city)     { raw += 0.5; bd.personal += 0.5; }
-  if (p.linkedin) { raw += 1.5; bd.personal += 1.5; }
-  else flags.push({ field: "personalInfo.linkedin", message: "LinkedIn URL missing — adds trust with recruiters", severity: "warning" });
+  if (p.phone) bd.personal += 1;
+  if (p.email) bd.personal += 1;
+  if (p.city)  bd.personal += 1;
+  if (p.linkedin) { bd.personal += 2; }
+  else flags.push({ field: "personalInfo.linkedin", message: "LinkedIn URL missing — adds credibility", severity: "warning", step: "personal" });
 
-  // ── Summary (max 9) ───────────────────────────────────────────────────────
-  const summary     = store.summary || "";
-  const wordCount   = summary.trim().split(/\s+/).filter(Boolean).length;
+  // ── SUMMARY (max 15) ──────────────────────────────────────────────────────
+  const summary    = store.summary || "";
+  const wordCount  = summary.trim().split(/\s+/).filter(Boolean).length;
 
-  if (wordCount >= 15)  { raw += 3;   bd.summary += 3;   }
-  if (wordCount >= 45)  { raw += 3;   bd.summary += 3;   }
-  if (hasMetrics(summary)) { raw += 3; bd.summary += 3; }
-  if (wordCount === 0)  flags.push({ field: "summary", message: "Professional summary is empty", severity: "error" });
-  else if (wordCount < 45) flags.push({ field: "summary", message: `Summary is ${wordCount} words — aim for 45+`, severity: "warning" });
+  if (wordCount >= 10)  bd.summary += 3;
+  if (wordCount >= 35)  bd.summary += 4;
+  if (wordCount >= 60)  bd.summary += 2;
+  if (hasMetrics(summary)) bd.summary += 4;
 
-  // ── Experience (max 28) ───────────────────────────────────────────────────
+  // Bonus: mentions job title
+  const titleWords = (p.tradeTitle || "").toLowerCase().split(/\s+/).filter(Boolean);
+  if (titleWords.length > 0 && titleWords.some(w => w.length > 3 && summary.toLowerCase().includes(w))) {
+    bd.summary += 2;
+  }
+
+  if (wordCount === 0) flags.push({ field: "summary", message: "Professional summary is empty", severity: "error", step: "summary" });
+  else if (wordCount < 35) flags.push({ field: "summary", message: `Summary is ${wordCount} words — aim for 40+`, severity: "warning", step: "summary" });
+  if (!hasMetrics(summary) && wordCount > 0) flags.push({ field: "summary", message: "Summary has no numbers — add one metric", severity: "info", step: "summary" });
+
+  // ── EXPERIENCE (max 35) ───────────────────────────────────────────────────
   const experience = (store.experience || []) as any[];
-  let expPts = 0;
+  let expRaw = 0;
 
-  for (const [i, job] of experience.slice(0, 3).entries()) {
+  for (const [i, job] of experience.slice(0, 4).entries()) {
     const label = job.jobTitle ? `"${job.jobTitle}"` : `Job ${i + 1}`;
 
-    if (job.jobTitle && job.company) expPts += 2;
-    else if (!job.jobTitle) flags.push({
-      field: `experience[${i}].jobTitle`,
-      message: `${label}: job title missing — Missing Data`,
-      severity: "error",
-    });
+    if (job.jobTitle && job.company) expRaw += 2;
+    else if (!job.jobTitle) flags.push({ field: `experience[${i}].jobTitle`, message: `${label}: job title missing`, severity: "error", step: "experience" });
 
-    if (job.startDate && job.endDate) expPts += 1.5;
+    if (job.startDate && job.endDate) expRaw += 1.5;
     else {
-      if (!job.startDate) flags.push({ field: `experience[${i}].startDate`, message: `${label}: start date missing — Missing Data`, severity: "error" });
-      if (!job.endDate)   flags.push({ field: `experience[${i}].endDate`,   message: `${label}: end date missing — Missing Data`,   severity: "error" });
+      if (!job.startDate) flags.push({ field: `experience[${i}].startDate`, message: `${label}: start date missing`, severity: "error", step: "experience" });
+      if (!job.endDate)   flags.push({ field: `experience[${i}].endDate`,   message: `${label}: end date missing`,   severity: "error", step: "experience" });
     }
 
     const bullets = [
       ...(job.responsibilities || []),
-      ...(job.achievements || []),
+      ...(job.achievements     || []),
     ].filter((b: any) => b.text?.trim());
 
     if (bullets.length === 0) {
-      flags.push({ field: `experience[${i}].bullets`, message: `${label}: no bullet points added`, severity: "warning" });
+      flags.push({ field: `experience[${i}].bullets`, message: `${label}: no bullet points yet`, severity: "warning", step: "experience" });
     }
 
-    for (const b of bullets.slice(0, 5)) {
-      expPts += 0.8;
-      if (hasActionVerb(b.text)) expPts += 0.5;
-      if (hasMetrics(b.text))    expPts += 1.5;
-      else flags.push({ field: `experience[${i}].bullet`, message: `${label}: bullet has no metrics — add a number or $/%`, severity: "info" });
+    let bulletScore = 0;
+    for (const b of bullets.slice(0, 8)) {
+      bulletScore += bulletQuality(b.text);
     }
+    expRaw += Math.min(8, bulletScore); // up to 8 pts per job from bullet quality
+
+    // Warn on vague bullets
+    const vagueCount = bullets.filter((b: any) => !hasMetrics(b.text) && !hasActionVerb(b.text)).length;
+    if (vagueCount > 1) flags.push({ field: `experience[${i}].bullets`, message: `${label}: ${vagueCount} bullets are vague — add action verbs and numbers`, severity: "info", step: "experience" });
   }
 
-  expPts = Math.min(28, Math.round(expPts));
-  raw   += expPts;
-  bd.experience = expPts;
+  bd.experience = Math.min(35, Math.round(expRaw));
 
-  // ── Skills (max 7) ────────────────────────────────────────────────────────
-  const skills      = (store.skills || []).filter((s: any) => s.text?.trim());
-  const skillPts    = Math.min(7, Math.round(skills.length * 0.7));
-  raw              += skillPts;
-  bd.skills         = skillPts;
-  if (skills.length < 5) flags.push({ field: "skills", message: `Only ${skills.length} skill(s) — aim for 8–12`, severity: "warning" });
+  // ── SKILLS (max 10) ───────────────────────────────────────────────────────
+  const skills = (store.skills || []).filter((s: any) => s.text?.trim());
+  // Proportionate: each skill = 0.8 pts, max 10
+  bd.skills = Math.min(10, Math.round(skills.length * 0.8));
+  if (skills.length === 0) flags.push({ field: "skills", message: "No skills listed", severity: "warning", step: "skills" });
+  else if (skills.length < 5) flags.push({ field: "skills", message: `Only ${skills.length} skill(s) — aim for 8–12`, severity: "warning", step: "skills" });
 
-  // ── Education (max 5) ─────────────────────────────────────────────────────
+  // ── EDUCATION (max 8) ─────────────────────────────────────────────────────
   const edu = (store.education || []).filter((e: any) => e.school?.trim() || e.degree?.trim());
-  if (edu.length === 0) flags.push({ field: "education", message: "Education section is empty", severity: "warning" });
+  if (edu.length === 0) flags.push({ field: "education", message: "Education section is empty", severity: "warning", step: "education" });
   else {
-    raw += 3; bd.education = 3;
-    if (edu[0]?.school && edu[0]?.degree) { raw += 2; bd.education += 2; }
+    bd.education += 4;
+    if (edu[0]?.school && edu[0]?.degree) bd.education += 4;
   }
 
-  // ── Certifications (max 4) ────────────────────────────────────────────────
-  const certs    = (store.certifications || []).filter((c: any) => c.text?.trim());
-  const certPts  = Math.min(4, certs.length * 2);
-  raw           += certPts;
-  bd.certifications = certPts;
+  // ── CERTIFICATIONS (max 5) ────────────────────────────────────────────────
+  const certs = (store.certifications || []).filter((c: any) => c.text?.trim());
+  bd.certifications = Math.min(5, certs.length * 2.5);
 
-  // ── Final ─────────────────────────────────────────────────────────────────
-  const score = Math.max(BASE, Math.min(CAP_NO_JD, Math.round(raw)));
+  // ── FINAL ─────────────────────────────────────────────────────────────────
+  const raw = bd.personal + bd.summary + bd.experience + bd.skills + bd.education + bd.certifications;
+  const score = Math.min(CAP, Math.round(raw));
+
   const label: LiveAtsResult["label"] =
-    score >= 58 ? "Strong"   :
-    score >= 42 ? "Good"     :
-    score >= 25 ? "Building" : "Needs Work";
+    score === 0              ? "Not Started" :
+    score < 20              ? "Weak"        :
+    score < 42              ? "Building"    :
+    score < 62              ? "Good"        : "Strong";
 
   return { score, flags, breakdown: bd, label };
 }
 
-export const ATS_CAP_NO_JD   = CAP_NO_JD;
-export const ATS_CAP_WITH_JD = CAP_WITH_JD;
+export const ATS_CAP   = CAP;
+export const ATS_CAP_JD = 95;
 
 export function atsLabelColor(label: LiveAtsResult["label"]): string {
   switch (label) {
-    case "Strong":   return "#16a34a";
-    case "Good":     return "#d97706";
-    case "Building": return "#2563eb";
-    default:         return "#dc2626";
+    case "Strong":      return "#16a34a";
+    case "Good":        return "#d97706";
+    case "Building":    return "#2563eb";
+    case "Weak":        return "#dc2626";
+    default:            return "#9ca3af"; // Not Started
   }
 }
