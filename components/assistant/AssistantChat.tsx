@@ -41,7 +41,7 @@ function MessageBubble({
 }: {
   message: AssistantMessage;
   isLatest: boolean;
-  onAccept: (msgId: string, suggId: string) => void;
+  onAccept: (msgId: string, suggId: string, finalText?: string) => void;
   onDismiss: (msgId: string, suggId: string) => void;
   locale?: string;
 }) {
@@ -113,7 +113,7 @@ interface Props {
   isThinking: boolean;
   locale?: string;
   onClose: () => void;
-  onAccept: (msgId: string, suggId: string) => void;
+  onAccept: (msgId: string, suggId: string, finalText?: string) => void;
   onDismiss: (msgId: string, suggId: string) => void;
   onSendMessage: (text: string) => void;
   onRefresh: () => void;

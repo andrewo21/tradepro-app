@@ -10,7 +10,7 @@ interface Props {
   isThinking: boolean;
   locale: string;
   name: string;           // "CV-1" or "Gringo"
-  onAccept: (msgId: string, suggId: string) => void;
+  onAccept: (msgId: string, suggId: string, finalText?: string) => void;
   onDismiss: (msgId: string, suggId: string) => void;
   onOpenChat: () => void;
   onClose: () => void;
