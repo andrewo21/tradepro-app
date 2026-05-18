@@ -7,6 +7,7 @@ import Link from "next/link";
 import Footer from "@/components/Footer";
 import CV1Dynamic from "@/components/assistant/CV1Dynamic";
 import { CV1TourButton } from "@/components/assistant/CV1Tour";
+import CV1Welcome from "@/components/assistant/CV1Welcome";
 
 function NewsletterSignup() {
   const [email, setEmail] = useState("");
@@ -318,9 +319,16 @@ export default function HomePage() {
               </p>
             </div>
 
-            {/* Right — 3D robot */}
+            {/* Right — CV-1 hero */}
             <div className="flex-shrink-0 flex items-center justify-center">
-              <CV1Dynamic size={340} />
+              <Image
+                src="/cv1-landing-hero.png"
+                alt="CV-1 AI Resume Coach"
+                width={380}
+                height={480}
+                className="object-contain drop-shadow-2xl"
+                priority
+              />
             </div>
 
           </div>
@@ -507,6 +515,7 @@ export default function HomePage() {
       <NewsletterSignup />
 
       {/* GLOBAL FOOTER */}
+      <CV1Welcome />
       <Footer />
 
     </div>

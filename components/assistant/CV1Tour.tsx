@@ -61,7 +61,12 @@ function StepVisual({ id }: { id: string }) {
   );
 
   if (id === "step-score") return (
-    <div className="w-full h-32 bg-slate-800 rounded-xl p-3 flex items-center gap-4">
+    <div className="w-full h-32 bg-slate-800 rounded-xl overflow-hidden">
+      <div className="bg-slate-900/80 px-3 py-1 flex items-center justify-between border-b border-slate-700">
+        <span className="text-[9px] font-bold text-blue-400 tracking-widest uppercase">TradePro Technologies</span>
+        <span className="text-[9px] text-slate-500">CV-1™ Score</span>
+      </div>
+    <div className="p-3 flex items-center gap-4">
       <div className="relative w-20 h-20 flex-shrink-0">
         <svg viewBox="0 0 80 80" className="w-full h-full -rotate-90">
           <circle cx="40" cy="40" r="30" fill="none" stroke="#1e293b" strokeWidth="8" />
@@ -89,20 +94,32 @@ function StepVisual({ id }: { id: string }) {
   );
 
   if (id === "step-rewrite") return (
-    <div className="w-full h-32 bg-slate-800 rounded-xl p-3 space-y-2">
-      <div className="bg-red-950/50 border border-red-800/40 rounded-lg p-2">
-        <p className="text-[10px] text-red-400 font-semibold mb-0.5">BEFORE</p>
-        <p className="text-[10px] text-slate-300 italic">"I helped the company grow and made them money"</p>
+    <div className="w-full h-32 bg-slate-800 rounded-xl overflow-hidden">
+      <div className="bg-slate-900/80 px-3 py-1 flex items-center justify-between border-b border-slate-700">
+        <span className="text-[9px] font-bold text-blue-400 tracking-widest uppercase">TradePro Technologies</span>
+        <span className="text-[9px] text-slate-500">CV-1™ Rewrite</span>
       </div>
-      <div className="bg-emerald-950/50 border border-emerald-700/40 rounded-lg p-2">
-        <p className="text-[10px] text-emerald-400 font-semibold mb-0.5">CV-1 REPLACEMENT</p>
-        <p className="text-[10px] text-slate-200">"Grew regional revenue by [X]% over 12 months by restructuring the sales pipeline for the Atlanta territory"</p>
+      <div className="p-2 space-y-1.5">
+        <div className="bg-red-950/50 border border-red-800/40 rounded-lg p-1.5">
+          <p className="text-[9px] text-red-400 font-semibold mb-0.5">ORIGINAL</p>
+          <p className="text-[9px] text-slate-300 italic">"I helped the company grow and made them money"</p>
+        </div>
+        <div className="bg-emerald-950/50 border border-emerald-700/40 rounded-lg p-1.5">
+          <p className="text-[9px] text-emerald-400 font-semibold mb-0.5">CV-1 REPLACEMENT</p>
+          <p className="text-[9px] text-slate-200">"Grew regional revenue by [X]% over 12 months by restructuring the sales pipeline"</p>
+        </div>
       </div>
+    </div>
     </div>
   );
 
   if (id === "step-control") return (
-    <div className="w-full h-32 bg-slate-800 rounded-xl p-3 flex flex-col justify-between">
+    <div className="w-full h-32 bg-slate-800 rounded-xl overflow-hidden flex flex-col">
+      <div className="bg-slate-900/80 px-3 py-1 flex items-center justify-between border-b border-slate-700 flex-shrink-0">
+        <span className="text-[9px] font-bold text-blue-400 tracking-widest uppercase">TradePro Technologies</span>
+        <span className="text-[9px] text-slate-500">CV-1™ Assistant</span>
+      </div>
+    <div className="p-2 flex flex-col justify-between flex-1">
       <div className="bg-indigo-950/60 border border-indigo-700/30 rounded-lg p-2">
         <p className="text-[10px] text-indigo-300 font-semibold mb-1">Proposed replacement:</p>
         <p className="text-[10px] text-slate-200 italic">"Managed 3 concurrent HVAC installations valued at $[X], delivering all projects on time"</p>
@@ -115,6 +132,7 @@ function StepVisual({ id }: { id: string }) {
           Not now
         </div>
       </div>
+    </div>
     </div>
   );
 
