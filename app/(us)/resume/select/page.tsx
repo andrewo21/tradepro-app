@@ -80,7 +80,7 @@ export default function SelectPage() {
       <div className="mb-8 rounded-2xl overflow-hidden bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 border border-blue-800/40 shadow-lg">
         <div className="flex items-center gap-6 px-6 py-5">
           <div className="flex-shrink-0 hidden sm:block">
-            <CV1Dynamic size={120} />
+            <CV1Dynamic size={160} />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-blue-300 text-xs font-bold uppercase tracking-widest mb-1">CV-1™ AI Resume Assistant</p>
