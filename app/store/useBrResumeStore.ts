@@ -168,17 +168,51 @@ export const useBrResumeStore = create<any>()(
     }),
     {
       name: "br-resume-storage",
-      version: 2,
+      version: 3,
       migrate: (persisted: any, version: number) => {
+        let s = { ...persisted };
         if (version < 2) {
-          // Migrate old habilidades into habilidadesTecnicas
-          return {
-            ...persisted,
-            habilidadesTecnicas: persisted.habilidades || [],
+          s = {
+            ...s,
+            habilidadesTecnicas: s.habilidades || [],
             habilidadesComportamentais: [],
           };
         }
-        return persisted;
+        if (version < 3) {
+          // v3 — defensive cleanup after May 2026 changes.
+          const createBullet = () => ({
+            id: `${Date.now()}-${Math.random()}`,
+            text: "", suggestion: null, loading: false,
+          });
+          s = {
+            ...s,
+            experiencia: (s.experiencia || []).map((exp: any) => ({
+              ...exp,
+              id: exp.id || `${Date.now()}-${Math.random()}`,
+              cidade: exp.cidade || "",
+              estado: exp.estado || "",
+              roleSummary: exp.roleSummary || "",
+              responsabilidades: Array.isArray(exp.responsabilidades)
+                ? exp.responsabilidades.map((r: any) =>
+                    typeof r === "string" ? { ...createBullet(), text: r } : { ...createBullet(), ...r }
+                  )
+                : [createBullet()],
+            })),
+            habilidadesTecnicas: (s.habilidadesTecnicas || []).map((h: any) =>
+              typeof h === "string" ? { text: h, suggestion: null, loading: false } : h
+            ),
+            habilidadesComportamentais: (s.habilidadesComportamentais || []).map((h: any) =>
+              typeof h === "string" ? { text: h, suggestion: null, loading: false } : h
+            ),
+            personalInfo: {
+              nome: "", sobrenome: "", tituloProfissional: "",
+              telefone: "", whatsapp: "", email: "",
+              linkedin: "", cidade: "", estado: "", cpf: "", foto: "",
+              ...(s.personalInfo || {}),
+            },
+          };
+        }
+        return s;
       },
     }
   )

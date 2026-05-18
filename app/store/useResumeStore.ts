@@ -269,7 +269,7 @@ export const useResumeStore = create<any>()(
     }),
   }), {
     name: "resume-storage",
-    version: 4,
+    version: 5,
     migrate: (persistedState: any, version: number) => {
       let s = { ...persistedState };
       if (version < 2) {
@@ -297,11 +297,60 @@ export const useResumeStore = create<any>()(
             const { year, ...rest } = e;
             return rest;
           }),
-          // add roleSummary to existing experience items
           experience: (s.experience || []).map((e: any) => ({
             ...e,
             roleSummary: e.roleSummary || "",
           })),
+        };
+      }
+      if (version < 5) {
+        // v5 — defensive cleanup after May 2026 architecture changes.
+        // Ensures every experience item has well-formed arrays for
+        // responsibilities and achievements so the builder and PDF
+        // never crash on malformed old data.
+        const createBullet = () => ({
+          id: `${Date.now()}-${Math.random()}`,
+          text: "", suggestion: null, hasAcceptedSuggestion: false,
+          loading: false, error: null, needsRewrite: false,
+        });
+        s = {
+          ...s,
+          experience: (s.experience || []).map((exp: any) => ({
+            ...exp,
+            id: exp.id || `${Date.now()}-${Math.random()}`,
+            city:        exp.city        || "",
+            state:       exp.state       || "",
+            roleSummary: exp.roleSummary || "",
+            responsibilities: Array.isArray(exp.responsibilities)
+              ? exp.responsibilities.map((r: any) =>
+                  typeof r === "string"
+                    ? { ...createBullet(), text: r }
+                    : { ...createBullet(), ...r }
+                )
+              : [createBullet()],
+            achievements: Array.isArray(exp.achievements)
+              ? exp.achievements.map((a: any) =>
+                  typeof a === "string"
+                    ? { ...createBullet(), text: a }
+                    : { ...createBullet(), ...a }
+                )
+              : [],
+          })),
+          skills: (s.skills || []).map((sk: any) =>
+            typeof sk === "string"
+              ? { text: sk, suggestion: null, hasAcceptedSuggestion: false, loading: false }
+              : sk
+          ),
+          certifications: (s.certifications || []).map((c: any) =>
+            typeof c === "string"
+              ? { id: `${Date.now()}-${Math.random()}`, text: c }
+              : c
+          ),
+          personalInfo: {
+            firstName: "", lastName: "", tradeTitle: "",
+            phone: "", email: "", city: "", state: "", linkedin: "",
+            ...(s.personalInfo || {}),
+          },
         };
       }
       return s;
