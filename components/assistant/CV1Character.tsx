@@ -50,6 +50,9 @@ interface Props {
 // Gringo uses the hero image for all moods (individual frames coming later)
 const GRINGO_FRAME = "/gringo-hero.png";
 
+// Tight bust shot for the floating assistant — fills the box properly
+const CV1_BUST = "/cv1-bust.png";
+
 export default function CV1Character({ mood = "idle", size = 120, className = "", variant = "us" }: Props) {
   // Both variants: square container, crop to upper body (face + chest + arms)
   if (variant === "br") {
@@ -120,13 +123,12 @@ export default function CV1Character({ mood = "idle", size = 120, className = ""
         className={`relative flex-shrink-0 overflow-hidden rounded-xl ${className}`}
         style={{ width: size, height: size }}
       >
-        <div className={`${ANIMATION[current]} ${fading ? "cv1-fade-out" : "cv1-fade-in"} w-full h-full`}
-          style={{ transform: "scale(2.8)", transformOrigin: "50% 18%" }}>
+        <div className={`${ANIMATION[current]} ${fading ? "cv1-fade-out" : "cv1-fade-in"} w-full h-full`}>
           <Image
-            src={FRAME[current]}
+            src={CV1_BUST}
             alt={`CV-1 ${current}`}
             fill
-            className="object-contain select-none"
+            className="object-cover select-none"
             draggable={false}
             priority
           />
