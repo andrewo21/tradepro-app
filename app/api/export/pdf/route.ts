@@ -437,7 +437,9 @@ export async function POST(req: NextRequest) {
           skills:         Array.isArray(data.skills)         ? data.skills         : [],
           experience:     Array.isArray(data.experience)     ? data.experience     : [],
           education:      Array.isArray(data.education)      ? data.education      : [],
-          certifications: Array.isArray(data.certifications) ? data.certifications : [],
+          certifications: Array.isArray(data.certifications)
+            ? data.certifications.map((c: any) => typeof c === "string" ? c : (c.text || "")).filter(Boolean)
+            : [],
         };
 
         // Draw — any exception propagates to the outer catch for a clean 500

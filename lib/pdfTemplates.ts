@@ -241,7 +241,7 @@ export function drawStandardContemporaryPDF(doc: any, data: any) {
   if ((certifications || []).length) {
     y = checkPageBreak(doc, y, 50);
     y = sectionRule(doc, L$.certifications, L, y, CONTENT_W);
-    certifications.forEach((c: string) => {
+    certifications.forEach((_c: any) => { const c = typeof _c === "string" ? _c : (_c?.text || ""); if (!c) return;
       doc.circle(L + 5, y + 5, 1.8).fill("#1a1a1a");
       doc.font("Helvetica").fontSize(11).fillColor("#1a1a1a").text(c, L + 13, y, { width: CONTENT_W - 13 });
       y = doc.y + 3;
@@ -289,7 +289,7 @@ export function drawStandardClassicPDF(doc: any, data: any) {
   if ((certifications || []).length) {
     y = checkPageBreak(doc, y, 50);
     y = sectionRule(doc, L$.certifications, L, y, CONTENT_W);
-    certifications.forEach((c: string) => {
+    certifications.forEach((_c: any) => { const c = typeof _c === "string" ? _c : (_c?.text || ""); if (!c) return;
       doc.circle(L + 5, y + 5, 1.8).fill("#1a1a1a");
       doc.font("Helvetica").fontSize(11).fillColor("#1a1a1a").text(c, L + 13, y, { width: CONTENT_W - 13 });
       y = doc.y + 3;
@@ -340,7 +340,7 @@ export function drawModernBluePDF(doc: any, data: any) {
     y = checkPageBreak(doc, y, 50);
     doc.font("Helvetica-Bold").fontSize(12).fillColor(BLUE).text(L$.certifications, L, y);
     doc.moveTo(L, doc.y + 5).lineTo(R, doc.y + 5).lineWidth(0.5).stroke(BLUE); y = doc.y + 10;
-    certifications.forEach((c: string) => {
+    certifications.forEach((_c: any) => { const c = typeof _c === "string" ? _c : (_c?.text || ""); if (!c) return;
       doc.circle(L + 5, y + 5, 1.8).fill(BLUE);
       doc.font("Helvetica").fontSize(11).fillColor("#1a1a1a").text(c, L + 13, y, { width: CONTENT_W - 13 });
       y = doc.y + 3;
@@ -387,7 +387,7 @@ export function drawBasicTwoColumnPDF(doc: any, data: any) {
   }
   if ((certifications || []).length) {
     doc.font("Helvetica-Bold").fontSize(9).fillColor("#444444").text(L$.certifications, 15, sY, { characterSpacing: 0.5 }); sY = doc.y + 4;
-    certifications.forEach((c: string) => {
+    certifications.forEach((_c: any) => { const c = typeof _c === "string" ? _c : (_c?.text || ""); if (!c) return;
       doc.circle(22, sY + 5, 1.8).fill("#6b7280");
       doc.font("Helvetica").fontSize(10).fillColor("#1a1a1a").text(c, 30, sY, { width: SIDE_W - 35 }); sY = doc.y + 3;
     });
@@ -470,7 +470,7 @@ export function drawSidebarGreenPDF(doc: any, data: any) {
     doc.font("Helvetica-Bold").fontSize(9).fillColor(GREEN_SECTION)
       .text(L$.certifications, 16, sY, { characterSpacing: 0.5 }); sY = doc.y + 3;
     doc.moveTo(16, sY).lineTo(SIDE_W - 12, sY).lineWidth(0.5).stroke("#9ca3af"); sY += 5;
-    certifications.forEach((c: string) => {
+    certifications.forEach((_c: any) => { const c = typeof _c === "string" ? _c : (_c?.text || ""); if (!c) return;
       doc.circle(22, sY + 5, 1.8).fill("#1f2937");
       doc.font("Helvetica").fontSize(10).fillColor("#1f2937")
         .text(c, 30, sY, { width: SIDE_W - 35 }); sY = doc.y + 3;
@@ -558,7 +558,7 @@ export function drawExecutiveClassicPDF(doc: any, data: any) {
   if ((certifications || []).length) {
     y = checkPageBreak(doc, y, 50);
     y = sectionRule(doc, L$.certifications, L, y, CONTENT_W, NAVY);
-    certifications.forEach((c: string) => {
+    certifications.forEach((_c: any) => { const c = typeof _c === "string" ? _c : (_c?.text || ""); if (!c) return;
       doc.circle(L + 5, y + 5, 1.8).fill(ORANGE);
       doc.font("Helvetica").fontSize(11).fillColor("#1a1a1a").text(c, L + 13, y, { width: CONTENT_W - 13 });
       y = doc.y + 3;
@@ -612,7 +612,7 @@ export function drawExecutiveLuxePDF(doc: any, data: any) {
     doc.font("Helvetica-Bold").fontSize(9).fillColor("#111827").text(L$.certifications, 16, sY, { characterSpacing: 0.5 });
     sY = doc.y + 3;
     doc.moveTo(16, sY).lineTo(SIDE_W - 12, sY).lineWidth(0.5).stroke("#1a1a1a"); sY += 5;
-    certifications.forEach((c: string) => {
+    certifications.forEach((_c: any) => { const c = typeof _c === "string" ? _c : (_c?.text || ""); if (!c) return;
       doc.circle(22, sY + 5, 1.8).fill("#111827");
       doc.font("Helvetica").fontSize(10).fillColor("#1a1a1a").text(c, 30, sY, { width: SIDE_W - 35 }); sY = doc.y + 3;
     });
@@ -730,7 +730,7 @@ export function drawModernElitePDF(doc: any, data: any) {
     });
   }
   if ((certifications || []).length && leftSection(L$.certifications)) {
-    certifications.forEach((c: string) => {
+    certifications.forEach((_c: any) => { const c = typeof _c === "string" ? _c : (_c?.text || ""); if (!c) return;
       if (leftY >= MAX_LEFT_Y - 13) return;
       doc.circle(L + 5, leftY + 5, 1.8).fill("#6b7280");
       doc.font("Helvetica").fontSize(10).fillColor("#1a1a1a")
@@ -817,7 +817,7 @@ export function drawModernProfessionalPDF(doc: any, data: any) {
   if ((certifications || []).length) {
     if (y + 50 > PAGE_H - MARGIN) { doc.addPage(); y = MARGIN; }
     y = mpSection(L$.certifications, y);
-    certifications.forEach((c: string) => {
+    certifications.forEach((_c: any) => { const c = typeof _c === "string" ? _c : (_c?.text || ""); if (!c) return;
       doc.circle(L + 5, y + 5, 1.8).fill("#1a1a1a");
       doc.font("Helvetica").fontSize(11).fillColor("#1a1a1a").text(c, L + 13, y, { width: W - 13 });
       y = doc.y + 3;

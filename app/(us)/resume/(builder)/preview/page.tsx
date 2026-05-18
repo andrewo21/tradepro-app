@@ -83,7 +83,7 @@ export default function ResumePreviewPage() {
       achievements: exp.achievements?.map((a: any) => a.text || a).filter(Boolean) || [],
     })),
     education: education || [],
-    certifications: certifications?.map((c: any) => c.text || c).filter(Boolean) || [],
+    certifications: certifications?.map((c: any) => typeof c === "string" ? c : (c.text || "")).filter(Boolean) || [],
   });
 
   const handleDownloadPDF = async () => {
@@ -159,7 +159,7 @@ export default function ResumePreviewPage() {
     })),
     education: education || [],
     skills: skills?.map((s: any) => s.text || "").filter(Boolean) || [],
-    certifications: certifications?.map((c: any) => c.text || c).filter(Boolean) || [],
+    certifications: certifications?.map((c: any) => typeof c === "string" ? c : (c.text || "")).filter(Boolean) || [],
   };
 
   if (revoked) {
