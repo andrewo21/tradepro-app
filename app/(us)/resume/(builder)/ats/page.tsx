@@ -9,7 +9,7 @@ import Link from "next/link";
 import { useResumeStore } from "@/app/store/useResumeStore";
 import { useAssistantStore } from "@/app/store/useAssistantStore";
 import { computeLiveAtsScore, atsLabelColor } from "@/lib/ats/live/liveAtsScore";
-import CV1Hero from "@/components/assistant/CV1Hero";
+import CV1Character from "@/components/assistant/CV1Character";
 import {
   Check, AlertCircle, Zap, MessageCircle,
   ChevronRight, Target, TrendingUp
@@ -94,6 +94,7 @@ export default function JobTargetStep() {
 
   const [jobText,  setJobText]  = useState("");
   const [loading,  setLoading]  = useState(false);
+  const isThinking = loading;
   const [result,   setResult]   = useState<any>(null);
   const [error,    setError]    = useState<string | null>(null);
 
@@ -132,7 +133,7 @@ export default function JobTargetStep() {
       <p className="text-sm text-neutral-500 mb-1">Step 7 of 8</p>
 
       <div className="flex items-start gap-5 mb-8">
-        <CV1Hero size={80} />
+        <CV1Character mood={isThinking ? "thinking" : "talking"} size={90} />
         <div>
           <h1 className="text-2xl font-bold text-neutral-900 mb-1">
             CV-1 Final Review + Job Target

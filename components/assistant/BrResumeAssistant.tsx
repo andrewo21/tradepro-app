@@ -11,7 +11,7 @@ import {
   type AssistantSuggestion,
 } from "@/app/store/useAssistantStore";
 import { pathToStep, resumeHash } from "@/lib/assistant/step_context";
-import AssistantFloat from "./AssistantFloat";
+import CV1Character from "./CV1Character";
 import { AssistantChat } from "./AssistantChat";
 import { SpeechBubble } from "./SpeechBubble";
 
@@ -268,12 +268,10 @@ export default function BrResumeAssistant() {
             />
           )}
 
-          <AssistantFloat
-            src="/gringo.glb"
-            fallback="/gringo-hero.png"
-            alt="Gringo"
-            size={120}
-            isThinking={isThinkingState}
+          <CV1Character
+            mood={isThinkingState ? "thinking" : bubbleVisible ? "talking" : messages.length === 0 ? "wave" : "idle"}
+            size={100}
+            variant="br"
           />
 
           {!isOpen && !bubbleVisible && pendingCount > 0 && (

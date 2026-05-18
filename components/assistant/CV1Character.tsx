@@ -44,9 +44,25 @@ interface Props {
   mood?:      CV1Mood;
   size?:      number;
   className?: string;
+  variant?:   "us" | "br";   // "br" uses Gringo images
 }
 
-export default function CV1Character({ mood = "idle", size = 120, className = "" }: Props) {
+// Gringo uses the hero image for all moods (individual frames coming later)
+const GRINGO_FRAME = "/gringo-hero.png";
+
+export default function CV1Character({ mood = "idle", size = 120, className = "", variant = "us" }: Props) {
+  // BR variant: use Gringo image
+  if (variant === "br") {
+    const h = Math.round(size * 2);
+    return (
+      <div className={`relative flex-shrink-0 ${className}`} style={{ width: size, height: h }}>
+        <div className={`${ANIMATION[mood]}`}>
+          <Image src={GRINGO_FRAME} alt="Gringo" width={size} height={h}
+            className="object-contain select-none" draggable={false} priority />
+        </div>
+      </div>
+    );
+  }
   const [current, setCurrent]   = useState<CV1Mood>(mood);
   const [fading,  setFading]    = useState(false);
 
