@@ -4,7 +4,7 @@
 // CV-1 delivers final resume strength + interactive job description comparison.
 // Architecture rule: this is the ONLY place ATS scoring is surfaced to the user.
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { useResumeStore } from "@/app/store/useResumeStore";
 import { useAssistantStore } from "@/app/store/useAssistantStore";
@@ -70,15 +70,23 @@ function ScoreRing({ score, max = 95, label, color }: { score: number; max?: num
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
+const EMPTY_ATS = { score: 15, label: "Building" as const, flags: [] as any[], breakdown: { personal: 0, summary: 0, experience: 0, skills: 0, education: 0, certifications: 0 } };
+
 export default function JobTargetStep() {
   const store      = useResumeStore();
   const { open }   = useAssistantStore();
-  const firstName  = store.personalInfo?.firstName || "there";
 
-  // Wrap in try/catch — malformed store data must not crash this page
-  // and block the user from reaching the final preview
-  let liveAts    = { score: 15, label: "Building" as const, flags: [], breakdown: { personal: 0, summary: 0, experience: 0, skills: 0, education: 0, certifications: 0 } };
-  try { liveAts = computeLiveAtsScore(store); } catch { /* silent */ }
+  // Guard against hydration mismatch — Zustand persisted store is empty on
+  // server render, populated on client. Only compute score after mount.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  const firstName  = mounted ? (store.personalInfo?.firstName || "there") : "there";
+
+  let liveAts = EMPTY_ATS;
+  if (mounted) {
+    try { liveAts = computeLiveAtsScore(store); } catch { /* silent */ }
+  }
   const scoreColor = atsLabelColor(liveAts.label);
 
   const [jobText,  setJobText]  = useState("");
