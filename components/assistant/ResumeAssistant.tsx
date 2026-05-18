@@ -242,7 +242,10 @@ export default function ResumeAssistant({ locale = "en" }: Props) {
     const stepChanged = lastAnalyzedStep !== step;
     const dataChanged = lastAnalyzedHash !== currentHash;
 
-    if (stepChanged || (dataChanged && isOpen)) {
+    // Always re-scan experience step — missing dates must never be missed
+    const forceRescan = step === "experience";
+
+    if (stepChanged || forceRescan || (dataChanged && isOpen)) {
       setBubbleVisible(false);
       const timer = setTimeout(() => runAnalysis(), 1500);
       return () => clearTimeout(timer);

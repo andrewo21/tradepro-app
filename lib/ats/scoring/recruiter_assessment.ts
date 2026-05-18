@@ -123,7 +123,7 @@ CRITICAL RULES — READ BEFORE SCORING:
 
 Return JSON:
 {
-  "overall_score": 0-95,
+  "overall_score": 0-100,
   "match_summary": "2-3 sentence honest assessment of the fit",
   "strengths": ["Specific match point with evidence — e.g. 'Resume shows $90M+ portfolio; JD requires $30M+ experience'"],
   "gaps": ["Genuine gap with specific evidence — only if truly missing"],
@@ -161,7 +161,7 @@ REGRAS CRÍTICAS — LEIA ANTES DE PONTUAR:
 
 Retorne JSON:
 {
-  "overall_score": 0-95,
+  "overall_score": 0-100,
   "match_summary": "Avaliação honesta em 2-3 frases",
   "strengths": ["Ponto de alinhamento com evidência específica"],
   "gaps": ["Lacuna genuína com evidência — apenas se realmente ausente"],

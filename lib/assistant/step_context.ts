@@ -142,25 +142,20 @@ export function buildStepPayload(step: BuilderStep, resumeData: any, locale: str
       };
 
     case "ats":
-      // On the ATS/review step, give CV-1 the full resume context
+      // On the ATS review step, give CV-1 overall resume health context ONLY.
+      // No per-job bullet suggestions — that belongs on the experience step.
       return {
         step, firstName, jobTitle, locale,
         liveScore: liveAts.score,
-        globalFlags,
+        globalFlags: liveAts.flags.map(f => `[${f.severity.toUpperCase()}] ${f.message}`),
+        atsStepMode: true, // signals AI to give overall feedback only
         data: {
-          summary:        resumeData.summary,
-          skills:         (resumeData.skills || []).map((s: any) => s.text || s).filter(Boolean),
-          certifications: (resumeData.certifications || []).map((c: any) => c.text || c).filter(Boolean),
-          experience: (resumeData.experience || []).map((e: any) => ({
-            id:          e.id,
-            jobTitle:    e.jobTitle,
-            company:     e.company,
-            startDate:   e.startDate,
-            endDate:     e.endDate,
-            displayLabel: `${e.jobTitle} at ${e.company}`,
-            responsibilities: (e.responsibilities || []).filter((b: any) => b.text?.trim()).map((b: any) => b.text),
-            achievements:     (e.achievements     || []).filter((b: any) => b.text?.trim()).map((b: any) => b.text),
-          })),
+          overallScore: liveAts.score,
+          breakdown:    liveAts.breakdown,
+          summary:      resumeData.summary,
+          skillCount:   (resumeData.skills || []).filter((s: any) => s.text?.trim()).length,
+          jobCount:     (resumeData.experience || []).filter((e: any) => e.jobTitle).length,
+          hasCerts:     (resumeData.certifications || []).some((c: any) => c.text?.trim()),
         },
         issues: liveAts.flags.map(f => f.message),
       };

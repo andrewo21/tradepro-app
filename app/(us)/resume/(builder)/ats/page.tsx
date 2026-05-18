@@ -306,7 +306,7 @@ export default function JobTargetStep() {
             <div className="flex items-start gap-6 mb-4">
               <ScoreRing
                 score={result.final_ats_score ?? result.structure_score ?? 0}
-                max={95}
+                max={100}
                 label={result.strength_label}
                 color={result.strength_label === "Strong" ? "#16a34a" : result.strength_label === "Good" || result.strength_label === "Building" ? "#d97706" : "#dc2626"}
               />
