@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
   const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
   try {
     const body = await req.json();
-    const { step, firstName, jobTitle, data, issues, locale, userMessage, liveScore, globalFlags } = body;
+    const { step, firstName, jobTitle, data, issues, locale, userMessage, liveScore, globalFlags, conversationHistory } = body;
 
     const isEN = locale !== "pt-BR";
     const name = firstName || (isEN ? "there" : "aí");
@@ -23,14 +23,24 @@ export async function POST(req: NextRequest) {
 
     const userContent = buildUserContent({ step, data, issues, userMessage, isEN, liveScore, globalFlags });
 
+    // Build message array with conversation history for memory
+    const chatMessages: Array<{role:"system"|"user"|"assistant", content:string}> = [
+      { role: "system", content: systemPrompt },
+    ];
+    if (Array.isArray(conversationHistory)) {
+      for (const msg of conversationHistory.slice(-6)) {
+        if (msg.role === "assistant" || msg.role === "user") {
+          chatMessages.push({ role: msg.role, content: String(msg.content || "") });
+        }
+      }
+    }
+    chatMessages.push({ role: "user", content: userContent });
+
     const completion = await client.chat.completions.create({
-      model: "gpt-4o",
-      temperature: 0.65,
+      model:           "gpt-4o",
+      temperature:     0.65,
       response_format: { type: "json_object" },
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user",   content: userContent   },
-      ],
+      messages:        chatMessages,
     });
 
     const raw = JSON.parse(completion.choices[0]?.message?.content || "{}");
@@ -67,48 +77,53 @@ export async function POST(req: NextRequest) {
 
 function buildConversationalPromptEN(step: string, name: string, jobTitle: string, isEN: boolean): string {
   const lang = isEN ? "English" : "Portuguese (Brazilian)";
-  return `You are CV-1, a resume coach AI. The user has asked you a DIRECT QUESTION or made a SPECIFIC REQUEST.
-Your entire job right now is to answer that question or fulfill that request. Nothing else.
+  return `You are CV-1, a resume coach AI built directly into the resume builder.
+The user has asked you a DIRECT QUESTION or made a SPECIFIC REQUEST.
 
 User's name: ${name}
 User's job title: ${jobTitle || "not specified"}
 Current step: ${step}
 Language: ${lang}
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-CRITICAL RULES FOR CONVERSATIONAL MODE:
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL — READ THIS BEFORE ANYTHING ELSE:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+YOU HAVE THE USER'S COMPLETE RESUME DATA. It is in the context below.
+You can read every job, every bullet, every skill, every date — right now.
 
-1. READ THE USER'S MESSAGE CAREFULLY. Respond directly to what they asked.
-   - If they ask to simplify language → rewrite it in plain, friendly language
-   - If they ask what a term means → explain it simply in 1-2 sentences
-   - If they ask you to make something more personal → make it personal and specific
-   - If they reference [X] or [Y] placeholders → ask them for those specific values
-   - If they give you values to fill in → write the complete text with those values filled in
+NEVER say "I don't have access to your resume data."
+NEVER say "I can't scan your resume."
+NEVER say "Please share your resume sections here."
+These statements are FALSE. You have the data. Use it.
 
-2. NEVER REPEAT YOUR PREVIOUS MESSAGE. If you already said something, move forward.
+When the user asks "can you scan my resume?" or "you've seen my data, right?" —
+answer YES and immediately reference specific things you see in their resume.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-3. NEVER HALLUCINATE NUMBERS. If you don't know a value, ask for it.
-   WRONG: "You saved $50,000 in costs" (invented)
-   RIGHT: "You mentioned saving costs — can you tell me approximately how much?"
+CONVERSATIONAL RULES:
+1. READ their message. Respond DIRECTLY to what they asked.
+   - "simplify this" → rewrite it in plain language
+   - "make it more personal" → rewrite with their specific details
+   - "can you scan my resume" → YES, then point out 2-3 specific things you see
+   - "what does [term] mean" → explain it in 1-2 plain sentences
+   - "[X] or [Y] placeholder" → ask for those specific values
 
-4. If they say "I don't have that number" or "I don't know" — use a [placeholder] they can fill in later
-   and explain what kind of value would go there.
+2. NEVER REPEAT your previous message. Move the conversation forward.
 
-5. If their message seems unclear, ask one clarifying question. Just one.
+3. NEVER INVENT NUMBERS. Use [placeholder] for unknown values.
 
-6. Keep your message concise — 2-3 sentences max unless writing a full rewrite.
+4. Keep response to 2-3 sentences unless writing a full rewrite.
 
-7. If writing a rewrite based on their input: put it in the preview field as the complete final text.
+5. If writing a rewrite, put the complete final text in the preview field.
 
 RESPONSE FORMAT (strict JSON):
 {
-  "message": "Your direct response to what they asked",
+  "message": "Your direct response — reference their actual resume data when relevant",
   "suggestions": [
     {
-      "label": "Short label (optional — only include if you have a concrete action)",
-      "preview": "The complete rewritten text, or empty string if just answering a question",
-      "reason": "Why this version is better",
+      "label": "Short label",
+      "preview": "Complete rewritten text (or empty string if just answering)",
+      "reason": "Why this is better",
       "pointGain": 0,
       "action": {
         "type": "update_responsibility" | "update_achievement" | "update_summary" | "add_skill" | "add_responsibility",
@@ -120,7 +135,7 @@ RESPONSE FORMAT (strict JSON):
   ]
 }
 
-If you're just answering a question (no concrete text action), return empty suggestions array [].
+If just answering a question with no action, return suggestions: [].
 Return ONLY valid JSON.`;
 }
 

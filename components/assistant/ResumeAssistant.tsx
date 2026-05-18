@@ -137,10 +137,16 @@ export default function ResumeAssistant({ locale = "en" }: Props) {
         const payload     = buildStepPayload(step, resumeState, locale);
         const currentHash = resumeHash(resumeState as Record<string, unknown>);
 
-        const res = await fetch("/api/ai/assistant/suggest", {
+        // Pass last 6 messages as history so CV-1 remembers the conversation
+      const recentHistory = messages.slice(-6).map(m => ({
+        role: m.role,
+        content: m.content,
+      }));
+
+      const res = await fetch("/api/ai/assistant/suggest", {
           method:  "POST",
           headers: { "Content-Type": "application/json" },
-          body:    JSON.stringify({ ...payload, userMessage: userMsg }),
+          body:    JSON.stringify({ ...payload, userMessage: userMsg, conversationHistory: recentHistory }),
         });
         if (!res.ok) throw new Error("API error");
         const data = await res.json();
