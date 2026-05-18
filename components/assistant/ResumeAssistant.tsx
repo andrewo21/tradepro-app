@@ -245,16 +245,31 @@ export default function ResumeAssistant({ locale = "en" }: Props) {
   }, [step, pathname]);
 
   // ── Handlers ───────────────────────────────────────────────────────────────
-  function handleAccept(msgId: string, suggId: string) {
+  function handleAccept(msgId: string, suggId: string, finalText?: string) {
     const msg  = messages.find((m) => m.id === msgId);
     const sugg = msg?.suggestions?.find((s) => s.id === suggId);
     if (!sugg) return;
-    applySuggestion(sugg);
+
+    // Capture real score BEFORE applying
+    const scoreBefore = computeLiveAtsScore(resumeState).score;
+
+    // Use filled-in text if the user completed placeholders
+    const suggToApply = finalText
+      ? { ...sugg, action: { ...sugg.action, value: finalText }, preview: finalText }
+      : sugg;
+
+    applySuggestion(suggToApply);
     acceptSuggestion(msgId, suggId);
-    // Toast + CV-1 celebrates
-    setToast(`✓ Added: ${sugg.label} (+${sugg.pointGain} pts)`);
-    setMoodOverride("celebrate");
-    setTimeout(() => { setToast(null); setMoodOverride(null); }, 2000);
+
+    // Show REAL score delta after store settles — not AI estimate
+    setTimeout(() => {
+      const scoreAfter = computeLiveAtsScore(useResumeStore.getState()).score;
+      const delta = scoreAfter - scoreBefore;
+      const deltaStr = delta > 0 ? `+${delta} pts` : "updated";
+      setToast(`✓ ${sugg.label} — ${deltaStr}`);
+      setMoodOverride("celebrate");
+      setTimeout(() => { setToast(null); setMoodOverride(null); }, 2500);
+    }, 120);
   }
 
   async function handleUserMessage(text: string) {

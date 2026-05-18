@@ -14,9 +14,12 @@ export async function POST(req: NextRequest) {
     const isEN = locale !== "pt-BR";
     const name = firstName || (isEN ? "there" : "aí");
 
-    const systemPrompt = isEN
-      ? buildSystemPromptEN(step, name, jobTitle)
-      : buildSystemPromptPT(step, name, jobTitle);
+    // Detect conversational mode — user sent a direct message/question
+    const isConversational = !!(userMessage?.trim());
+
+    const systemPrompt = isConversational
+      ? buildConversationalPromptEN(step, name, jobTitle, isEN)
+      : (isEN ? buildSystemPromptEN(step, name, jobTitle) : buildSystemPromptPT(step, name, jobTitle));
 
     const userContent = buildUserContent({ step, data, issues, userMessage, isEN, liveScore, globalFlags });
 
@@ -39,7 +42,7 @@ export async function POST(req: NextRequest) {
           label:     s.label     || (isEN ? "Suggested improvement" : "Melhoria sugerida"),
           preview:   s.preview   || s.value || "",
           reason:    s.reason    || "",
-          pointGain: Math.min(5, Number(s.pointGain) || 3),
+          pointGain: 0, // real delta computed client-side after applying
           action: {
             type:         s.action?.type  || "add_responsibility",
             experienceId: s.action?.experienceId || null,
@@ -61,6 +64,65 @@ export async function POST(req: NextRequest) {
 }
 
 // ─── Prompts ──────────────────────────────────────────────────────────────────
+
+function buildConversationalPromptEN(step: string, name: string, jobTitle: string, isEN: boolean): string {
+  const lang = isEN ? "English" : "Portuguese (Brazilian)";
+  return `You are CV-1, a resume coach AI. The user has asked you a DIRECT QUESTION or made a SPECIFIC REQUEST.
+Your entire job right now is to answer that question or fulfill that request. Nothing else.
+
+User's name: ${name}
+User's job title: ${jobTitle || "not specified"}
+Current step: ${step}
+Language: ${lang}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL RULES FOR CONVERSATIONAL MODE:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. READ THE USER'S MESSAGE CAREFULLY. Respond directly to what they asked.
+   - If they ask to simplify language → rewrite it in plain, friendly language
+   - If they ask what a term means → explain it simply in 1-2 sentences
+   - If they ask you to make something more personal → make it personal and specific
+   - If they reference [X] or [Y] placeholders → ask them for those specific values
+   - If they give you values to fill in → write the complete text with those values filled in
+
+2. NEVER REPEAT YOUR PREVIOUS MESSAGE. If you already said something, move forward.
+
+3. NEVER HALLUCINATE NUMBERS. If you don't know a value, ask for it.
+   WRONG: "You saved $50,000 in costs" (invented)
+   RIGHT: "You mentioned saving costs — can you tell me approximately how much?"
+
+4. If they say "I don't have that number" or "I don't know" — use a [placeholder] they can fill in later
+   and explain what kind of value would go there.
+
+5. If their message seems unclear, ask one clarifying question. Just one.
+
+6. Keep your message concise — 2-3 sentences max unless writing a full rewrite.
+
+7. If writing a rewrite based on their input: put it in the preview field as the complete final text.
+
+RESPONSE FORMAT (strict JSON):
+{
+  "message": "Your direct response to what they asked",
+  "suggestions": [
+    {
+      "label": "Short label (optional — only include if you have a concrete action)",
+      "preview": "The complete rewritten text, or empty string if just answering a question",
+      "reason": "Why this version is better",
+      "pointGain": 0,
+      "action": {
+        "type": "update_responsibility" | "update_achievement" | "update_summary" | "add_skill" | "add_responsibility",
+        "experienceId": "<if applicable>",
+        "bulletIndex": <if applicable>,
+        "value": "<same as preview>"
+      }
+    }
+  ]
+}
+
+If you're just answering a question (no concrete text action), return empty suggestions array [].
+Return ONLY valid JSON.`;
+}
 
 function buildSystemPromptEN(step: string, name: string, jobTitle: string): string {
   return `You are CV-1, an expert resume coach AI embedded in a professional resume builder.
@@ -114,9 +176,13 @@ SUGGESTION RULES:
      exactly how much and how, which is what hiring managers need to see"
    - Set action.experienceId and action.bulletIndex correctly
 
-5. pointGain: max 4 per suggestion. Be honest — a vague bullet becoming specific = 3-4 pts.
+5. pointGain: Set to 0. The UI calculates the REAL score change after applying — never estimate it.
+   Claiming "+5 pts" when the real change is 0 destroys trust. Use 0 always.
 
-6. Max 3 suggestions. Missing data first, then weakest bullets.
+6. ZERO HALLUCINATION ON NUMBERS: If you need a number the user hasn't provided, use [X] placeholder
+   AND the UI will prompt them to fill it in before accepting. Never invent numbers.
+
+7. Max 3 suggestions. Missing data first, then weakest bullets.
 
 RESPONSE FORMAT (strict JSON):
 {
@@ -174,8 +240,9 @@ REGRAS DE SUGESTÃO:
 2. DADOS FALTANDO PRIMEIRO: "⚠️ [Campo] está faltando em [Cargo] na [Empresa] — recrutadores marcam como incompleto."
 3. ESCREVA O BULLET — não descreva: Verbo de ação + o que fez + resultado/escala. Use [colchetes] para números desconhecidos.
 4. TARGETING: label: "Substituir em [Cargo] na [Empresa]". reason: compare original vs substituto.
-5. pointGain: máximo 4 por sugestão.
-6. Máximo 3 sugestões. Dados faltando primeiro, depois bullets fracos.
+5. pointGain: Use sempre 0. A UI calcula a mudança real de pontuação — nunca estime.
+6. ZERO ALUCINAÇÃO EM NÚMEROS: Use [X] placeholder para qualquer número desconhecido.
+7. Máximo 3 sugestões. Dados faltando primeiro, depois bullets fracos.
 
 FORMATO DE RESPOSTA (JSON estrito):
 {
