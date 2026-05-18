@@ -75,7 +75,7 @@ function StepVisual({ id }: { id: string }) {
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <span className="text-2xl font-black text-blue-400">38</span>
-          <span className="text-[9px] text-slate-400">/95</span>
+          <span className="text-[9px] text-slate-400">/100</span>
         </div>
       </div>
       <div className="flex-1 space-y-2">

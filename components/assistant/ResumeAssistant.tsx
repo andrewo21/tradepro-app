@@ -447,7 +447,7 @@ export default function ResumeAssistant({ locale = "en" }: Props) {
             <span className="text-sm font-black" style={{ color: scoreColor }}>
               {liveAts.score}
             </span>
-            <span className="text-[9px] font-medium text-neutral-400">/95</span>
+            <span className="text-[9px] font-medium text-neutral-400">/100</span>
           </div>
           <span className="text-[10px] font-bold text-indigo-600 tracking-wide">
             {charName}™
