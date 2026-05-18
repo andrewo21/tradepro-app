@@ -75,7 +75,10 @@ export default function JobTargetStep() {
   const { open }   = useAssistantStore();
   const firstName  = store.personalInfo?.firstName || "there";
 
-  const liveAts    = computeLiveAtsScore(store);
+  // Wrap in try/catch — malformed store data must not crash this page
+  // and block the user from reaching the final preview
+  let liveAts    = { score: 15, label: "Building" as const, flags: [], breakdown: { personal: 0, summary: 0, experience: 0, skills: 0, education: 0, certifications: 0 } };
+  try { liveAts = computeLiveAtsScore(store); } catch { /* silent */ }
   const scoreColor = atsLabelColor(liveAts.label);
 
   const [jobText,  setJobText]  = useState("");

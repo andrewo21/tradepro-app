@@ -47,10 +47,11 @@ export default function ResumePreviewPage() {
 
   const remaining = downloadsUsed !== null ? Math.max(0, MAX_DOWNLOADS - downloadsUsed) : null;
 
-  // Intercept browser print — redirect to PDF download instead
+  // Intercept browser print — start PDF download and show instructions
+  // Note: e.preventDefault() does NOT stop the print dialog — we must hide
+  // the page content in print media so the user doesn't print a blue HTML page
   useEffect(() => {
-    function onBeforePrint(e: Event) {
-      e.preventDefault();
+    function onBeforePrint() {
       handleDownloadPDF();
     }
     window.addEventListener("beforeprint", onBeforePrint);
@@ -185,17 +186,34 @@ export default function ResumePreviewPage() {
   return (
     <div className="max-w-6xl mx-auto py-10 px-6">
 
-      {/* Print warning — shown only in browser print dialog */}
+      {/* Print interception — hides the whole page and shows a clean message.
+          This prevents users from accidentally printing the blue HTML preview
+          instead of the properly formatted PDF. */}
       <style>{`
         @media print {
-          body > * { display: none !important; }
-          .resume-print-container { display: block !important; position: fixed; top: 0; left: 0; width: 100%; }
-          .no-print { display: none !important; }
+          body * { visibility: hidden !important; }
+          #print-message, #print-message * { visibility: visible !important; }
+          #print-message {
+            position: fixed !important;
+            top: 50% !important;
+            left: 50% !important;
+            transform: translate(-50%, -50%) !important;
+            text-align: center !important;
+            font-family: Helvetica, Arial, sans-serif !important;
+            color: #111827 !important;
+          }
         }
       `}</style>
-      <div className="no-print mb-4 px-4 py-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800 flex items-center gap-2">
+
+      {/* Shown only when browser print is triggered */}
+      <div id="print-message" style={{ display: "none" }}>
+        <p style={{ fontSize: 20, fontWeight: "bold", color: "#111827" }}>Your PDF is downloading.</p>
+        <p style={{ fontSize: 14, color: "#6b7280", marginTop: 8 }}>Open the downloaded file and print from there for best quality.</p>
+      </div>
+
+      <div className="mb-4 px-4 py-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800 flex items-center gap-2">
         <span className="text-base">🖨️</span>
-        <span>To print your resume, <strong>download the PDF</strong> below and print from Adobe Reader or Preview for best quality. Printing directly from the browser produces tiny text.</span>
+        <span>Use the <strong>Download PDF</strong> button below, then print from Adobe Reader or Preview. Printing directly from the browser shows incorrect colors and formatting.</span>
       </div>
 
       <div className="flex justify-between items-center border-b pb-6 mb-6">
