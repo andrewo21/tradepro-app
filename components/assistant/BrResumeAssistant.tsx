@@ -164,11 +164,15 @@ export default function BrResumeAssistant() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, pathname]);
 
-  function handleAccept(msgId: string, suggId: string) {
+  function handleAccept(msgId: string, suggId: string, finalText?: string) {
     const msg  = messages.find((m) => m.id === msgId);
     const sugg = msg?.suggestions?.find((s) => s.id === suggId);
     if (!sugg) return;
-    applyBr(sugg);
+    // Use filled-in text if user completed [X]/[Y] placeholders
+    const suggToApply = finalText
+      ? { ...sugg, action: { ...sugg.action, value: finalText }, preview: finalText }
+      : sugg;
+    applyBr(suggToApply);
     acceptSuggestion(msgId, suggId);
   }
 

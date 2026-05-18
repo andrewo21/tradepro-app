@@ -31,7 +31,7 @@ export interface LiveAtsResult {
   label:     "Not Started" | "Weak" | "Building" | "Good" | "Strong";
 }
 
-const CAP = 80;
+const CAP = 100;
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -64,26 +64,26 @@ export function computeLiveAtsScore(store: any): LiveAtsResult {
 
   // ── PERSONAL (max 12) ─────────────────────────────────────────────────────
   const p = store.personalInfo || {};
-  if (p.firstName && p.lastName) { bd.personal += 3; }
+  if (p.firstName && p.lastName) { bd.personal += 5; }
   else flags.push({ field: "personalInfo.firstName", message: "Full name is missing", severity: "error", step: "personal" });
 
-  if (p.tradeTitle) { bd.personal += 4; }
+  if (p.tradeTitle) { bd.personal += 5; }
   else flags.push({ field: "personalInfo.tradeTitle", message: "Professional title is missing", severity: "error", step: "personal" });
 
-  if (p.phone) bd.personal += 1;
-  if (p.email) bd.personal += 1;
+  if (p.phone) bd.personal += 1.5;
+  if (p.email) bd.personal += 1.5;
   if (p.city)  bd.personal += 1;
-  if (p.linkedin) { bd.personal += 2; }
+  if (p.linkedin) { bd.personal += 2.5; }
   else flags.push({ field: "personalInfo.linkedin", message: "LinkedIn URL missing — adds credibility", severity: "warning", step: "personal" });
 
   // ── SUMMARY (max 15) ──────────────────────────────────────────────────────
   const summary    = store.summary || "";
   const wordCount  = summary.trim().split(/\s+/).filter(Boolean).length;
 
-  if (wordCount >= 10)  bd.summary += 3;
-  if (wordCount >= 35)  bd.summary += 4;
+  if (wordCount >= 10)  bd.summary += 4;
+  if (wordCount >= 35)  bd.summary += 5;
   if (wordCount >= 60)  bd.summary += 2;
-  if (hasMetrics(summary)) bd.summary += 4;
+  if (hasMetrics(summary)) bd.summary += 5;
 
   // Bonus: mentions job title
   const titleWords = (p.tradeTitle || "").toLowerCase().split(/\s+/).filter(Boolean);
@@ -124,19 +124,19 @@ export function computeLiveAtsScore(store: any): LiveAtsResult {
     for (const b of bullets.slice(0, 8)) {
       bulletScore += bulletQuality(b.text);
     }
-    expRaw += Math.min(8, bulletScore); // up to 8 pts per job from bullet quality
+    expRaw += Math.min(10, bulletScore); // up to 8 pts per job from bullet quality
 
     // Warn on vague bullets
     const vagueCount = bullets.filter((b: any) => !hasMetrics(b.text) && !hasActionVerb(b.text)).length;
     if (vagueCount > 1) flags.push({ field: `experience[${i}].bullets`, message: `${label}: ${vagueCount} bullets are vague — add action verbs and numbers`, severity: "info", step: "experience" });
   }
 
-  bd.experience = Math.min(35, Math.round(expRaw));
+  bd.experience = Math.min(44, Math.round(expRaw));
 
   // ── SKILLS (max 10) ───────────────────────────────────────────────────────
   const skills = (store.skills || []).filter((s: any) => s.text?.trim());
   // Proportionate: each skill = 0.8 pts, max 10
-  bd.skills = Math.min(10, Math.round(skills.length * 0.8));
+  bd.skills = Math.min(12, Math.round(skills.length * 1.0));
   if (skills.length === 0) flags.push({ field: "skills", message: "No skills listed", severity: "warning", step: "skills" });
   else if (skills.length < 5) flags.push({ field: "skills", message: `Only ${skills.length} skill(s) — aim for 8–12`, severity: "warning", step: "skills" });
 
@@ -144,13 +144,13 @@ export function computeLiveAtsScore(store: any): LiveAtsResult {
   const edu = (store.education || []).filter((e: any) => e.school?.trim() || e.degree?.trim());
   if (edu.length === 0) flags.push({ field: "education", message: "Education section is empty", severity: "warning", step: "education" });
   else {
-    bd.education += 4;
-    if (edu[0]?.school && edu[0]?.degree) bd.education += 4;
+    bd.education += 5;
+    if (edu[0]?.school && edu[0]?.degree) bd.education += 5;
   }
 
   // ── CERTIFICATIONS (max 5) ────────────────────────────────────────────────
   const certs = (store.certifications || []).filter((c: any) => c.text?.trim());
-  bd.certifications = Math.min(5, certs.length * 2.5);
+  bd.certifications = Math.min(6, certs.length * 3);
 
   // ── FINAL ─────────────────────────────────────────────────────────────────
   const raw = bd.personal + bd.summary + bd.experience + bd.skills + bd.education + bd.certifications;
