@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import Footer from "@/components/Footer";
-import CV1Dynamic from "@/components/assistant/CV1Dynamic";
 import { CV1TourButton } from "@/components/assistant/CV1Tour";
 import CV1Welcome from "@/components/assistant/CV1Welcome";
 
