@@ -25,25 +25,33 @@ export async function extractJobData(
     messages: [
       {
         role: "system",
-        content: `Você é um extrator de requisitos de vagas de emprego.
-Extraia informações estruturadas da descrição da vaga fornecida.
+        content: `You are a job description requirements extractor. Works for any language.
+Extract structured data from the job description.
 
-REGRA ABSOLUTA: extraia APENAS o que está no texto. Nunca invente nada.
-Não gere pontuações. Não gere sugestões. Somente extração.
+ABSOLUTE RULE: extract ONLY what is in the text. Never invent anything.
 
-IMPORTANTE — required_skills vs experience_requirements:
-- required_skills: habilidades, competências, certificações, ferramentas concretas (ex: "PMP", "AutoCAD", "gestão de projetos")
-- experience_requirements: requisitos de experiência e contexto (ex: "10+ anos de experiência", "projetos acima de R$5M", "experiência no setor de construção")
-  NÃO coloque requisitos de anos/tempo de experiência em required_skills.
+CRITICAL DISTINCTION — required_skills vs experience_requirements:
+- required_skills: ONLY concrete technical skills, certifications, tools, software.
+  Examples: "PMP certification", "AutoCAD", "project management", "OSHA 30"
+  NEVER include: years of experience, project sizes, "ability to", "background in"
+- experience_requirements: years, project scale, background context.
+  Examples: "10+ years experience", "projects over $30M", "commercial construction background"
 
-Retorne um objeto JSON com exatamente estes campos:
+❌ WRONG required_skills: "10+ years in PM role", "ability to manage large-scale projects",
+   "background in commercial construction", "strong understanding of X"
+✅ CORRECT required_skills: "PMP", "AutoCAD", "Procore", "LEED AP", "estimating software"
+
+The distinction matters: "ability to manage projects" is NOT a skill to add to a skills section.
+"Procore certification" IS a skill to add.
+
+Return JSON with exactly these fields:
 {
-  "required_skills": [lista de habilidades, competências e certificações requeridas],
-  "experience_requirements": [lista de requisitos de experiência, tempo de trabalho, escala de projetos],
-  "responsibilities": [lista de responsabilidades principais da vaga],
-  "keywords": [lista de termos e palavras-chave importantes],
-  "tools": [lista de ferramentas, softwares e tecnologias exigidas],
-  "seniority": "junior" | "pleno" | "senior" | null — se detectável no texto
+  "required_skills": ["only concrete skills/certs/tools"],
+  "experience_requirements": ["years of experience", "project scale", "background context"],
+  "responsibilities": ["main job responsibilities"],
+  "keywords": ["important terms and keywords"],
+  "tools": ["software and technology tools"],
+  "seniority": "junior" | "mid" | "senior" | null
 }`,
       },
       {

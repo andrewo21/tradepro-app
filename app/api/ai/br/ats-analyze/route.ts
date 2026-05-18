@@ -47,7 +47,8 @@ export async function POST(req: NextRequest) {
         jobTitle,
         companyName,
         date,
-        locale:         body.locale || null,
+        locale:          body.locale || null,
+        candidateTitle:  body.candidateTitle || null,
       });
       return NextResponse.json(result);
     } else {
