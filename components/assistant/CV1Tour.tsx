@@ -34,7 +34,7 @@ const STEPS = [
   {
     icon: <ArrowRight className="w-6 h-6 text-blue-400" />,
     title: "Two ways to start. Your call.",
-    body: "You can let me guide you from scratch — I'll ask you questions and build your resume as you answer. Or you can fill in the steps yourself and I'll offer improvements as you go. Either way, you preview the finished resume before paying anything.",
+    body: "You can let me guide you from scratch — I'll ask you questions and build your resume as you answer. Or you can fill in the steps yourself and I'll offer improvements as you go. Either way, you preview the finished resume before paying anything. And one more thing: you can drag me anywhere on the screen — just grab and move.",
     visual: "step-start",
   },
 ];

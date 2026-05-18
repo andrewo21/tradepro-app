@@ -55,10 +55,10 @@ export default function CV1Character({ mood = "idle", size = 120, className = ""
   if (variant === "br") {
     const h = Math.round(size * 1.8);
     return (
-      <div className={`relative flex-shrink-0 ${className}`} style={{ width: size, height: h }}>
+      <div className={`relative flex-shrink-0 overflow-hidden ${className}`} style={{ width: size, height: h }}>
         <div className={`${ANIMATION[mood]} w-full h-full`}>
           <Image src={GRINGO_FRAME} alt="Gringo" width={size} height={h}
-            className="object-contain object-top select-none w-full h-full" draggable={false} priority />
+            className="object-cover object-top select-none w-full h-full" draggable={false} priority />
         </div>
       </div>
     );
@@ -117,7 +117,7 @@ export default function CV1Character({ mood = "idle", size = 120, className = ""
       `}</style>
 
       <div
-        className={`relative flex-shrink-0 ${className}`}
+        className={`relative flex-shrink-0 overflow-hidden ${className}`}
         style={{ width: size, height: h }}
       >
         <div className={`${ANIMATION[current]} ${fading ? "cv1-fade-out" : "cv1-fade-in"}`}>
@@ -126,7 +126,7 @@ export default function CV1Character({ mood = "idle", size = 120, className = ""
             alt={`CV-1 ${current}`}
             width={size}
             height={h}
-            className="object-contain object-top select-none"
+            className="object-cover object-top select-none w-full h-full"
             draggable={false}
             priority
           />

@@ -56,10 +56,12 @@ export function SuggestionCard({ msgId, suggestion, onAccept, onDismiss, locale 
     <div className="border border-indigo-100 bg-white rounded-xl overflow-hidden shadow-sm">
       {/* Header */}
       <div className="flex items-start gap-2 px-3 py-2.5">
-        <div className="flex-shrink-0 flex items-center gap-0.5 bg-indigo-50 text-indigo-700 rounded-full px-2 py-0.5 text-xs font-bold mt-0.5">
-          <Zap className="w-3 h-3" />
-          +{suggestion.pointGain}
-        </div>
+        {suggestion.pointGain > 0 && (
+          <div className="flex-shrink-0 flex items-center gap-0.5 bg-indigo-50 text-indigo-700 rounded-full px-2 py-0.5 text-xs font-bold mt-0.5">
+            <Zap className="w-3 h-3" />
+            +{suggestion.pointGain}
+          </div>
+        )}
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-gray-800 leading-tight">{suggestion.label}</p>
           {suggestion.reason && !hasBrackets && (
