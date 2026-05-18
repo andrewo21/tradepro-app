@@ -56,7 +56,7 @@ export default function CV1Character({ mood = "idle", size = 120, className = ""
     return (
       <div className={`relative flex-shrink-0 overflow-hidden rounded-xl ${className}`}
         style={{ width: size, height: size }}>
-        <div className={`${ANIMATION[mood]} w-full h-full`} style={{ transform: "scale(1.4)", transformOrigin: "50% 25%" }}>
+        <div className={`${ANIMATION[mood]} w-full h-full`} style={{ transform: "scale(2.8)", transformOrigin: "50% 18%" }}>
           <Image src={GRINGO_FRAME} alt="Gringo" fill
             className="object-contain select-none" draggable={false} priority />
         </div>
@@ -121,7 +121,7 @@ export default function CV1Character({ mood = "idle", size = 120, className = ""
         style={{ width: size, height: size }}
       >
         <div className={`${ANIMATION[current]} ${fading ? "cv1-fade-out" : "cv1-fade-in"} w-full h-full`}
-          style={{ transform: "scale(1.4)", transformOrigin: "50% 22%" }}>
+          style={{ transform: "scale(2.8)", transformOrigin: "50% 18%" }}>
           <Image
             src={FRAME[current]}
             alt={`CV-1 ${current}`}
