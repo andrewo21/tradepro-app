@@ -806,7 +806,7 @@ export function drawModernProfessionalPDF(doc: any, data: any) {
     });
   }
   if (education?.length) {
-    if (y + 50 > PAGE_H - MARGIN) { doc.addPage(); pageNum++; y = MARGIN; }
+    if (y + 50 > PAGE_H - MARGIN) { doc.addPage(); y = MARGIN; }
     y = mpSection(L$.education, y);
     education.forEach((edu: any) => {
       doc.font("Helvetica").fontSize(11).fillColor("#374151")
@@ -815,7 +815,7 @@ export function drawModernProfessionalPDF(doc: any, data: any) {
     });
   }
   if ((certifications || []).length) {
-    if (y + 50 > PAGE_H - MARGIN) { doc.addPage(); pageNum++; y = MARGIN; }
+    if (y + 50 > PAGE_H - MARGIN) { doc.addPage(); y = MARGIN; }
     y = mpSection(L$.certifications, y);
     certifications.forEach((c: string) => {
       doc.circle(L + 5, y + 5, 1.8).fill("#374151");

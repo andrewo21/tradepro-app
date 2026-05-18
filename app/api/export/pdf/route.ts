@@ -440,18 +440,8 @@ export async function POST(req: NextRequest) {
           certifications: Array.isArray(data.certifications) ? data.certifications : [],
         };
 
-        try {
-          draw(doc, normData);
-        } catch (drawErr: any) {
-          console.error(`PDF draw error [template=${templateId}]:`, drawErr?.message, drawErr?.stack);
-          // Fall back to standard-contemporary if chosen template crashes
-          if (templateId !== "standard-contemporary") {
-            const fallback = PDF_TEMPLATE_REGISTRY["standard-contemporary"];
-            fallback(doc, normData);
-          } else {
-            throw drawErr;
-          }
-        }
+        // Draw — any exception propagates to the outer catch for a clean 500
+        draw(doc, normData);
         addPageNumbers(doc);
       } else {
         // Cover letter — choose style based on template param
