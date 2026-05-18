@@ -303,19 +303,19 @@ export default function JobTargetStep() {
         <div className="space-y-4 mb-6">
           {/* Match score */}
           <div className="bg-white border border-neutral-200 rounded-2xl p-6 shadow-sm">
-            <div className="flex items-center gap-6 mb-5">
+            <div className="flex items-start gap-6 mb-4">
               <ScoreRing
                 score={result.final_ats_score ?? result.structure_score ?? 0}
                 max={95}
                 label={result.strength_label}
-                color={result.strength_label === "Strong" ? "#16a34a" : result.strength_label === "Good" ? "#d97706" : "#dc2626"}
+                color={result.strength_label === "Strong" ? "#16a34a" : result.strength_label === "Good" || result.strength_label === "Building" ? "#d97706" : "#dc2626"}
               />
-              <div>
+              <div className="flex-1">
                 <p className="font-bold text-neutral-800 text-base">Job Match Score</p>
-                <p className="text-xs text-neutral-500 mt-1">How well your resume aligns with this specific job</p>
-                {result.skills_coverage_score !== undefined && (
-                  <p className="text-xs text-blue-600 mt-1 font-medium">
-                    Skills coverage: {Math.round(result.skills_coverage_score)}% · Job alignment: {Math.round(result.semantic_match_score ?? 0)}%
+                <p className="text-xs text-neutral-500 mt-0.5 mb-2">CV-1 read both documents as a recruiter would</p>
+                {result.match_summary && (
+                  <p className="text-sm text-neutral-700 leading-relaxed bg-neutral-50 rounded-xl p-3 border border-neutral-100">
+                    {result.match_summary}
                   </p>
                 )}
               </div>
