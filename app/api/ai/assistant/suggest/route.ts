@@ -14,12 +14,15 @@ export async function POST(req: NextRequest) {
     const isEN = locale !== "pt-BR";
     const name = firstName || (isEN ? "there" : "aí");
 
-    // Detect conversational mode — user sent a direct message/question
+    // Classify message intent to pick the right response mode
     const isConversational = !!(userMessage?.trim());
+    const isSocial = isConversational && /^(thanks|thank you|great|awesome|perfect|wow|nice|cool|got it|ok|okay|sounds good|love it|that's great|that helps|appreciate|cheers|excellent|wonderful|fantastic|amazing|you rock|good job|well done|merci|obrigad|valeu|ótimo|perfeito|incrível)/i.test(userMessage?.trim() || "");
 
-    const systemPrompt = isConversational
-      ? buildConversationalPromptEN(step, name, jobTitle, isEN)
-      : (isEN ? buildSystemPromptEN(step, name, jobTitle) : buildSystemPromptPT(step, name, jobTitle));
+    const systemPrompt = isSocial
+      ? buildSocialPrompt(name, isEN)
+      : isConversational
+        ? buildConversationalPromptEN(step, name, jobTitle, isEN)
+        : (isEN ? buildSystemPromptEN(step, name, jobTitle) : buildSystemPromptPT(step, name, jobTitle));
 
     const userContent = buildUserContent({ step, data, issues, userMessage, isEN, liveScore, globalFlags });
 
@@ -74,6 +77,20 @@ export async function POST(req: NextRequest) {
 }
 
 // ─── Prompts ──────────────────────────────────────────────────────────────────
+
+function buildSocialPrompt(name: string, isEN: boolean): string {
+  if (isEN) {
+    return `You are CV-1, a resume coach AI. The user just said something social or expressed appreciation.
+Respond like a real person would — warm, brief, natural. No boilerplate. No "Great question!"
+Just respond the way a helpful colleague would if someone thanked them.
+Vary your responses. Show personality. Keep it to 1-2 sentences max.
+Return JSON: { "message": "your natural response", "suggestions": [] }`;
+  }
+  return `Você é Gringo, um coach de currículo. O usuário disse algo social ou agradeceu.
+Responda como uma pessoa real — caloroso, breve, natural. Sem respostas padrão.
+Varie suas respostas. Mostre personalidade. Máximo 1-2 frases.
+Retorne JSON: { "message": "sua resposta natural", "suggestions": [] }`;
+}
 
 function buildConversationalPromptEN(step: string, name: string, jobTitle: string, isEN: boolean): string {
   const lang = isEN ? "English" : "Portuguese (Brazilian)";
