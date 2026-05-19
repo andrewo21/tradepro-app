@@ -167,66 +167,91 @@ function applyUS(action: StoreAction, store: any) {
       break;
 
     case "set_summary":
-      if (payload.text) store.updateSummary(payload.text);
+      // Show as pending — user must approve before it goes into the resume
+      if (payload.text) {
+        setPendingSummary(payload.text);
+      }
       break;
 
     case "add_experience": {
-      // Atomic add: one action adds job + all responsibilities together — prevents duplication
-      store.addExperience();
-      setTimeout(() => {
-        const exp = useResumeStore.getState().experience;
-        const last = exp[exp.length - 1];
-        if (!last) return;
-        if (payload.jobTitle)  store.updateExperience(last.id, "jobTitle",  payload.jobTitle);
-        if (payload.company)   store.updateExperience(last.id, "company",   payload.company);
-        if (payload.startDate) store.updateExperience(last.id, "startDate", payload.startDate);
-        if (payload.endDate)   store.updateExperience(last.id, "endDate",   payload.endDate);
-        if (payload.city)      store.updateExperience(last.id, "city",      payload.city);
+      const expState = useResumeStore.getState().experience;
+      const norm = (s: string) => (s || "").toLowerCase().trim().replace(/[^a-z0-9]/g, "");
 
-        // Add all responsibilities in the same timeout — no separate add_responsibility needed
+      // DEDUP: if this company+title already exists, UPDATE it — never create a duplicate
+      const existing = expState.find((e: any) =>
+        norm(e.company) === norm(payload.company) &&
+        (norm(e.jobTitle) === norm(payload.jobTitle) || !e.jobTitle || !payload.jobTitle)
+      );
+
+      const targetId = existing?.id || null;
+
+      if (!targetId) {
+        // Genuinely new job — add it
+        store.addExperience();
+      }
+
+      setTimeout(() => {
+        const fresh = useResumeStore.getState().experience;
+        const job = targetId
+          ? fresh.find((e: any) => e.id === targetId)
+          : fresh[fresh.length - 1];
+        if (!job) return;
+
+        if (payload.jobTitle)  store.updateExperience(job.id, "jobTitle",  payload.jobTitle);
+        if (payload.company)   store.updateExperience(job.id, "company",   payload.company);
+        if (payload.startDate) store.updateExperience(job.id, "startDate", payload.startDate);
+        if (payload.endDate)   store.updateExperience(job.id, "endDate",   payload.endDate);
+        if (payload.city)      store.updateExperience(job.id, "city",      payload.city);
+
+        // Add bullets — deduplicated: skip any that already exist on this job
         const bullets: string[] = Array.isArray(payload.responsibilities) ? payload.responsibilities : [];
-        bullets.forEach((text: string, i: number) => {
-          if (!text?.trim()) return;
-          if (i === 0) {
-            // First bullet goes into the pre-existing empty slot
-            store.updateResponsibility(last.id, 0, text);
+        const existingBullets = [
+          ...(job.responsibilities || []).map((b: any) => (typeof b === "string" ? b : b.text || "").toLowerCase().slice(0, 30)),
+          ...(job.achievements     || []).map((b: any) => (typeof b === "string" ? b : b.text || "").toLowerCase().slice(0, 30)),
+        ];
+
+        const newBullets = bullets.filter((text: string) =>
+          text?.trim() && !existingBullets.some(existing => text.toLowerCase().startsWith(existing.slice(0, 20)))
+        );
+
+        const emptySlot = job.responsibilities?.findIndex((r: any) => !(typeof r === "string" ? r : r.text)?.trim());
+        newBullets.forEach((text: string, i: number) => {
+          if (i === 0 && emptySlot !== -1) {
+            store.updateResponsibility(job.id, emptySlot ?? 0, text);
           } else {
-            store.addResponsibility(last.id);
+            store.addResponsibility(job.id);
             setTimeout(() => {
-              const updated = useResumeStore.getState().experience;
-              const job = updated.find((e: any) => e.id === last.id);
-              if (job) store.updateResponsibility(last.id, job.responsibilities.length - 1, text);
-            }, 60 * i);
+              const u = useResumeStore.getState().experience;
+              const j = u.find((e: any) => e.id === job.id);
+              if (j) store.updateResponsibility(job.id, j.responsibilities.length - 1, text);
+            }, 60 * (i + 1));
           }
         });
-      }, 60);
-      break;
-    }
-
-    case "add_responsibility": {
-      // Legacy fallback — atomic add_experience is preferred
-      setTimeout(() => {
-        const exp = useResumeStore.getState().experience;
-        const idx = typeof payload.experienceIndex === "number" ? payload.experienceIndex : exp.length - 1;
-        const job = exp[idx] || exp[exp.length - 1];
-        if (!job || !payload.text) return;
-        store.addResponsibility(job.id);
-        setTimeout(() => {
-          const updated = useResumeStore.getState().experience;
-          const updatedJob = updated.find((e: any) => e.id === job.id);
-          if (!updatedJob) return;
-          store.updateResponsibility(job.id, updatedJob.responsibilities.length - 1, payload.text);
-        }, 60);
       }, 80);
       break;
     }
 
-    case "add_skill":
-      if (payload.text) store.addSkill(payload.text);
+    case "add_responsibility": break; // disabled — use add_experience with responsibilities[]
+
+    case "add_skill": {
+      if (!payload.text?.trim()) break;
+      const existingSkills = useResumeStore.getState().skills;
+      const alreadyExists = existingSkills.some((s: any) =>
+        (typeof s === "string" ? s : s.text || "").toLowerCase().trim() === payload.text.toLowerCase().trim()
+      );
+      if (!alreadyExists) store.addSkill(payload.text);
       break;
+    }
 
     case "add_education": {
       const edu = useResumeStore.getState().education;
+      const norm = (s: string) => (s || "").toLowerCase().trim();
+      // Dedup: skip if same school+degree already exists
+      const eduExists = edu.some((e: any) =>
+        norm(e.school) === norm(payload.school) && norm(e.degree) === norm(payload.degree)
+      );
+      if (eduExists) break;
+
       if (edu.length === 1 && !edu[0].school) {
         store.updateEducation(0, "school", payload.school || "");
         store.updateEducation(0, "degree", payload.degree || "");
@@ -321,8 +346,9 @@ export default function GringoWriter({ locale, previewHref }: Props) {
   const charVariant: "us" | "br" = isEN ? "us" : "br";
 
   const [history,    setHistory]    = useState<WriterMessage[]>([]);
-  const [input,      setInput]      = useState("");
-  const [loading,    setLoading]    = useState(false);
+  const [input,          setInput]          = useState("");
+  const [loading,        setLoading]        = useState(false);
+  const [pendingSummary, setPendingSummary] = useState<string | null>(null);
   const [currentStep, setCurrentStep] = useState("personal");
   const [isDone,     setIsDone]     = useState(false);
   const [started,    setStarted]    = useState(false);
@@ -517,6 +543,42 @@ export default function GringoWriter({ locale, previewHref }: Props) {
 
         <div ref={bottomRef} />
       </div>
+
+      {/* ── Summary approval card — shown before input when summary is pending ── */}
+      {pendingSummary && !isDone && (
+        <div className="px-4 py-3 bg-indigo-50 border-t border-indigo-200">
+          <p className="text-xs font-bold text-indigo-700 uppercase tracking-wide mb-2">
+            {isEN ? "✦ CV-1 wrote your summary — approve or edit before it goes in:" : "✦ Resumo escrito — aprove ou edite antes de salvar:"}
+          </p>
+          <p className="text-sm text-gray-800 bg-white border border-indigo-200 rounded-xl p-3 leading-relaxed mb-3">
+            {pendingSummary}
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => {
+                if (locale === "en") {
+                  useResumeStore.getState().updateSummary(pendingSummary);
+                } else {
+                  useBrResumeStore.getState().updateResumo(pendingSummary);
+                }
+                setPendingSummary(null);
+              }}
+              className="flex-1 py-2 bg-indigo-600 text-white text-sm font-bold rounded-xl hover:bg-indigo-700 transition-colors"
+            >
+              {isEN ? "✓ Use this summary" : "✓ Usar este resumo"}
+            </button>
+            <button
+              onClick={() => {
+                setInput(pendingSummary);
+                setPendingSummary(null);
+              }}
+              className="px-4 py-2 bg-white border border-indigo-300 text-indigo-700 text-sm font-semibold rounded-xl hover:bg-indigo-50 transition-colors"
+            >
+              {isEN ? "Edit" : "Editar"}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ── Input ── */}
       {!isDone && (
