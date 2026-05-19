@@ -336,10 +336,20 @@ export default function GringoWriter({ locale, previewHref }: Props) {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [history, loading]);
 
-  // Start conversation automatically
+  // Start conversation automatically — clear existing resume data first.
+  // This is a "build from scratch" flow, not an "add to existing" flow.
   useEffect(() => {
     if (!started) {
       setStarted(true);
+      // Wipe the store so painter + PM data never mix.
+      // Preserve the selected template the user chose.
+      if (locale === "en") {
+        const savedTemplate = useResumeStore.getState().selectedTemplate;
+        useResumeStore.getState().clearAll();
+        if (savedTemplate) useResumeStore.getState().setSelectedTemplate(savedTemplate);
+      } else {
+        useBrResumeStore.getState().clearAll();
+      }
       callWriter([]);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
