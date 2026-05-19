@@ -12,7 +12,7 @@ interface ATSResult {
   strength_label: string;
   structure_score: number;
   skills_coverage_score?: number;
-  semantic_match_score?: number;
+  job_fit_score?: number;
   skills_found?: string[];
   skills_missing?: string[];
   suggestions_pt_br: string[];
@@ -158,7 +158,7 @@ export default function AdminATSPage() {
           strength_label: result.strength_label,
           structure_score: result.structure_score,
           skills_coverage_score: result.skills_coverage_score,
-          semantic_match_score: result.semantic_match_score,
+          job_fit_score: result.job_fit_score,
           skills_found: result.skills_found || [],
           skills_missing: result.skills_missing || [],
           suggestions_pt_br:          result.suggestions_pt_br || [],
@@ -339,8 +339,8 @@ export default function AdminATSPage() {
                   {result.skills_coverage_score !== undefined && (
                     <ScoreBar label="Cobertura de habilidades" value={result.skills_coverage_score} color="#2563eb" />
                   )}
-                  {result.semantic_match_score !== undefined && (
-                    <ScoreBar label="Alinhamento com a vaga" value={result.semantic_match_score} color="#d97706" />
+                  {result.job_fit_score !== undefined && (
+                    <ScoreBar label="Alinhamento com a vaga" value={result.job_fit_score} color="#d97706" />
                   )}
                 </div>
               </div>

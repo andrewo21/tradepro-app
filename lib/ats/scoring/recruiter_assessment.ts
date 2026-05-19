@@ -1,184 +1,160 @@
 // lib/ats/scoring/recruiter_assessment.ts
 //
-// GPT-4o powered ATS assessment — reads both documents as a senior recruiter.
-// Replaces rigid keyword-frequency matching with genuine compatibility analysis.
+// TradePro Resume Intelligence™
 //
-// Why this is better than keyword matching:
-//   - "15 years PM experience" satisfies "10+ years required" — a keyword matcher misses this
-//   - "$90M portfolio" satisfies "$30M+ projects required" — a keyword matcher misses this
-//   - A thin JD (few keywords) gets scored on what it ACTUALLY requires, not penalized
-//   - Only real gaps are reported — not missing keywords that aren't genuinely missing
+// Architecture:
+//   SCORE  → text-embedding-3-small cosine similarity (deterministic, consistent)
+//   EXPLAIN → GPT-4o reads both documents and writes the plain-English breakdown
+//
+// The score is math. GPT only touches the words, never the number.
+// Same resume + same JD = same score, every time.
 
 import OpenAI from "openai";
+import { cosineSimilarity, similarityToScore } from "../utils/embeddings";
+import { truncateText } from "../utils/text_cleaning";
 
 export interface RecruiterAssessment {
-  overall_score:  number;         // 0–95, honest compatibility score
-  match_summary:  string;         // 2-3 sentence executive summary of the match
-  strengths:      string[];       // specific things that match, with evidence from both docs
-  gaps:           string[];       // genuine gaps only — things actually missing
-  improvements:   string[];       // specific, actionable suggestions
-  skills_found:   string[];       // concrete skills the resume demonstrates that the JD needs
-  skills_missing: string[];       // concrete skills the JD requires that are genuinely absent
+  overall_score:  number;   // 0–100, from embeddings (deterministic)
+  job_fit_label:  string;   // plain-English label
+  match_summary:  string;   // GPT-4o plain English explanation
+  strengths:      string[];
+  gaps:           string[];
+  improvements:   string[];
+  skills_found:   string[];
+  skills_missing: string[];
 }
+
+// ─── Score via embeddings (deterministic) ────────────────────────────────────
+
+async function computeJobFitScore(
+  client: OpenAI,
+  resumeText: string,
+  jobDescription: string,
+  candidateTitle?: string | null,
+): Promise<number> {
+  try {
+    const [resumeEmb, jobEmb] = await Promise.all([
+      client.embeddings.create({ model: "text-embedding-3-small", input: truncateText(resumeText, 8000) }),
+      client.embeddings.create({ model: "text-embedding-3-small", input: truncateText(jobDescription, 8000) }),
+    ]);
+
+    const similarity = cosineSimilarity(
+      resumeEmb.data[0].embedding,
+      jobEmb.data[0].embedding
+    );
+
+    // Convert cosine similarity to 0-100 score
+    // similarityToScore maps typical resume-JD similarity range (0.6-0.95) to 0-100
+    let score = similarityToScore(similarity);
+
+    // Title match floor — if candidate's title matches the job title,
+    // the score can't be below a meaningful threshold
+    if (candidateTitle) {
+      const titleWords = candidateTitle.toLowerCase().split(/\s+/).filter(w => w.length > 3);
+      const jdLower    = jobDescription.toLowerCase();
+      const matches    = titleWords.filter(w => jdLower.includes(w)).length;
+      if (matches >= 2) score = Math.max(45, score);  // strong title match floor
+      else if (matches >= 1) score = Math.max(28, score); // partial title match floor
+    }
+
+    return Math.min(100, Math.round(score));
+  } catch {
+    return 0;
+  }
+}
+
+// ─── Explain via GPT-4o (language only, never sets the score) ─────────────────
+
+async function generateExplanation(
+  client: OpenAI,
+  resumeText: string,
+  jobDescription: string,
+  jobFitScore: number,
+  locale: string
+): Promise<Omit<RecruiterAssessment, "overall_score" | "job_fit_label">> {
+  const isEN = locale !== "pt-BR";
+
+  const systemPrompt = isEN ? `You are TradePro Resume Intelligence™, a plain-English resume analysis tool.
+The Job Fit Score has already been calculated at ${jobFitScore}/100 using AI matching technology.
+Your job is ONLY to explain this score in plain English that anyone can understand.
+
+RULES:
+1. Write like you're explaining to someone who has never heard of "ATS" or "keywords"
+2. Every strength and gap must come directly from the documents — no hallucinations
+3. Only flag skills/certs that are genuinely missing — not soft skills, not experience requirements
+4. Your explanation must be consistent with the score of ${jobFitScore}/100
+5. NEVER say "semantic" or "embeddings" — say "how well your resume matches this job"
+
+Return JSON:
+{
+  "match_summary": "2-3 plain sentences explaining the ${jobFitScore}/100 score in everyday language",
+  "strengths": ["specific evidence of match, quoted from documents"],
+  "gaps": ["genuine gaps only — things truly missing that the job requires"],
+  "improvements": ["specific, actionable things to add or change"],
+  "skills_found": ["concrete technical skills/certs resume has that JD mentions"],
+  "skills_missing": ["concrete technical skills/certs JD requires that resume lacks"]
+}`
+  : `Você é o TradePro Resume Intelligence™, uma ferramenta de análise de currículo em linguagem simples.
+O Job Fit Score já foi calculado em ${jobFitScore}/100.
+Sua função é APENAS explicar essa pontuação em português simples que qualquer pessoa entenda.
+NUNCA diga "semântico" — diga "como seu currículo combina com esta vaga".
+Retorne JSON com: match_summary, strengths, gaps, improvements, skills_found, skills_missing`;
+
+  try {
+    const completion = await client.chat.completions.create({
+      model:           "gpt-4o",
+      temperature:     0.3,
+      response_format: { type: "json_object" },
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user",   content: `JOB DESCRIPTION:\n${jobDescription}\n\n---\n\nCANDIDATE RESUME:\n${resumeText}` },
+      ],
+    });
+
+    const raw = JSON.parse(completion.choices[0]?.message?.content || "{}");
+    return {
+      match_summary:  String(raw.match_summary || ""),
+      strengths:      toArr(raw.strengths),
+      gaps:           toArr(raw.gaps),
+      improvements:   toArr(raw.improvements),
+      skills_found:   toArr(raw.skills_found),
+      skills_missing: toArr(raw.skills_missing),
+    };
+  } catch {
+    return { match_summary: "", strengths: [], gaps: [], improvements: [], skills_found: [], skills_missing: [] };
+  }
+}
+
+// ─── Public API ───────────────────────────────────────────────────────────────
 
 export async function runRecruiterAssessment(
   client: OpenAI,
   resumeText: string,
   jobDescription: string,
-  locale: string = "en"
+  locale: string = "en",
+  candidateTitle?: string | null,
 ): Promise<RecruiterAssessment> {
+  // Step 1: Score via embeddings — deterministic, consistent
+  const overall_score = await computeJobFitScore(client, resumeText, jobDescription, candidateTitle);
+
+  // Step 2: Explain via GPT-4o — plain English only, never changes the score
+  const explanation = await generateExplanation(client, resumeText, jobDescription, overall_score, locale);
+
+  return {
+    overall_score,
+    job_fit_label: scoreToLabel(overall_score, locale),
+    ...explanation,
+  };
+}
+
+function scoreToLabel(score: number, locale: string): string {
   const isEN = locale !== "pt-BR";
-
-  const systemPrompt = isEN
-    ? buildSystemEN()
-    : buildSystemPT();
-
-  const userContent = `JOB DESCRIPTION:
-${jobDescription}
-
----
-
-CANDIDATE RESUME:
-${resumeText}`;
-
-  try {
-    const completion = await client.chat.completions.create({
-      model:           "gpt-4o",
-      temperature:     0,   // deterministic — same resume + same JD = same score
-      response_format: { type: "json_object" },
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user",   content: userContent   },
-      ],
-    });
-
-    const raw = JSON.parse(completion.choices[0]?.message?.content || "{}");
-
-    return {
-      overall_score:  clampScore(Number(raw.overall_score) || 0),
-      match_summary:  String(raw.match_summary || ""),
-      strengths:      toStringArray(raw.strengths),
-      gaps:           toStringArray(raw.gaps),
-      improvements:   toStringArray(raw.improvements),
-      skills_found:   toStringArray(raw.skills_found),
-      skills_missing: toStringArray(raw.skills_missing),
-    };
-  } catch {
-    // Graceful fallback — never crash the ATS step
-    return {
-      overall_score:  0,
-      match_summary:  "Assessment could not be completed. Please try again.",
-      strengths:      [],
-      gaps:           [],
-      improvements:   [],
-      skills_found:   [],
-      skills_missing: [],
-    };
-  }
+  if (score >= 76) return isEN ? "Strong Fit"    : "Forte";
+  if (score >= 56) return isEN ? "Good Fit"      : "Bom";
+  if (score >= 36) return isEN ? "Partial Fit"   : "Parcial";
+  return                  isEN ? "Needs Work"    : "Precisa melhorar";
 }
 
-function clampScore(n: number): number {
-  return Math.min(95, Math.max(0, Math.round(n)));
-}
-
-function toStringArray(val: unknown): string[] {
-  if (!Array.isArray(val)) return [];
-  return val.map(v => String(v)).filter(Boolean);
-}
-
-function buildSystemEN(): string {
-  return `You are a senior recruiter and ATS specialist with 20 years of experience evaluating candidates.
-Your job is to honestly assess how well a candidate resume matches a job description.
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-CRITICAL RULES — READ BEFORE SCORING:
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-1. DO NOT DO KEYWORD MATCHING. Read both documents as a human would.
-   A JD saying "10+ years in PM role" is satisfied by a resume showing 15 years of PM experience,
-   even if the exact words differ. A JD saying "$30M+ projects" is satisfied by "$90M portfolio."
-
-2. THIN JDs ARE NORMAL. Many job descriptions are brief and list mostly experience requirements.
-   This does NOT mean the candidate is a poor match. Evaluate what the JD actually requires
-   against what the resume actually demonstrates.
-
-3. ONLY REPORT REAL GAPS. A gap is something the role genuinely needs that the resume
-   genuinely does not have. "Ability to manage large-scale projects" is NOT a gap if the
-   resume shows 15 years of managing large-scale projects. Do not invent gaps.
-
-4. PLACEMENT MULTIPLIERS — weight where keywords appear:
-   - Job title / header: 3x weight (strongest signal)
-   - Professional summary: 2.5x (second strongest)
-   - Skills list: 2x
-   - Experience bullets: 1.5x
-   A candidate whose title appears in both their header AND summary already has strong placement.
-
-5. CERTIFICATION WEIGHTING — certifications score 2x vs generic skills.
-   Flag missing certifications BEFORE missing generic skills.
-   ✅ Flag: "JD mentions PMP preferred but resume shows no PM certification"
-   ❌ Flag: "Resume doesn't list 'strong communication skills'"
-
-6. SCORING GUIDE (be honest, not generous):
-   - 76-100: Strong match. Candidate demonstrably meets most/all requirements. Hire-ready.
-   - 56-75: Good match. Meets core requirements, minor gaps.
-   - 36-55: Partial match. Meets some requirements, has notable gaps.
-   - 16-35: Weak match. Limited alignment.
-   - 0-15:  Poor match. Does not meet requirements.
-
-7. For skills_found/skills_missing: ONLY list concrete technical skills, certifications,
-   and tools — NOT experience requirements or soft skills.
-   ❌ skills_missing: "ability to manage projects", "10+ years experience"
-   ✅ skills_missing: "PMP certification", "Procore", "AutoCAD"
-
-6. NO HALLUCINATIONS. Every strength and gap must be directly evidenced in the documents.
-   Quote specific phrases when citing evidence.
-
-Return JSON:
-{
-  "overall_score": 0-100,
-  "match_summary": "2-3 sentence honest assessment of the fit",
-  "strengths": ["Specific match point with evidence — e.g. 'Resume shows $90M+ portfolio; JD requires $30M+ experience'"],
-  "gaps": ["Genuine gap with specific evidence — only if truly missing"],
-  "improvements": ["Specific, actionable suggestion based on a real gap"],
-  "skills_found": ["concrete technical skills/certs in resume that JD also mentions"],
-  "skills_missing": ["concrete technical skills/certs the JD requires that resume lacks"]
-}`;
-}
-
-function buildSystemPT(): string {
-  return `Você é um recrutador sênior e especialista em ATS com 20 anos de experiência avaliando candidatos.
-Sua função é avaliar com honestidade o alinhamento entre um currículo e uma vaga de emprego.
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-REGRAS CRÍTICAS — LEIA ANTES DE PONTUAR:
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-1. NÃO FAÇA CORRESPONDÊNCIA DE PALAVRAS-CHAVE. Leia os documentos como um humano.
-   "10+ anos em gestão de projetos" na vaga é atendido por um currículo com 15 anos de experiência em PM,
-   mesmo que as palavras exatas sejam diferentes.
-
-2. VAGAS CURTAS SÃO NORMAIS. Muitas descrições são breves e listam principalmente requisitos de experiência.
-   Isso NÃO significa que o candidato é inadequado. Avalie o que a vaga realmente exige.
-
-3. REPORTE APENAS LACUNAS REAIS. Uma lacuna é algo que a vaga genuinamente precisa e o currículo não tem.
-   Não invente lacunas.
-
-4. GUIA DE PONTUAÇÃO:
-   - 75-95: Forte alinhamento. Candidato demonstravelmente atende a maioria dos requisitos.
-   - 55-74: Bom alinhamento. Atende aos requisitos principais, lacunas menores.
-   - 35-54: Alinhamento parcial. Atende alguns requisitos, tem lacunas notáveis.
-   - 0-34:  Alinhamento fraco ou inadequado.
-
-5. SEM ALUCINAÇÕES. Toda força e lacuna deve ter evidência direta nos documentos.
-
-Retorne JSON:
-{
-  "overall_score": 0-100,
-  "match_summary": "Avaliação honesta em 2-3 frases",
-  "strengths": ["Ponto de alinhamento com evidência específica"],
-  "gaps": ["Lacuna genuína com evidência — apenas se realmente ausente"],
-  "improvements": ["Sugestão específica e acionável"],
-  "skills_found": ["habilidades técnicas/certificações do currículo que a vaga também menciona"],
-  "skills_missing": ["habilidades técnicas/certificações que a vaga exige e o currículo não tem"]
-}`;
+function toArr(v: unknown): string[] {
+  return Array.isArray(v) ? v.map(String).filter(Boolean) : [];
 }

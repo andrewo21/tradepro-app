@@ -52,7 +52,7 @@ export function computeFinalScore(
   semanticMatch: number,
   structure: number  // kept in signature for backwards compat, not used in weighted score
 ): FinalScoreResult {
-  // ATS match score: 60% skills coverage + 40% semantic match (per spec)
+  // ATS match score: 60% skills coverage + 40% job fit (per spec)
   const raw =
     (skillsCoverage * WEIGHTS.skills_coverage) +
     (semanticMatch  * WEIGHTS.semantic_match);

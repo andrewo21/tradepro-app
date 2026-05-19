@@ -76,11 +76,11 @@ export default function PrivacyPage() {
 
             <section>
               <h2 className="text-lg font-semibold text-neutral-900 mb-2">9. Proprietary Technology &amp; Intellectual Property</h2>
-              <p className="mb-3">The TradePro ATS Engine™ is protected by:</p>
+              <p className="mb-3">The TradePro Resume Intelligence™ is protected by:</p>
               <ul className="list-disc pl-5 space-y-1 mb-3">
                 <li>Copyright (automatic upon creation)</li>
                 <li>Trade secret (internal logic and algorithms)</li>
-                <li>Trademark (TradePro Technologies™ / TradePro ATS Engine™)</li>
+                <li>Trademark (TradePro Technologies™ / TradePro Resume Intelligence™)</li>
               </ul>
               <p>No user data is used to train external AI models. All data entered on the platform is used solely to generate the documents requested by the user.</p>
             </section>

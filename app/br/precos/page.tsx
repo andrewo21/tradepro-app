@@ -87,7 +87,7 @@ export default function BrazilPricingPage() {
 
             {/* ATS Engine description */}
             <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-5 text-left">
-              <p className="text-xs font-bold text-green-800 uppercase tracking-wide mb-2">TradePro ATS Engine™ — Análise Profissional Completa</p>
+              <p className="text-xs font-bold text-green-800 uppercase tracking-wide mb-2">TradePro Resume Intelligence™ — Análise Profissional Completa</p>
               <ul className="space-y-1">
                 {["Relatório ATS completo em PDF","Pontuação de Estrutura","Pontuação ATS (quando houver vaga)","Habilidades faltantes","Ferramentas faltantes","Responsabilidades faltantes","Impacto estimado na pontuação","Recomendações específicas para o seu cargo","Dicas gerais de estrutura"].map((item, i) => (
                   <li key={i} className="flex items-center gap-2 text-xs text-green-800">
@@ -123,7 +123,7 @@ export default function BrazilPricingPage() {
             <div className="space-y-6">
               {[
                 {
-                  q: "O que é o TradePro ATS Engine™?",
+                  q: "O que é o TradePro Resume Intelligence™?",
                   a: "É uma tecnologia proprietária desenvolvida pela TradePro Technologies que analisa seu currículo com base em habilidades, ferramentas e responsabilidades esperadas para o mercado de trabalho.",
                 },
                 {

@@ -156,7 +156,7 @@ export default function ATSScoreTracker() {
           ) : (
             <div className="text-center py-2">
               <p className="text-sm font-semibold text-neutral-700">ATS Score</p>
-              <p className="text-xs text-neutral-500 mt-1">Use the Job Match Optimizer at the top of this page to analyze your resume against a specific job posting and get your score.</p>
+              <p className="text-xs text-neutral-500 mt-1">Use the Job Fit Optimizer at the top of this page to analyze your resume against a specific job posting and get your score.</p>
             </div>
           )}
           <button onClick={() => setTab("suggestions")}

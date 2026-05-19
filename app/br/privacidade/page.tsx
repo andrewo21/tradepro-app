@@ -36,11 +36,11 @@ export default function PrivacidadeBR() {
 
           <section>
             <h2 className="text-lg font-semibold text-neutral-900 mb-2">7. Tecnologia Proprietária e Direitos Autorais</h2>
-            <p className="mb-3">O TradePro ATS Engine™ é protegido por:</p>
+            <p className="mb-3">O TradePro Resume Intelligence™ é protegido por:</p>
             <ul className="list-disc pl-5 space-y-1 mb-3">
               <li>Direitos autorais (automáticos)</li>
               <li>Segredo comercial (lógica interna e algoritmos)</li>
-              <li>Marca registrada (TradePro Technologies™ / TradePro ATS Engine™)</li>
+              <li>Marca registrada (TradePro Technologies™ / TradePro Resume Intelligence™)</li>
             </ul>
             <p>Nenhum dado do usuário é utilizado para treinar modelos externos. Todos os dados inseridos na plataforma são utilizados exclusivamente para a geração dos documentos solicitados pelo próprio usuário.</p>
           </section>

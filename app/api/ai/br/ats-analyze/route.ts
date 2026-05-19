@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
       const cleanedJD = cleanExtractedText(jobDescription);
       const locale    = body.locale || "en";
 
-      const assessment = await runRecruiterAssessment(client, resume, cleanedJD, locale);
+      const assessment = await runRecruiterAssessment(client, resume, cleanedJD, locale, body.candidateTitle || null);
 
       // Map to the output shape the UI expects
       return NextResponse.json({
@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
         skills_coverage_score: assessment.skills_found.length > 0
           ? Math.round((assessment.skills_found.length / (assessment.skills_found.length + assessment.skills_missing.length)) * 100)
           : null,
-        semantic_match_score:  null,
+        job_fit_score:  null,
         structure_score:       null,
         skills_found:          assessment.skills_found,
         skills_missing:        assessment.skills_missing,

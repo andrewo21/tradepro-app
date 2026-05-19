@@ -304,8 +304,8 @@ function drawATSReport(doc: any, data: any) {
   if (data.skills_coverage_score !== undefined && data.skills_coverage_score !== null) {
     drawBar("Cobertura de habilidades da vaga", data.skills_coverage_score, "#2563eb");
   }
-  if (data.semantic_match_score !== undefined && data.semantic_match_score !== null) {
-    drawBar("Alinhamento semântico com a vaga", data.semantic_match_score, AMBER);
+  if (data.job_fit_score !== undefined && data.job_fit_score !== null) {
+    drawBar("Alinhamento semântico com a vaga", data.job_fit_score, AMBER);
   }
   y += 10;
 
