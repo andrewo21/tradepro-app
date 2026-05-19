@@ -12,7 +12,7 @@ import { computeLiveAtsScore, atsLabelColor } from "@/lib/ats/live/liveAtsScore"
 import CV1Character from "@/components/assistant/CV1Character";
 import {
   Check, AlertCircle, Zap, MessageCircle,
-  ChevronRight, Target, TrendingUp
+  ChevronRight, Target, TrendingUp, Repeat2
 } from "lucide-react";
 
 // ─── Resume text builder for Resume Intelligence™ ────────────────────────────────────
@@ -121,7 +121,9 @@ export default function JobTargetStep() {
   const [loading,  setLoading]  = useState(false);
   const isThinking = loading;
   const [result,   setResult]   = useState<any>(null);
+  const [pivot,    setPivot]    = useState<any>(null);
   const [error,    setError]    = useState<string | null>(null);
+  const [pivotAccepted, setPivotAccepted] = useState<Record<string, boolean>>({});
 
   const errorFlags  = liveAts.flags.filter(f => f.severity === "error");
   const warnFlags   = liveAts.flags.filter(f => f.severity === "warning");
@@ -138,20 +140,27 @@ export default function JobTargetStep() {
     }
 
     try {
-      const res  = await fetch("/api/ai/br/ats-analyze", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          resumeText,
-          jobDescription: jobText,
-          locale: "en",
-          // Pass job title for semantic floor calculation
-          candidateTitle: store.personalInfo?.tradeTitle || null,
+      // Run both analyses in parallel — intelligence score + career pivot detection
+      const [atsRes, pivotRes] = await Promise.all([
+        fetch("/api/ai/br/ats-analyze", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            resumeText, jobDescription: jobText, locale: "en",
+            candidateTitle: store.personalInfo?.tradeTitle || null,
+          }),
         }),
-      });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.detail || json.error || `Error ${res.status}`);
+        fetch("/api/ai/career-pivot", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ resumeData: store, jobDescription: jobText, locale: "en" }),
+        }),
+      ]);
+
+      const [json, pivotJson] = await Promise.all([atsRes.json(), pivotRes.json()]);
+      if (!atsRes.ok) throw new Error(json.detail || json.error || `Error ${atsRes.status}`);
       setResult(json);
+      if (pivotJson.is_pivot) setPivot(pivotJson);
     } catch (e: any) {
       setError(e.message || "Analysis failed. Please try again.");
     } finally { setLoading(false); }
@@ -366,6 +375,113 @@ export default function JobTargetStep() {
                   </li>
                 ))}
               </ul>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Career Pivot Mode ── */}
+      {pivot && pivot.is_pivot && (
+        <div className="mb-6 bg-gradient-to-br from-violet-950 to-indigo-950 border border-violet-700/40 rounded-2xl p-6 shadow-xl">
+          <div className="flex items-center gap-2.5 mb-2">
+            <Repeat2 className="w-5 h-5 text-violet-400" />
+            <h2 className="text-white font-bold text-base">Career Pivot Mode</h2>
+            <span className="text-[10px] bg-violet-500/30 text-violet-300 px-2 py-0.5 rounded-full font-bold uppercase tracking-wide">New</span>
+          </div>
+          <p className="text-violet-200/80 text-sm mb-1">
+            <span className="font-semibold text-white">{pivot.current_role}</span> → <span className="font-semibold text-violet-300">{pivot.target_role}</span>
+          </p>
+          <p className="text-violet-200/70 text-sm mb-5 leading-relaxed">{pivot.pivot_summary}</p>
+
+          {/* Bullet rewrites */}
+          {pivot.rewrites?.length > 0 && (
+            <div className="space-y-3 mb-4">
+              <p className="text-violet-300 text-xs font-bold uppercase tracking-wide">CV-1 Pivot Rewrites — same achievements, target role language:</p>
+              {pivot.rewrites.map((r: any, i: number) => {
+                const key = `${r.experienceId}-${r.bulletIndex}`;
+                const accepted = pivotAccepted[key];
+                return (
+                  <div key={i} className={`rounded-xl overflow-hidden border ${accepted ? "border-emerald-600/40" : "border-violet-700/40"}`}>
+                    {/* Original */}
+                    <div className="bg-red-950/40 px-4 py-2.5">
+                      <p className="text-[10px] text-red-400 font-bold uppercase mb-1">Your current bullet</p>
+                      <p className="text-xs text-red-200/80 leading-relaxed italic">"{r.original}"</p>
+                    </div>
+                    {/* Pivot */}
+                    <div className="bg-violet-900/40 px-4 py-2.5">
+                      <p className="text-[10px] text-violet-400 font-bold uppercase mb-1">CV-1 pivot rewrite</p>
+                      <p className="text-xs text-violet-100 leading-relaxed">"{r.rewritten}"</p>
+                      <p className="text-[10px] text-violet-400/70 mt-1 italic">{r.explanation}</p>
+                    </div>
+                    {/* Action */}
+                    {!accepted ? (
+                      <div className="flex border-t border-violet-700/30">
+                        <button
+                          onClick={() => {
+                            // Apply to store
+                            if (r.bulletType === "responsibility") {
+                              store.updateResponsibility(r.experienceId, r.bulletIndex, r.rewritten);
+                            } else {
+                              store.updateAchievement(r.experienceId, r.bulletIndex, r.rewritten);
+                            }
+                            setPivotAccepted(prev => ({ ...prev, [key]: true }));
+                          }}
+                          className="flex-1 py-2 text-xs font-bold text-violet-300 hover:bg-violet-800/40 transition-colors flex items-center justify-center gap-1.5"
+                        >
+                          <Check className="w-3.5 h-3.5" /> Yes, use this version
+                        </button>
+                        <div className="w-px bg-violet-700/30" />
+                        <button
+                          onClick={() => setPivotAccepted(prev => ({ ...prev, [key]: true }))}
+                          className="flex-1 py-2 text-xs text-violet-400/60 hover:text-violet-300 transition-colors"
+                        >
+                          Keep original
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="bg-emerald-900/30 px-4 py-2 flex items-center gap-2">
+                        <Check className="w-3.5 h-3.5 text-emerald-400" />
+                        <span className="text-xs text-emerald-400 font-semibold">Applied to your resume</span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Summary rewrite */}
+          {pivot.summary_rewrite && !pivotAccepted["summary"] && (
+            <div className="rounded-xl overflow-hidden border border-violet-700/40">
+              <div className="bg-red-950/40 px-4 py-2.5">
+                <p className="text-[10px] text-red-400 font-bold uppercase mb-1">Your current summary</p>
+                <p className="text-xs text-red-200/80 leading-relaxed italic">"{store.summary?.slice(0, 120)}…"</p>
+              </div>
+              <div className="bg-violet-900/40 px-4 py-2.5">
+                <p className="text-[10px] text-violet-400 font-bold uppercase mb-1">CV-1 pivot summary for {pivot.target_role}</p>
+                <p className="text-xs text-violet-100 leading-relaxed">"{pivot.summary_rewrite}"</p>
+              </div>
+              <div className="flex border-t border-violet-700/30">
+                <button
+                  onClick={() => {
+                    store.updateSummary(pivot.summary_rewrite);
+                    setPivotAccepted(prev => ({ ...prev, summary: true }));
+                  }}
+                  className="flex-1 py-2 text-xs font-bold text-violet-300 hover:bg-violet-800/40 transition-colors flex items-center justify-center gap-1.5"
+                >
+                  <Check className="w-3.5 h-3.5" /> Use pivot summary
+                </button>
+                <div className="w-px bg-violet-700/30" />
+                <button
+                  onClick={() => setPivotAccepted(prev => ({ ...prev, summary: true }))}
+                  className="flex-1 py-2 text-xs text-violet-400/60 hover:text-violet-300 transition-colors"
+                >Keep original</button>
+              </div>
+            </div>
+          )}
+          {pivotAccepted["summary"] && pivot.summary_rewrite && (
+            <div className="mt-2 flex items-center gap-2 text-xs text-emerald-400 font-semibold">
+              <Check className="w-3.5 h-3.5" /> Summary updated for {pivot.target_role}
             </div>
           )}
         </div>
