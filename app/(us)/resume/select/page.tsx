@@ -13,11 +13,14 @@ import InstallPrompt from "@/components/InstallPrompt";
 import Image from "next/image";
 
 export default function SelectPage() {
-  const selectedTemplate = useResumeStore((s) => s.selectedTemplate);
+  const selectedTemplate  = useResumeStore((s) => s.selectedTemplate);
   const setSelectedTemplate = useResumeStore((s) => s.setSelectedTemplate);
-  const premiumUnlocked = useResumeStore((s) => s.premiumUnlocked);
+  const premiumUnlocked   = useResumeStore((s) => s.premiumUnlocked);
+  const clearAll          = useResumeStore((s) => s.clearAll);
+  const hasExistingData   = useResumeStore((s) => !!(s.personalInfo?.firstName || s.experience?.some((e: any) => e.jobTitle)));
   const [showPremiumNotice, setShowPremiumNotice] = useState(false);
   const [hasAccess, setHasAccess] = useState<boolean | null>(null);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   const router = useRouter();
 
@@ -46,7 +49,38 @@ export default function SelectPage() {
 
       <div className="flex items-center justify-between mb-2">
         <h1 className="text-2xl font-semibold">Choose Your Template</h1>
+        {hasExistingData && (
+          <button
+            onClick={() => setShowClearConfirm(true)}
+            className="text-sm text-neutral-500 hover:text-red-600 transition-colors flex items-center gap-1"
+          >
+            🗑 Start Fresh
+          </button>
+        )}
       </div>
+
+      {/* Start fresh confirmation */}
+      {showClearConfirm && (
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center justify-between gap-4">
+          <p className="text-sm text-red-700 font-medium">
+            This will erase your current resume data and start over. Are you sure?
+          </p>
+          <div className="flex gap-2 flex-shrink-0">
+            <button
+              onClick={() => { clearAll(); setShowClearConfirm(false); }}
+              className="px-4 py-1.5 bg-red-600 text-white rounded-lg text-sm font-semibold hover:bg-red-700 transition"
+            >
+              Yes, clear it
+            </button>
+            <button
+              onClick={() => setShowClearConfirm(false)}
+              className="px-4 py-1.5 bg-neutral-200 text-neutral-700 rounded-lg text-sm hover:bg-neutral-300 transition"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Premium notice banner */}
       {showPremiumNotice && (

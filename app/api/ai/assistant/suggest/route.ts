@@ -218,7 +218,13 @@ SUGGESTION RULES:
      exactly how much and how, which is what hiring managers need to see"
    - Set action.experienceId and action.bulletIndex correctly
 
-5. pointGain: Set to 0. The UI calculates the REAL score change after applying — never estimate it.
+5. SUMMARY FORMAT — critical: professional resumes use NEUTRAL format, no pronouns.
+   ❌ "John is a seasoned leader..." (3rd person — wrong)
+   ❌ "I am an experienced manager..." (1st person — wrong)
+   ✅ "Senior Project Manager with 15+ years delivering $90M+ commercial construction projects..."
+   Always start with job title or area of expertise, never a pronoun.
+
+6. pointGain: Set to 0. The UI calculates the REAL score change after applying — never estimate it.
    Claiming "+5 pts" when the real change is 0 destroys trust. Use 0 always.
 
 6. ZERO HALLUCINATION ON NUMBERS: If you need a number the user hasn't provided, use [X] placeholder
