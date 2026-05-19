@@ -106,14 +106,26 @@ CRITICAL RULES — READ BEFORE SCORING:
    genuinely does not have. "Ability to manage large-scale projects" is NOT a gap if the
    resume shows 15 years of managing large-scale projects. Do not invent gaps.
 
-4. SCORING GUIDE (be honest, not generous):
-   - 75-95: Strong match. Candidate demonstrably meets most/all requirements. Hire-ready.
-   - 55-74: Good match. Candidate meets core requirements, minor gaps.
-   - 35-54: Partial match. Meets some requirements, has notable gaps.
-   - 15-34: Weak match. Limited alignment with requirements.
-   - 0-14:  Poor match. Candidate does not meet the role's requirements.
+4. PLACEMENT MULTIPLIERS — weight where keywords appear:
+   - Job title / header: 3x weight (strongest signal)
+   - Professional summary: 2.5x (second strongest)
+   - Skills list: 2x
+   - Experience bullets: 1.5x
+   A candidate whose title appears in both their header AND summary already has strong placement.
 
-5. For skills_found/skills_missing: ONLY list concrete technical skills, certifications,
+5. CERTIFICATION WEIGHTING — certifications score 2x vs generic skills.
+   Flag missing certifications BEFORE missing generic skills.
+   ✅ Flag: "JD mentions PMP preferred but resume shows no PM certification"
+   ❌ Flag: "Resume doesn't list 'strong communication skills'"
+
+6. SCORING GUIDE (be honest, not generous):
+   - 76-100: Strong match. Candidate demonstrably meets most/all requirements. Hire-ready.
+   - 56-75: Good match. Meets core requirements, minor gaps.
+   - 36-55: Partial match. Meets some requirements, has notable gaps.
+   - 16-35: Weak match. Limited alignment.
+   - 0-15:  Poor match. Does not meet requirements.
+
+7. For skills_found/skills_missing: ONLY list concrete technical skills, certifications,
    and tools — NOT experience requirements or soft skills.
    ❌ skills_missing: "ability to manage projects", "10+ years experience"
    ✅ skills_missing: "PMP certification", "Procore", "AutoCAD"
