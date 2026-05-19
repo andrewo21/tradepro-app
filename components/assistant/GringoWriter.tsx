@@ -169,21 +169,40 @@ function applyUS(action: StoreAction, store: any) {
       break;
 
     case "add_experience": {
+      // Atomic add: one action adds job + all responsibilities together — prevents duplication
       store.addExperience();
       setTimeout(() => {
         const exp = useResumeStore.getState().experience;
         const last = exp[exp.length - 1];
         if (!last) return;
-        if (payload.jobTitle) store.updateExperience(last.id, "jobTitle", payload.jobTitle);
-        if (payload.company)  store.updateExperience(last.id, "company",  payload.company);
+        if (payload.jobTitle)  store.updateExperience(last.id, "jobTitle",  payload.jobTitle);
+        if (payload.company)   store.updateExperience(last.id, "company",   payload.company);
         if (payload.startDate) store.updateExperience(last.id, "startDate", payload.startDate);
-        if (payload.endDate)  store.updateExperience(last.id, "endDate",  payload.endDate);
-        if (payload.city)     store.updateExperience(last.id, "city",     payload.city);
+        if (payload.endDate)   store.updateExperience(last.id, "endDate",   payload.endDate);
+        if (payload.city)      store.updateExperience(last.id, "city",      payload.city);
+
+        // Add all responsibilities in the same timeout — no separate add_responsibility needed
+        const bullets: string[] = Array.isArray(payload.responsibilities) ? payload.responsibilities : [];
+        bullets.forEach((text: string, i: number) => {
+          if (!text?.trim()) return;
+          if (i === 0) {
+            // First bullet goes into the pre-existing empty slot
+            store.updateResponsibility(last.id, 0, text);
+          } else {
+            store.addResponsibility(last.id);
+            setTimeout(() => {
+              const updated = useResumeStore.getState().experience;
+              const job = updated.find((e: any) => e.id === last.id);
+              if (job) store.updateResponsibility(last.id, job.responsibilities.length - 1, text);
+            }, 60 * i);
+          }
+        });
       }, 60);
       break;
     }
 
     case "add_responsibility": {
+      // Legacy fallback — atomic add_experience is preferred
       setTimeout(() => {
         const exp = useResumeStore.getState().experience;
         const idx = typeof payload.experienceIndex === "number" ? payload.experienceIndex : exp.length - 1;
