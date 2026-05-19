@@ -5,8 +5,6 @@ import GringoHero from "./GringoHero";
 
 export default function GringoDynamic({ size = 280, className = "" }: { size?: number; className?: string }) {
   const [ready, setReady] = useState(false);
-  const h = Math.round(size * 1.3);
-
   // Load model-viewer script once on client
   useEffect(() => {
     if (customElements.get("model-viewer")) { setReady(true); return; }
@@ -18,7 +16,7 @@ export default function GringoDynamic({ size = 280, className = "" }: { size?: n
   }, []);
 
   return (
-    <div className={`relative ${className}`} style={{ width: size, height: h }}>
+    <div className={`relative ${className}`} style={{ width: size, height: size }}>
       {/* Green glow */}
       <div className="absolute inset-0 rounded-full opacity-20 pointer-events-none"
         style={{ background: "radial-gradient(circle, #22c55e 0%, #15803d 60%, transparent 80%)", filter: "blur(24px)", transform: "scale(1.2)" }} />

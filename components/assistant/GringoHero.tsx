@@ -9,7 +9,7 @@ export default function GringoHero({ size = 280 }: { size?: number }) {
   return (
     <div
       className="relative flex items-center justify-center"
-      style={{ width: size, height: Math.round(size * 1.35) }}
+      style={{ width: size, height: size }}
     >
       {/* Ambient glow */}
       <div
@@ -21,11 +21,11 @@ export default function GringoHero({ size = 280 }: { size?: number }) {
         }}
       />
       <Image
-        src="/gringo-hero.png"
+        src="/gringo-bust.png"
         alt="Gringo — AI Resume Coach"
         width={size}
-        height={Math.round(size * 1.35)}
-        className="relative z-10 object-contain drop-shadow-2xl"
+        height={size}
+        className="relative z-10 object-cover drop-shadow-2xl rounded-2xl"
         priority
       />
     </div>
