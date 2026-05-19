@@ -50,16 +50,17 @@ interface Props {
 // Gringo uses the hero image for all moods (individual frames coming later)
 const GRINGO_FRAME = "/gringo-hero.png";
 
-// Bust expression frames — each mood shows a different face
+// Single consistent image for all moods — the suit robot.
+// Mood animations (bob, bounce, tilt) still apply via CSS.
 const CV1_BUST: Record<CV1Mood, string> = {
   idle:      "/cv1-bust.png",
-  wave:      "/cv1-bust-wave.png",
-  talking:   "/cv1-bust-talking.png",
-  thinking:  "/cv1-bust-thinking.png",
-  happy:     "/cv1-bust-happy.png",
-  celebrate: "/cv1-bust-celebrate.png",
-  polish:    "/cv1-bust-thinking.png",   // reuse thinking for polish
-  shrug:     "/cv1-bust.png",            // neutral for shrug
+  wave:      "/cv1-bust.png",
+  talking:   "/cv1-bust.png",
+  thinking:  "/cv1-bust.png",
+  happy:     "/cv1-bust.png",
+  celebrate: "/cv1-bust.png",
+  polish:    "/cv1-bust.png",
+  shrug:     "/cv1-bust.png",
 };
 
 export default function CV1Character({ mood = "idle", size = 120, className = "", variant = "us" }: Props) {
