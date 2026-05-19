@@ -4,7 +4,7 @@
 // Each bullet has an "Ask CV-1 to improve" button that sends the specific
 // bullet + job context directly to CV-1 for a targeted rewrite.
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { useAssistantStore } from "@/app/store/useAssistantStore";
 
@@ -39,19 +39,34 @@ export default function ExperienceBullet({
     });
   }
 
+  // Detect if this bullet was recently AI-inserted (has content and hasn't been focused yet)
+  const [wasAiInserted, setWasAiInserted] = useState(false);
+  useEffect(() => {
+    if (value.trim() && !value.includes("[")) setWasAiInserted(true);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <div className="space-y-1">
       <div className="relative flex items-start gap-2">
         <div className="relative flex-1">
+          {wasAiInserted && !showTip && (
+            <div className="absolute -top-5 left-0 text-[10px] text-indigo-400 font-medium flex items-center gap-1">
+              <span>✨ AI assisted — click to edit</span>
+            </div>
+          )}
           <textarea
             spellCheck
             value={value}
-            onChange={(e) => onChange(e.target.value)}
-            onFocus={() => setShowTip(true)}
+            onChange={(e) => { onChange(e.target.value); setWasAiInserted(false); }}
+            onFocus={() => { setShowTip(true); setWasAiInserted(false); }}
             onBlur={() => setTimeout(() => setShowTip(false), 200)}
             placeholder={placeholder}
             rows={2}
-            className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:border-blue-400 focus:ring-blue-300 transition-colors"
+            className={`w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-1 transition-colors ${
+              wasAiInserted
+                ? "border-indigo-300 bg-indigo-50/30 focus:border-indigo-400 focus:ring-indigo-200"
+                : "border-neutral-300 focus:border-blue-400 focus:ring-blue-300"
+            }`}
           />
 
           {/* CV-1 tooltip on focus */}

@@ -112,6 +112,11 @@ REGRAS GERAIS:
   Use [número] como placeholder se o usuário não souber responder na hora.
 - Para habilidades: sugira as mais relevantes e pergunte se quer adicionar mais
 - O resumo profissional deve ser gerado automaticamente ao final
+- FORMATO DO RESUMO: Use formato profissional neutro — SEM pronomes pessoais.
+  ❌ ERRADO: "João é um profissional experiente..." (3ª pessoa)
+  ❌ ERRADO: "Sou um profissional com 10 anos..." (1ª pessoa)
+  ✅ CORRETO: "Profissional de TI com 10 anos de experiência em desenvolvimento de software..."
+  O resumo começa com o cargo/área, depois anos de experiência, depois principais conquistas.
 - Quando tiver coletado tudo, diga que o currículo está pronto e marque done: true
 
 FORMATO DE RESPOSTA (JSON estrito):
@@ -175,6 +180,11 @@ GENERAL RULES:
   Use [number] as a placeholder if they're not sure in the moment.
 - For skills: suggest the most relevant for their role, ask if they want to add more
 - Generate the professional summary automatically at the end — do not ask the user to write one
+- SUMMARY FORMAT: Use neutral professional format — NO personal pronouns.
+  ❌ WRONG: "John is an experienced manager..." (3rd person)
+  ❌ WRONG: "I am a manager with 10 years..." (1st person)
+  ✅ CORRECT: "Senior Project Manager with 15+ years delivering large-scale commercial construction..."
+  Start with job title/field, then years of experience, then top achievements.
 - When everything is collected, say the resume is ready and set done: true
 
 RESPONSE FORMAT (strict JSON):
