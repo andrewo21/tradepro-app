@@ -71,9 +71,9 @@ function CheckoutSuccessContent() {
           if (data.entitlements.coverLetter) {
             router.push(isBrazil ? "/br/carta" : "/cover-letter");
           } else if (data.entitlements.resume) {
-            // Go straight to the builder — template selection is preserved
-            // in localStorage from before payment, no need to re-select
-            router.push(isBrazil ? "/br/curriculo/pessoal" : "/resume/personal");
+            // Go straight to the final preview — resume data is in localStorage
+            // from before payment. User paid to download, send them there directly.
+            router.push(isBrazil ? "/br/curriculo/preview" : "/resume/preview");
           }
         }, 3000);
       } else {
@@ -125,7 +125,7 @@ function CheckoutSuccessContent() {
             <p className="text-sm font-semibold text-gray-700 mb-1">
               {isBrazil ? "O que você quer criar primeiro?" : "What would you like to create first?"}
             </p>
-            <a href={isBrazil ? "/br/curriculo" : "/resume/select"}
+            <a href={isBrazil ? "/br/curriculo/preview" : "/resume/preview"}
               className="flex items-center gap-3 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium text-sm">
               <span className="text-xl">📄</span>
               {isBrazil ? "Criar Currículo" : "Build My Resume"}
