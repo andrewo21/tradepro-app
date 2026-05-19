@@ -1,5 +1,5 @@
 // lib/ats/modes/with_job.ts
-// Orchestrates Mode A: full ATS analysis with job description.
+// Orchestrates Mode A: full Resume Intelligence™ with job description.
 // Calls extraction, scoring, suggestions, and output builder in order.
 
 import OpenAI from "openai";

@@ -125,7 +125,7 @@ export default function JobMatch() {
         <div className="flex items-center gap-3">
           <span className="text-xl">🎯</span>
           <div>
-            <p className="font-bold text-blue-900 text-sm">Job Match Optimizer</p>
+            <p className="font-bold text-blue-900 text-sm">Job Fit Optimizer</p>
             <p className="text-blue-600 text-xs">Paste a job posting — AI rewrites your resume to beat their ATS filter</p>
           </div>
         </div>

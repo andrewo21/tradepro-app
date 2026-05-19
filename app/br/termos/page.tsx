@@ -19,7 +19,7 @@ export default function TermosBR() {
 
           <section>
             <h2 className="text-lg font-semibold text-neutral-900 mb-2">12. Tecnologia Proprietária</h2>
-            <p className="mb-3">O TradePro ATS Engine™ é uma tecnologia proprietária da TradePro Technologies. Ele inclui:</p>
+            <p className="mb-3">O TradePro Resume Intelligence™ é uma tecnologia proprietária da TradePro Technologies. Ele inclui:</p>
             <ul className="list-disc pl-5 space-y-1 mb-3">
               <li>Sistema exclusivo de pontuação ATS</li>
               <li>Biblioteca própria de cargos do mercado de trabalho</li>
@@ -27,7 +27,7 @@ export default function TermosBR() {
               <li>Formato único de relatório ATS</li>
               <li>Estrutura de recomendações e melhorias específicas</li>
             </ul>
-            <p>Todo o conteúdo, lógica, estrutura e dados utilizados pelo sistema são protegidos por direitos autorais, segredos comerciais e demais leis aplicáveis. É proibida a reprodução, engenharia reversa, redistribuição ou uso não autorizado do TradePro ATS Engine™ ou de qualquer componente da plataforma TradePro Technologies.</p>
+            <p>Todo o conteúdo, lógica, estrutura e dados utilizados pelo sistema são protegidos por direitos autorais, segredos comerciais e demais leis aplicáveis. É proibida a reprodução, engenharia reversa, redistribuição ou uso não autorizado do TradePro Resume Intelligence™ ou de qualquer componente da plataforma TradePro Technologies.</p>
           </section>
         </div>
       </div>

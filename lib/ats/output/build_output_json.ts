@@ -44,7 +44,7 @@ export function buildOutputWithJob(input: WithJobOutputInput) {
     strength_label:        finalResult.strength_label,
 
     skills_coverage_score: Math.round(skillsCoverageScore),
-    semantic_match_score:  Math.round(semanticMatchScore),
+    job_fit_score:  Math.round(semanticMatchScore),
     structure_score:       Math.round(structureScore),
 
       skills_found:   skillsFound,

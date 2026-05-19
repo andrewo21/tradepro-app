@@ -190,7 +190,7 @@ export default function BrazilHomePage() {
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-10">
             <span className="inline-block bg-green-100 text-green-800 text-xs font-bold px-3 py-1 rounded-full mb-4 uppercase tracking-wide">
-              TradePro ATS Engine™
+              TradePro Resume Intelligence™
             </span>
             <h2 className="text-3xl md:text-4xl font-bold text-neutral-900 mb-4">
               O que o recrutador vê — antes de você enviar
@@ -221,7 +221,7 @@ export default function BrazilHomePage() {
                 </ul>
               </div>
               <div className="bg-green-50 border border-green-300 rounded-2xl p-6">
-                <p className="text-xs font-bold text-green-700 uppercase tracking-wide mb-3">Depois — Com TradePro ATS Engine™</p>
+                <p className="text-xs font-bold text-green-700 uppercase tracking-wide mb-3">Depois — Com TradePro Resume Intelligence™</p>
                 <div className="flex items-center gap-4 mb-4">
                   <div className="text-5xl font-bold text-green-700">84</div>
                   <span className="inline-block bg-green-100 text-green-800 text-xs font-bold px-3 py-1 rounded-full">Forte</span>
@@ -278,7 +278,7 @@ export default function BrazilHomePage() {
         </div>
       </section>
 
-      {/* HOW IT WORKS — TradePro ATS Engine™ (dark, includes the "até agora" quote) */}
+      {/* HOW IT WORKS — TradePro Resume Intelligence™ (dark, includes the "até agora" quote) */}
       <section className="w-full bg-neutral-900 py-16 px-4">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-10">
@@ -286,7 +286,7 @@ export default function BrazilHomePage() {
               Tecnologia Proprietária
             </span>
             <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">
-              🔍 TradePro ATS Engine™
+              🔍 TradePro Resume Intelligence™
             </h2>
             <p className="text-neutral-400 text-base max-w-2xl mx-auto mb-6">
               Um sistema exclusivo que identifica automaticamente o que falta no seu currículo — e quanto cada melhoria vale em pontos.
@@ -423,7 +423,7 @@ export default function BrazilHomePage() {
               </a>
             )}
           </div>
-          <span className="text-neutral-600 text-center">TradePro ATS Engine™ — Tecnologia Proprietária de Análise ATS</span>
+          <span className="text-neutral-600 text-center">TradePro Resume Intelligence™ — Tecnologia Proprietária de Análise ATS</span>
           <span className="text-neutral-600 text-center">© {new Date().getFullYear()} TradePro Technologies. Todos os direitos reservados.</span>
         </div>
       </footer>

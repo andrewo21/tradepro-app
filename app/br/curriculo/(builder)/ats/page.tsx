@@ -12,7 +12,7 @@ interface ATSResult {
   strength_label: string;
   structure_score: number;
   skills_coverage_score?: number;
-  semantic_match_score?: number;
+  job_fit_score?: number;
   skills_found?: string[];
   skills_missing?: string[];
   suggestions_pt_br: string[];
@@ -247,7 +247,7 @@ export default function BrATSStepPage() {
               {[
                 { label: "Estrutura do currículo", value: result.structure_score },
                 ...(result.skills_coverage_score !== undefined ? [{ label: "Cobertura de habilidades", value: result.skills_coverage_score }] : []),
-                ...(result.semantic_match_score !== undefined ? [{ label: "Alinhamento com a vaga", value: result.semantic_match_score }] : []),
+                ...(result.job_fit_score !== undefined ? [{ label: "Alinhamento com a vaga", value: result.job_fit_score }] : []),
               ].map(({ label, value }) => (
                 <div key={label}>
                   <div className="flex justify-between text-sm text-neutral-700 mb-1">

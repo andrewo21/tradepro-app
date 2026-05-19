@@ -7,7 +7,7 @@ import OpenAI from "openai";
  * Cleans raw job description text pasted from any source
  * (LinkedIn, WhatsApp, Catho, Vagas.com, email).
  * Strips boilerplate, legal text, company descriptions, navigation artifacts.
- * Returns only the information relevant for ATS analysis.
+ * Returns only the information relevant for Resume Intelligence™.
  */
 export async function POST(req: NextRequest) {
   try {

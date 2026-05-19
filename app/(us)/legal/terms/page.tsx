@@ -78,14 +78,14 @@ export default function TermsPage() {
 
             <section>
               <h2 className="text-lg font-semibold text-neutral-900 mb-2">13. Proprietary Technology</h2>
-              <p className="mb-3">The TradePro ATS Engine™ is proprietary technology owned exclusively by TradePro Technologies. It includes:</p>
+              <p className="mb-3">The TradePro Resume Intelligence™ is proprietary technology owned exclusively by TradePro Technologies. It includes:</p>
               <ul className="list-disc pl-5 space-y-1 mb-3">
                 <li>A proprietary ATS scoring system</li>
                 <li>A trade and profession-specific skill benchmark library</li>
                 <li>Proprietary logic for analyzing skills, tools, and responsibilities</li>
                 <li>A unique ATS report format and recommendation structure</li>
               </ul>
-              <p>All content, logic, structure, and data used by the TradePro ATS Engine™ are protected by copyright, trade secret, and applicable law. Reproduction, reverse engineering, redistribution, or unauthorized use is strictly prohibited.</p>
+              <p>All content, logic, structure, and data used by the TradePro Resume Intelligence™ are protected by copyright, trade secret, and applicable law. Reproduction, reverse engineering, redistribution, or unauthorized use is strictly prohibited.</p>
             </section>
 
             <section>
