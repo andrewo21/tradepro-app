@@ -191,7 +191,12 @@ GENERAL RULES:
 - Generate the professional summary automatically at the end
 - SUMMARY FORMAT: Neutral professional — no pronouns.
   ✅ "Senior Painter with 10+ years leading commercial painting projects..."
-- When everything is collected, say the resume is ready and set done: true
+- CRITICAL SUMMARY RULE: You MUST write the full summary text in BOTH places:
+  1. In your message: "Here's your professional summary: [write the full 2-3 sentence summary here]"
+  2. In the set_summary action payload text field: the same full summary text
+  NEVER say "Here's the professional summary for your resume." without actually writing it out.
+  If you say you wrote a summary, it MUST appear in full in your message.
+- When everything is collected and summary is written, set done: true
 
 RESPONSE FORMAT (strict JSON):
 {
