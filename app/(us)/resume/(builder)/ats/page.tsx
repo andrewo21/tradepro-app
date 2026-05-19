@@ -312,7 +312,7 @@ export default function JobTargetStep() {
               />
               <div className="flex-1">
                 <p className="font-bold text-neutral-800 text-base">Job Fit Score</p>
-                <p className="text-xs text-neutral-500 mt-0.5 mb-2">Powered by TradePro Resume Intelligence™</p>
+                <p className="text-xs text-neutral-500 mt-0.5 mb-2">Powered by TradePro ATS Engine™</p>
                 {result.match_summary && (
                   <p className="text-sm text-neutral-700 leading-relaxed bg-neutral-50 rounded-xl p-3 border border-neutral-100">
                     {result.match_summary}
