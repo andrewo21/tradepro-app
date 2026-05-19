@@ -49,15 +49,16 @@ function SucessoContent() {
         return;
       }
 
-      setStatus("Redirecionando para suas ferramentas…");
+      setStatus("Abrindo seu currículo…");
 
+      // Short delay so user sees the success message, then go straight to preview
       setTimeout(() => {
         if (data.entitlements.bundle || data.entitlements.resume) {
-          router.push("/br/curriculo");
+          router.push("/br/curriculo/preview");
         } else if (data.entitlements.coverLetter) {
           router.push("/br/carta");
         }
-      }, 3000);
+      }, 1500);
     }
 
     load();
@@ -99,7 +100,12 @@ function SucessoContent() {
           </div>
         )}
 
-        <p className="text-sm text-gray-500">{status}</p>
+        <div className="flex items-center justify-center gap-2 mt-2">
+          {!grantError && (
+            <span className="w-4 h-4 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
+          )}
+          <p className="text-sm text-gray-500">{status}</p>
+        </div>
       </div>
     </div>
   );
