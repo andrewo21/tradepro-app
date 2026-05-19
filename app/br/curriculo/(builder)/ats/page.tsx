@@ -1,337 +1,302 @@
 "use client";
 
-import { useState } from "react";
-import { useBrResumeStore } from "@/app/store/useBrResumeStore";
+// Etapa 7 BR — Resume Intelligence™ com Gringo
+// Pontuação ao vivo + comparação com vaga de emprego
+
+import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
+import { useBrResumeStore } from "@/app/store/useBrResumeStore";
+import { useAssistantStore } from "@/app/store/useAssistantStore";
+import { computeLiveAtsScore, atsLabelColor } from "@/lib/ats/live/liveAtsScore";
+import { mapBrDataToUsFormat } from "@/lib/pdfTemplates";
+import GringoCharacter from "@/components/assistant/GringoCharacter";
+import { Check, AlertCircle, Zap, MessageCircle, ChevronRight, Target, TrendingUp } from "lucide-react";
 
-type Mode = "general" | "with_job";
+const EMPTY_ATS = {
+  score: 0,
+  label: "Not Started" as const,
+  flags: [] as any[],
+  breakdown: { personal: 0, summary: 0, experience: 0, skills: 0, education: 0, certifications: 0 },
+};
 
-interface ATSResult {
-  mode: string;
-  final_ats_score: number | null;
-  strength_label: string;
-  structure_score: number;
-  skills_coverage_score?: number;
-  job_fit_score?: number;
-  skills_found?: string[];
-  skills_missing?: string[];
-  suggestions_pt_br: string[];
-  role_recommendations_pt_br?: string[];
-  specific_enhancements?: string[];
-  profession?: string | null;
-  raw_extraction?: { resume_titles?: string[]; [key: string]: any };
-}
-
-function labelStyle(label: string) {
-  if (label === "Forte") return { ring: "border-green-500", bg: "bg-green-50", color: "text-green-800", bar: "#16a34a" };
-  if (label === "Mediano") return { ring: "border-amber-400", bg: "bg-amber-50", color: "text-amber-800", bar: "#d97706" };
-  return { ring: "border-red-400", bg: "bg-red-50", color: "text-red-700", bar: "#dc2626" };
-}
-
-/** Safely extract text from a skill/bullet item — never returns [object Object] */
-function txt(item: any): string {
-  if (typeof item === "string") return item.trim();
-  if (item && typeof item.text === "string") return item.text.trim();
-  return "";
-}
-
-/** Build a plain-text representation of the resume from the BR store */
-function buildResumeText(store: any): string {
-  const p = store.personalInfo || {};
+function buildResumeText(brStore: any): string {
+  const mapped = mapBrDataToUsFormat(brStore);
   const parts: string[] = [];
-
-  const name = [p.nome, p.sobrenome].filter(Boolean).join(" ");
-  if (name) parts.push(`Nome: ${name}`);
-  if (p.tituloProfissional) parts.push(`Cargo: ${p.tituloProfissional}`);
-  if (p.cidade || p.estado) parts.push(`Localização: ${[p.cidade, p.estado].filter(Boolean).join(", ")}`);
-
-  if (store.resumoProfissional?.trim()) {
-    parts.push(`\nResumo Profissional:\n${store.resumoProfissional.trim()}`);
-  }
-
-  const tecnicas = (store.habilidadesTecnicas || store.habilidades || []).map(txt).filter(Boolean);
-  const comportamentais = (store.habilidadesComportamentais || []).map(txt).filter(Boolean);
-  const idiomas = (store.idiomas || []).map(txt).filter(Boolean);
-  if (tecnicas.length) parts.push(`\nHabilidades Técnicas: ${tecnicas.join(", ")}`);
-  if (comportamentais.length) parts.push(`Habilidades Comportamentais: ${comportamentais.join(", ")}`);
-  if (idiomas.length) parts.push(`Idiomas: ${idiomas.join(", ")}`);
-
-  const experiencia = (store.experiencia || []).filter((e: any) => e.cargo || e.empresa);
-  if (experiencia.length) {
-    parts.push("\nExperiência Profissional:");
-    experiencia.forEach((exp: any) => {
-      const dates = [exp.dataInicio, exp.dataFim].filter(Boolean).join(" – ");
-      if (exp.cargo || exp.empresa) {
-        parts.push(`${exp.cargo || ""}${exp.empresa ? " | " + exp.empresa : ""}${dates ? " (" + dates + ")" : ""}`);
-      }
-      if (exp.roleSummary?.trim()) parts.push(exp.roleSummary.trim());
-      (exp.responsabilidades || []).forEach((r: any) => {
-        const t = txt(r);
-        if (t) parts.push(`• ${t}`);
-      });
-    });
-  }
-
-  const formacao = (store.formacao || []).filter((f: any) => f.curso || f.instituicao);
-  if (formacao.length) {
-    parts.push("\nFormação:");
-    formacao.forEach((f: any) => {
-      const line = [f.curso, f.instituicao].filter(Boolean).join(" — ");
-      if (line) parts.push(line);
-    });
-  }
-
-  const certs = (store.cursosCertificacoes || []).filter((c: any) => c.nome).map((c: any) => c.nome);
-  if (certs.length) parts.push(`\nCertificações: ${certs.join(", ")}`);
-
+  if (mapped.name)  parts.push(`Nome: ${mapped.name}`);
+  if (mapped.title) parts.push(`Cargo: ${mapped.title}`);
+  if (mapped.summary?.trim()) parts.push(`\nResumo Profissional:\n${mapped.summary.trim()}`);
+  const skills = (mapped.skills || []).filter(Boolean);
+  if (skills.length) parts.push(`\nHabilidades: ${skills.join(", ")}`);
+  const certs = (mapped.certifications || []).filter(Boolean);
+  if (certs.length) parts.push(`Certificações: ${certs.join(", ")}`);
+  (mapped.experience || []).forEach((exp: any) => {
+    parts.push(`\n${exp.jobTitle || ""} | ${exp.company || ""}`);
+    (exp.responsibilities || []).forEach((b: string) => { if (b?.trim()) parts.push(`• ${b}`); });
+  });
   return parts.join("\n");
 }
 
-export default function BrATSStepPage() {
-  const store = useBrResumeStore();
-  const [mode, setMode] = useState<Mode>("general");
-  const [jobText, setJobText] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [cleaning, setCleaning] = useState(false);
-  const [result, setResult] = useState<ATSResult | null>(null);
-  const [error, setError] = useState<string | null>(null);
+function ScoreRing({ score, max = 100, label, color }: { score: number; max?: number; label: string; color: string }) {
+  const pct  = Math.min(100, (score / max) * 100);
+  const r    = 36;
+  const circ = 2 * Math.PI * r;
+  return (
+    <div className="flex flex-col items-center gap-1">
+      <div className="relative w-24 h-24">
+        <svg width="96" height="96" viewBox="0 0 96 96" className="-rotate-90">
+          <circle cx="48" cy="48" r={r} fill="none" stroke="#f1f5f9" strokeWidth="8"/>
+          <circle cx="48" cy="48" r={r} fill="none" stroke={color} strokeWidth="8"
+            strokeDasharray={`${(pct/100)*circ} ${circ}`} strokeLinecap="round"
+            style={{ transition: "stroke-dasharray 0.8s ease" }} />
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span className="text-2xl font-black" style={{ color }}>{score}</span>
+          <span className="text-[10px] text-neutral-400 font-medium">/{max}</span>
+        </div>
+      </div>
+      <span className="text-xs font-bold" style={{ color }}>{label}</span>
+    </div>
+  );
+}
 
-  async function handleCleanJobText() {
-    if (!jobText.trim()) return;
-    setCleaning(true);
-    try {
-      const res = await fetch("/api/ai/br/clean-job-text", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: jobText }),
-      });
-      const json = await res.json();
-      if (json.cleaned) setJobText(json.cleaned);
-    } catch { /* silent — keep original text */ }
-    finally { setCleaning(false); }
+function ptLabel(label: string): string {
+  switch (label) {
+    case "Strong":      return "Forte";
+    case "Good":        return "Bom";
+    case "Building":    return "Em construção";
+    case "Weak":        return "Fraco";
+    case "Not Started": return "Não iniciado";
+    default: return label;
   }
+}
 
-  async function handleAnalyze() {
+export default function BrJobTargetStep() {
+  const brStore   = useBrResumeStore();
+  const { open }  = useAssistantStore();
+  const mapped    = mapBrDataToUsFormat(brStore);
+  const firstName = brStore.personalInfo?.nome || "você";
+
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  let liveAts = EMPTY_ATS;
+  if (mounted) {
+    try { liveAts = computeLiveAtsScore(mapped); } catch { /* silent */ }
+  }
+  const scoreColor = atsLabelColor(liveAts.label);
+
+  const [jobText, setJobText]   = useState("");
+  const [loading, setLoading]   = useState(false);
+  const [result,  setResult]    = useState<any>(null);
+  const [error,   setError]     = useState<string | null>(null);
+  const isThinking = loading;
+
+  const hasResumeData = mounted && !!(mapped.name || (mapped.experience || []).some((e: any) => e.jobTitle));
+  const errorFlags    = liveAts.flags.filter(f => f.severity === "error");
+  const warnFlags     = liveAts.flags.filter(f => f.severity === "warning");
+
+  const runComparison = useCallback(async () => {
+    if (!jobText.trim()) return;
     setLoading(true); setError(null); setResult(null);
-
-    const resumeText = buildResumeText(store);
-    const wordCount = resumeText.trim().split(/\s+/).filter(Boolean).length;
-
-    if (wordCount < 20) {
-      setError("Preencha mais informações no currículo antes de analisar — pelo menos experiência e habilidades.");
-      setLoading(false);
-      return;
+    const resumeText = buildResumeText(brStore);
+    if (resumeText.trim().split(/\s+/).length < 20) {
+      setError("Por favor, complete mais seções do seu currículo antes de rodar a análise.");
+      setLoading(false); return;
     }
-
-    if (mode === "with_job" && !jobText.trim()) {
-      setError("Cole a descrição da vaga para comparar.");
-      setLoading(false);
-      return;
-    }
-
-    // Pass profession from store for industry benchmarking in general mode
-    const payload: any = {
-      resumeText,
-      profession: store.personalInfo?.tituloProfissional || null,
-    };
-    if (mode === "with_job") payload.jobDescription = jobText;
-
     try {
       const res = await fetch("/api/ai/br/ats-analyze", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ resumeText, jobDescription: jobText, locale: "pt-BR", candidateTitle: mapped.title || null }),
       });
       const json = await res.json();
-      if (!res.ok) {
-        // Show the real server error so we can debug
-        throw new Error(json.detail || json.error || `Erro ${res.status}`);
-      }
+      if (!res.ok) throw new Error(json.detail || json.error || `Erro ${res.status}`);
       setResult(json);
-    } catch (e: any) {
-      setError(e.message || "Erro ao analisar. Tente novamente.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  const styles = result ? labelStyle(result.strength_label) : null;
+    } catch (e: any) { setError(e.message || "Análise falhou. Tente novamente."); }
+    finally { setLoading(false); }
+  }, [jobText, brStore, mapped.title]);
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8">
-      <p className="text-sm text-neutral-500 mb-1">Passo 6 de 7 — Análise ATS</p>
-      <h1 className="text-2xl font-semibold mb-1">Análise ATS do Currículo</h1>
-      <p className="text-sm text-neutral-500 mb-6">
-        Descubra se seu currículo passa pelo filtro automático das empresas e o que melhorar.
-        Esta etapa é <strong>opcional</strong> — você pode ir direto para a visualização final.
-      </p>
+    <div className="max-w-3xl mx-auto px-4 py-8 pb-32">
+      <p className="text-sm text-neutral-500 mb-1">Etapa 7 de 8</p>
 
-      {/* Mode selector */}
-      <div className="grid grid-cols-2 gap-3 mb-6">
-        <button onClick={() => { setMode("general"); setResult(null); }}
-          className={`px-4 py-4 rounded-xl border-2 text-left transition ${
-            mode === "general" ? "border-green-600 bg-green-50" : "border-neutral-200 bg-white hover:border-green-300"
-          }`}>
-          <p className="font-semibold text-sm text-neutral-900">📋 Avaliação geral</p>
-          <p className="text-xs text-neutral-500 mt-1">Analisa a força do currículo sem precisar de uma vaga específica.</p>
-        </button>
-        <button onClick={() => { setMode("with_job"); setResult(null); }}
-          className={`px-4 py-4 rounded-xl border-2 text-left transition ${
-            mode === "with_job" ? "border-green-600 bg-green-50" : "border-neutral-200 bg-white hover:border-green-300"
-          }`}>
-          <p className="font-semibold text-sm text-neutral-900">🎯 Comparar com uma vaga</p>
-          <p className="text-xs text-neutral-500 mt-1">Cole a descrição da vaga e veja sua pontuação ATS completa.</p>
+      <div className="flex items-start gap-5 mb-8">
+        <GringoCharacter mood={isThinking ? "thinking" : "talking"} size={90} />
+        <div>
+          <h1 className="text-2xl font-bold text-neutral-900 mb-1">
+            Resume Intelligence™ — Revisão Final do Gringo
+          </h1>
+          <p className="text-neutral-500 text-sm leading-relaxed">
+            Oi, {firstName}! Aqui está sua pontuação atual. Quer ver como seu currículo se compara a uma vaga específica? Cole a descrição abaixo.
+          </p>
+        </div>
+      </div>
+
+      {/* Empty state */}
+      {mounted && !hasResumeData && (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 mb-6 text-center">
+          <p className="text-amber-800 font-semibold mb-2">Nenhum dado de currículo encontrado</p>
+          <p className="text-amber-700 text-sm mb-4">Parece que você acessou esta página diretamente. Comece do Passo 1.</p>
+          <Link href="/br/curriculo/pessoal" className="inline-block px-6 py-2.5 bg-green-700 text-white rounded-xl text-sm font-bold hover:bg-green-800 transition">
+            Começar a construir →
+          </Link>
+        </div>
+      )}
+
+      {/* Live score */}
+      <div className="bg-white border border-neutral-200 rounded-2xl p-6 mb-6 shadow-sm">
+        <div className="flex items-center justify-between mb-5">
+          <div>
+            <p className="font-bold text-neutral-800 text-base">Força Atual do Currículo</p>
+            <p className="text-xs text-neutral-500 mt-0.5">Baseada em completude, estrutura e qualidade do conteúdo</p>
+          </div>
+          <ScoreRing score={liveAts.score} label={ptLabel(liveAts.label)} color={scoreColor} />
+        </div>
+        <div className="space-y-2.5">
+          {([
+            ["Informações Pessoais", liveAts.breakdown.personal, 14],
+            ["Resumo Profissional",  liveAts.breakdown.summary,  18],
+            ["Experiência",          liveAts.breakdown.experience, 36],
+            ["Habilidades",          liveAts.breakdown.skills,    10],
+            ["Formação",             liveAts.breakdown.education,  8],
+            ["Certificações",        liveAts.breakdown.certifications, 6],
+          ] as [string, number, number][]).map(([label, pts, max]) => (
+            <div key={label}>
+              <div className="flex justify-between text-xs text-neutral-600 mb-1">
+                <span>{label}</span><span className="font-semibold">{Math.round(pts)} / {max}</span>
+              </div>
+              <div className="h-1.5 bg-neutral-100 rounded-full overflow-hidden">
+                <div className="h-full rounded-full transition-all duration-700"
+                  style={{ width: `${Math.min(100,(pts/max)*100)}%`, backgroundColor: scoreColor }} />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Validation flags */}
+      {(errorFlags.length > 0 || warnFlags.length > 0) && (
+        <div className="bg-white border border-neutral-200 rounded-2xl p-5 mb-6 shadow-sm">
+          <p className="font-semibold text-neutral-800 text-sm mb-3 flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-amber-500" />
+            Gringo detectou {errorFlags.length + warnFlags.length} item(ns) para resolver
+          </p>
+          <div className="space-y-2">
+            {errorFlags.map((f, i) => (
+              <div key={i} className="flex items-start gap-2 p-2.5 bg-red-50 rounded-xl border border-red-100 text-xs text-red-700">
+                <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+                <span>⚠️ Dado Faltando: {f.message}</span>
+              </div>
+            ))}
+            {warnFlags.map((f, i) => (
+              <div key={i} className="flex items-start gap-2 p-2.5 bg-amber-50 rounded-xl border border-amber-100 text-xs text-amber-700">
+                <Zap className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+                <span>{f.message}</span>
+              </div>
+            ))}
+          </div>
+          <button onClick={open} className="mt-3 flex items-center gap-1.5 text-xs font-semibold text-green-700 hover:text-green-900 transition-colors">
+            <MessageCircle className="w-3.5 h-3.5" />
+            Pedir ao Gringo para resolver agora →
+          </button>
+        </div>
+      )}
+
+      {/* Job comparison */}
+      <div className="bg-gradient-to-br from-green-950 to-green-900 border border-green-700/30 rounded-2xl p-6 mb-6 shadow-xl">
+        <div className="flex items-center gap-2.5 mb-2">
+          <Target className="w-5 h-5 text-green-400" />
+          <h2 className="text-white font-bold text-base">Compare seu Currículo com uma Vaga</h2>
+        </div>
+        <p className="text-green-200/70 text-sm mb-4">
+          Cole qualquer descrição de vaga — Gringo vai analisar os gaps e dar uma pontuação de compatibilidade.
+        </p>
+        <textarea
+          value={jobText}
+          onChange={e => setJobText(e.target.value)}
+          placeholder="Cole a descrição da vaga aqui — do LinkedIn, Indeed, site da empresa ou e-mail..."
+          className="w-full h-40 bg-green-900/80 border border-green-700/30 rounded-xl px-4 py-3 text-sm text-white placeholder:text-green-300/40 focus:outline-none focus:border-green-500 resize-none transition-all"
+        />
+        {error && <div className="mt-3 px-3 py-2 bg-red-500/20 border border-red-500/30 rounded-xl text-sm text-red-300">{error}</div>}
+        <button onClick={runComparison} disabled={!jobText.trim() || loading}
+          className="mt-4 w-full py-3.5 bg-green-600 hover:bg-green-500 disabled:opacity-40 text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2 text-sm">
+          {loading ? (
+            <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />Gringo está analisando…</>
+          ) : (
+            <><TrendingUp className="w-4 h-4" />Rodar Resume Intelligence™ →</>
+          )}
         </button>
       </div>
 
-      {/* Job description input — only in with_job mode */}
-      {mode === "with_job" && (
-          <div className="bg-white border border-neutral-200 rounded-xl p-5 mb-5">
-            <div className="flex items-center justify-between mb-2">
-              <label className="font-semibold text-sm text-neutral-800">Descrição da Vaga</label>
-              {jobText.trim().length > 50 && (
-                <button onClick={handleCleanJobText} disabled={cleaning}
-                  className="text-xs px-3 py-1.5 bg-green-700 text-white rounded-lg hover:bg-green-800 transition disabled:opacity-60 flex items-center gap-1.5">
-                  {cleaning ? (
-                    <><span className="inline-block h-3 w-3 border-2 border-white border-t-transparent rounded-full animate-spin" />Limpando…</>
-                  ) : "✦ Limpar e Extrair Requisitos"}
-                </button>
+      {/* Results */}
+      {result && (
+        <div className="space-y-4 mb-6">
+          <div className="bg-white border border-neutral-200 rounded-2xl p-6 shadow-sm">
+            <div className="flex items-start gap-6 mb-4">
+              <ScoreRing
+                score={result.final_ats_score ?? result.structure_score ?? 0}
+                max={100}
+                label={result.strength_label || result.job_fit_label || ""}
+                color={result.strength_label === "Forte" || result.job_fit_label === "Strong Fit" ? "#16a34a" : "#d97706"}
+              />
+              <div className="flex-1">
+                <p className="font-bold text-neutral-800 text-base">Job Fit Score</p>
+                <p className="text-xs text-neutral-500 mt-0.5 mb-2">Análise feita pelo Gringo como um recrutador</p>
+                {result.match_summary && (
+                  <p className="text-sm text-neutral-700 leading-relaxed bg-neutral-50 rounded-xl p-3 border border-neutral-100">
+                    {result.match_summary}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {(result.skills_found?.length > 0 || result.skills_missing?.length > 0) && (
+            <div className="grid sm:grid-cols-2 gap-3">
+              {result.skills_found?.length > 0 && (
+                <div className="bg-green-50 border border-green-200 rounded-2xl p-4">
+                  <p className="font-semibold text-green-800 text-xs uppercase mb-2">✓ Habilidades Encontradas</p>
+                  <ul className="space-y-1">{result.skills_found.map((s: string, i: number) => (
+                    <li key={i} className="flex items-center gap-1.5 text-xs text-green-700"><Check className="w-3 h-3 flex-shrink-0" />{s}</li>
+                  ))}</ul>
+                </div>
+              )}
+              {result.skills_missing?.length > 0 && (
+                <div className="bg-rose-50 border border-rose-200 rounded-2xl p-4">
+                  <p className="font-semibold text-rose-800 text-xs uppercase mb-2">✗ Gaps de Habilidades</p>
+                  <ul className="space-y-1">{result.skills_missing.map((s: string, i: number) => (
+                    <li key={i} className="text-xs text-rose-700">• {s}</li>
+                  ))}</ul>
+                  <button onClick={open} className="mt-3 text-xs font-semibold text-green-700 hover:underline flex items-center gap-1">
+                    <MessageCircle className="w-3 h-3" /> Pedir ao Gringo para adicionar →
+                  </button>
+                </div>
               )}
             </div>
-            <textarea
-              className="w-full border border-neutral-200 rounded-lg px-3 py-2.5 text-sm resize-none h-40 focus:outline-none focus:ring-2 focus:ring-green-500"
-              placeholder="Cole aqui o texto da vaga — pode ser copiado do LinkedIn, WhatsApp, Catho ou qualquer site. A IA extrai automaticamente os requisitos."
-              value={jobText}
-              onChange={e => setJobText(e.target.value)}
-            />
-            <p className="text-xs text-neutral-400 mt-1">Cole qualquer texto — site, WhatsApp, e-mail. Clique em "Limpar e Extrair" para remover o lixo automaticamente.</p>
-          </div>
-      )}
-
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700 mb-4">{error}</div>
-      )}
-
-      <button onClick={handleAnalyze} disabled={loading}
-        className="w-full py-4 bg-green-700 text-white font-bold rounded-xl hover:bg-green-800 transition disabled:opacity-60 text-base mb-8">
-        {loading ? (
-          <span className="flex items-center justify-center gap-2">
-            <span className="inline-block h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            Analisando com IA…
-          </span>
-        ) : "✦ Analisar Meu Currículo"}
-      </button>
-
-      {/* Results */}
-      {result && styles && (
-        <div className="space-y-5 mb-8">
-
-          {/* Score card */}
-          <div className={`rounded-2xl border-2 p-6 ${styles.ring} ${styles.bg}`}>
-            <div className="flex items-center gap-5 mb-5">
-              <div className="text-5xl font-bold" style={{ color: styles.bar }}>
-                {result.final_ats_score !== null ? result.final_ats_score : result.structure_score}
-              </div>
-              <div>
-                <span className={`inline-block font-bold px-3 py-1 rounded-full text-sm ${styles.color} bg-white border`}
-                  style={{ borderColor: styles.bar }}>
-                  {result.strength_label}
-                </span>
-                <p className="text-xs text-neutral-500 mt-1.5">
-                  {result.mode === "with_job" ? "Pontuação ATS contra a vaga" : "Avaliação geral do currículo"}
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              {[
-                { label: "Estrutura do currículo", value: result.structure_score },
-                ...(result.skills_coverage_score !== undefined ? [{ label: "Cobertura de habilidades", value: result.skills_coverage_score }] : []),
-                ...(result.job_fit_score !== undefined ? [{ label: "Alinhamento com a vaga", value: result.job_fit_score }] : []),
-              ].map(({ label, value }) => (
-                <div key={label}>
-                  <div className="flex justify-between text-sm text-neutral-700 mb-1">
-                    <span>{label}</span><span className="font-semibold">{Math.round(value)}%</span>
-                  </div>
-                  <div className="h-2 bg-white/60 rounded-full overflow-hidden">
-                    <div className="h-full rounded-full" style={{ width: `${value}%`, backgroundColor: styles.bar }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Skills */}
-          {result.mode === "with_job" && (result.skills_found?.length || result.skills_missing?.length) && (
-            <div className="grid grid-cols-2 gap-3">
-              {result.skills_found?.length ? (
-                <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-                  <p className="font-semibold text-green-800 text-xs uppercase mb-2">✓ Encontradas</p>
-                  <ul className="space-y-1">{result.skills_found.map((s, i) => <li key={i} className="text-xs text-green-700">• {s}</li>)}</ul>
-                </div>
-              ) : null}
-              {result.skills_missing?.length ? (
-                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-                  <p className="font-semibold text-amber-800 text-xs uppercase mb-2">⚠ Faltando</p>
-                  <ul className="space-y-1">{result.skills_missing.map((s, i) => <li key={i} className="text-xs text-amber-700">• {s}</li>)}</ul>
-                </div>
-              ) : null}
-            </div>
           )}
 
-          {/* 1. Melhorias Específicas — deterministic, quantified, score-linked */}
           {result.specific_enhancements?.length > 0 && (
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-5">
-              <h3 className="font-semibold text-blue-900 flex items-center gap-2 mb-1 text-sm">
-                <span>📈 Melhorias Específicas</span>
+            <div className="bg-green-50 border border-green-200 rounded-2xl p-5">
+              <h3 className="font-semibold text-green-900 text-sm mb-3 flex items-center gap-2">
+                <TrendingUp className="w-4 h-4" /> Melhorias Recomendadas
               </h3>
-              <p className="text-xs text-blue-700 mb-3">Ações concretas com impacto estimado na sua pontuação.</p>
-              <ul className="list-disc pl-5 space-y-2">
-                {result.specific_enhancements.map((s, i) => (
-                  <li key={i} className="text-sm text-blue-900">{s}</li>
+              <ul className="space-y-2">
+                {result.specific_enhancements.map((s: string, i: number) => (
+                  <li key={i} className="text-sm text-green-900 flex items-start gap-2">
+                    <ChevronRight className="w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-green-500" />{s}
+                  </li>
                 ))}
               </ul>
-            </div>
-          )}
-
-          {/* 2. Recomendações para o cargo */}
-          {result.role_recommendations_pt_br?.length > 0 && (
-            <div className="bg-white border border-green-200 rounded-xl p-5">
-              <h3 className="font-semibold text-neutral-800 flex items-center gap-2 mb-1 text-sm">
-                <span>🎯 Recomendações para {result.raw_extraction?.resume_titles?.[0] || result.profession || "sua área"}</span>
-              </h3>
-              <p className="text-xs text-neutral-500 mb-3">
-                O que profissionais da sua área costumam apresentar — comparado ao que está no seu currículo.
-              </p>
-              <ol className="list-decimal pl-5 space-y-2">
-                {result.role_recommendations_pt_br.map((s, i) => (
-                  <li key={i} className="text-sm text-neutral-700">{s}</li>
-                ))}
-              </ol>
-            </div>
-          )}
-
-          {/* 3. Dicas gerais de estrutura */}
-          {result.suggestions_pt_br?.length > 0 && (
-            <div className="bg-white border border-neutral-200 rounded-xl p-5">
-              <h3 className="font-semibold text-neutral-800 flex items-center gap-2 mb-3 text-sm">
-                <span>💡 Dicas gerais de estrutura</span>
-              </h3>
-              <ol className="list-decimal pl-5 space-y-2">
-                {result.suggestions_pt_br.map((s, i) => (
-                  <li key={i} className="text-sm text-neutral-700">{s}</li>
-                ))}
-              </ol>
             </div>
           )}
         </div>
       )}
 
-      {/* Navigation */}
       <div className="flex justify-between mt-4">
-        <Link href="/br/curriculo/resumo" className="px-6 py-2 bg-neutral-200 rounded-lg text-sm hover:bg-neutral-300">← Passo 5</Link>
-        <Link href="/br/curriculo/preview" className="px-6 py-2 bg-green-700 text-white rounded-lg text-sm font-medium hover:bg-green-800">
-          Passo 7: Visualização Final →
+        <Link href="/br/curriculo/resumo" className="px-6 py-2.5 bg-neutral-200 text-neutral-800 rounded-xl text-sm font-medium hover:bg-neutral-300 transition">
+          ← Voltar à Etapa 6
+        </Link>
+        <Link href="/br/curriculo/preview" className="px-6 py-2.5 bg-green-700 text-white rounded-xl text-sm font-bold hover:bg-green-800 transition flex items-center gap-2">
+          Prévia Final → <ChevronRight className="w-4 h-4" />
         </Link>
       </div>
     </div>
