@@ -397,11 +397,12 @@ export default function GringoWriter({ locale, previewHref }: Props) {
 
       const data = await res.json();
 
-      // Apply all store actions
+      // Apply store actions — each wrapped individually so a single
+      // failed write never aborts the conversation or shows an error.
       if (data.actions?.length) {
         for (const action of data.actions) {
-          applyAction(action);
-          await new Promise(r => setTimeout(r, 80)); // slight delay between writes
+          try { applyAction(action); } catch (e) { console.warn("[writer action]", action.type, e); }
+          await new Promise(r => setTimeout(r, 80));
         }
       }
 
