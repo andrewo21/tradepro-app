@@ -29,7 +29,7 @@ export async function runWithJob(client: OpenAI, input: WithJobInput) {
 
   // ── Step 1: Extract (AI allowed here only) ────────────────────────────────
   const [resumeExtraction, jobExtraction] = await Promise.all([
-    extractResumeData(client, resumeText),
+    extractResumeData(client, resumeText, locale || "pt-BR"),
     extractJobData(client, jobDescription),
   ]);
 

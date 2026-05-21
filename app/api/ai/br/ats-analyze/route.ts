@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
-import { runWithJob }  from "@/lib/ats/modes/with_job";
+// runWithJob removed — superseded by runRecruiterAssessment
 import { runGeneral }  from "@/lib/ats/modes/general";
 import { runRecruiterAssessment } from "@/lib/ats/scoring/recruiter_assessment";
 import { cleanExtractedText } from "@/lib/ats/utils/text_cleaning";

@@ -253,22 +253,19 @@ export default function ResumeAssistant({ locale = "en" }: Props) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pendingBulletRequest]);
 
-  // Fire on step change (debounced)
-  useEffect(() => {
-    const currentHash = resumeHash(resumeState as Record<string, unknown>);
-    const stepChanged = lastAnalyzedStep !== step;
-    const dataChanged = lastAnalyzedHash !== currentHash;
-
-    // Always re-scan experience step — missing dates must never be missed
-    const forceRescan = step === "experience";
-
-    if (stepChanged || forceRescan || (dataChanged && isOpen)) {
-      setBubbleVisible(false);
-      const timer = setTimeout(() => runAnalysis(), 1500);
-      return () => clearTimeout(timer);
-    }
+  // CV-1 does NOT auto-fire on step change.
+  // Unsolicited suggestions on navigation was the root cause of recycled advice.
+  // CV-1 activates only when:
+  //   a) User explicitly clicks the robot (handleRobotClick)
+  //   b) User sends a message (handleUserMessage)
+  //   c) User clicks "Ask CV-1 to improve" on a bullet (pendingBulletRequest)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step, pathname]);
+  useEffect(() => {
+    // Only track step changes for context — no auto analysis
+    if (lastAnalyzedStep !== step) {
+      setBubbleVisible(false);
+    }
+  }, [step, pathname]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Handlers ───────────────────────────────────────────────────────────────
   function handleAccept(msgId: string, suggId: string, finalText?: string) {

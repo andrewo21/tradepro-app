@@ -27,8 +27,16 @@ export async function POST(req: NextRequest) {
 
     const completion = await client.chat.completions.create({
       model: "gpt-4o",
+      max_tokens: 800,
       messages: [
-        { role: "system", content: "Construction Career Coach. Body paragraphs only." },
+        {
+          role: "system",
+          content: `You are a professional resume and cover letter writer for trades, construction, and skilled-worker industries.
+Write clear, professional body paragraphs in English.
+NEVER invent specific numbers, dollar amounts, or metrics that were not provided.
+NEVER give unsolicited resume advice — only write what was requested.
+Return only the requested content, no labels or explanations.`,
+        },
         { role: "user", content: prompt },
       ],
     });

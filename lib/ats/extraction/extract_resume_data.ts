@@ -1,6 +1,7 @@
 // lib/ats/extraction/extract_resume_data.ts
 // ONLY file allowed to make AI calls for resume data.
 // Accepts raw text. Returns clean JSON. Never scores. Never suggests.
+// Locale-aware: uses English extractor for EN, Portuguese for PT-BR.
 
 import OpenAI from "openai";
 import { truncateText } from "../utils/text_cleaning";
@@ -18,18 +19,27 @@ export interface ResumeExtraction {
   word_count: number;
 }
 
-export async function extractResumeData(
-  client: OpenAI,
-  resumeText: string
-): Promise<ResumeExtraction> {
-  const completion = await client.chat.completions.create({
-    model: "gpt-4o",
-    temperature: 0,  // deterministic
-    response_format: { type: "json_object" },
-    messages: [
-      {
-        role: "system",
-        content: `Você é um extrator de dados de currículos brasileiros.
+const SYSTEM_EN = `You are a resume data extractor for English-language resumes.
+Extract structured information from the provided resume text.
+
+ABSOLUTE RULE: extract ONLY what is present in the text. Never invent anything.
+Do not generate scores. Do not generate suggestions. Extraction only.
+
+Return a JSON object with exactly these fields:
+{
+  "resume_skills": [list of explicitly mentioned skills and competencies],
+  "resume_experience_bullets": [list of phrases/bullets describing professional experience],
+  "resume_tools": [list of tools, software, and technologies mentioned],
+  "resume_titles": [list of professional job titles],
+  "has_summary": boolean — true if a professional summary or objective section exists,
+  "has_experience_section": boolean — true if a work experience section exists,
+  "has_skills_section": boolean — true if a skills or competencies section exists,
+  "has_education_section": boolean — true if an education section exists,
+  "bullet_point_count": integer — number of experience bullet points found,
+  "word_count": integer — total word count of the text
+}`;
+
+const SYSTEM_PT = `Você é um extrator de dados de currículos brasileiros.
 Extraia informações estruturadas do currículo fornecido.
 
 REGRA ABSOLUTA: extraia APENAS o que está presente no texto. Nunca invente nada.
@@ -47,12 +57,22 @@ Retorne um objeto JSON com exatamente estes campos:
   "has_education_section": boolean — true se há seção de formação acadêmica ou educação,
   "bullet_point_count": integer — número de bullets de experiência encontrados,
   "word_count": integer — número total de palavras no texto
-}`,
-      },
-      {
-        role: "user",
-        content: truncateText(resumeText),
-      },
+}`;
+
+export async function extractResumeData(
+  client: OpenAI,
+  resumeText: string,
+  locale: string = "pt-BR"
+): Promise<ResumeExtraction> {
+  const systemPrompt = locale === "en" ? SYSTEM_EN : SYSTEM_PT;
+
+  const completion = await client.chat.completions.create({
+    model: "gpt-4o",
+    temperature: 0,
+    response_format: { type: "json_object" },
+    messages: [
+      { role: "system", content: systemPrompt },
+      { role: "user",   content: truncateText(resumeText) },
     ],
   });
 
