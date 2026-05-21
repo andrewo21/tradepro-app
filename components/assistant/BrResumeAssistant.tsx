@@ -154,15 +154,10 @@ export default function BrResumeAssistant() {
     [step, resumeState]
   );
 
+  // No auto-fire on step change — same fix as US assistant.
   useEffect(() => {
-    const currentHash = resumeHash(resumeState as Record<string, unknown>);
-    if (lastAnalyzedStep !== step || (lastAnalyzedHash !== currentHash && isOpen)) {
-      setBubbleVisible(false);
-      const timer = setTimeout(() => runAnalysis(), 1500);
-      return () => clearTimeout(timer);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step, pathname]);
+    if (lastAnalyzedStep !== step) setBubbleVisible(false);
+  }, [step, pathname]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleAccept(msgId: string, suggId: string, finalText?: string) {
     const msg  = messages.find((m) => m.id === msgId);

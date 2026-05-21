@@ -21,7 +21,7 @@ export async function runGeneral(client: OpenAI, input: GeneralInput) {
   const { resumeText, candidateName, profession, locale } = input;
 
   // ── Step 1: Extract (AI allowed here only) ────────────────────────────────
-  const resumeExtraction = await extractResumeData(client, resumeText);
+  const resumeExtraction = await extractResumeData(client, resumeText, locale || "pt-BR");
 
   // ── Step 2: Structure score (pure formula) ────────────────────────────────
   const structureResult = computeStructureScore(resumeExtraction);
