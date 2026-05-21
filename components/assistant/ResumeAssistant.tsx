@@ -107,12 +107,14 @@ export default function ResumeAssistant({ locale = "en" }: Props) {
 
   const {
     isOpen, isThinking, messages,
+    activeMode, setMode, trackSuggestion,
     lastAnalyzedStep, lastAnalyzedHash,
     open, close, toggle, setThinking,
     addMessage, addUserMessage,
     acceptSuggestion, dismissSuggestion,
     setLastAnalyzed, clearNewSuggestions,
     pendingBulletRequest, clearBulletRequest,
+    usedSuggestionLabels,
   } = useAssistantStore();
 
   const [bubbleVisible, setBubbleVisible]   = useState(false);
@@ -125,6 +127,16 @@ export default function ResumeAssistant({ locale = "en" }: Props) {
   // Declare firstName early — used in useEffects below
   const firstName = resumeState.personalInfo?.firstName || "there";
 
+  // Mode detection — determines which CV-1 mode to activate
+  const detectMode = useCallback((userMsg?: string) => {
+    if (step === "ats") return "job_match" as const;
+    if (userMsg && /^(what|how|why|when|who|can you|could you|do you|is it|are you|tell me about|explain)/i.test(userMsg.trim())
+      && !/\b(resume|bullet|skill|experience|summary|certification|improve|rewrite|fix|help me with)\b/i.test(userMsg)) {
+      return "general" as const;
+    }
+    return "resume" as const;
+  }, [step]);
+
   // ── Analysis ───────────────────────────────────────────────────────────────
   const runAnalysis = useCallback(
     async (userMsg?: string) => {
@@ -133,20 +145,25 @@ export default function ResumeAssistant({ locale = "en" }: Props) {
       analyzeRef.current = true;
       setThinking(true);
 
+      const currentMode = detectMode(userMsg);
+      setMode(currentMode);
+
       try {
         const payload     = buildStepPayload(step, resumeState, locale);
         const currentHash = resumeHash(resumeState as Record<string, unknown>);
 
-        // Pass last 6 messages as history so CV-1 remembers the conversation
-      const recentHistory = messages.slice(-6).map(m => ({
-        role: m.role,
-        content: m.content,
-      }));
+        const recentHistory = messages.slice(-6).map(m => ({ role: m.role, content: m.content }));
 
-      const res = await fetch("/api/ai/assistant/suggest", {
+        const res = await fetch("/api/ai/assistant/suggest", {
           method:  "POST",
           headers: { "Content-Type": "application/json" },
-          body:    JSON.stringify({ ...payload, userMessage: userMsg, conversationHistory: recentHistory }),
+          body:    JSON.stringify({
+            ...payload,
+            mode: currentMode,
+            userMessage: userMsg,
+            conversationHistory: recentHistory,
+            usedSuggestionLabels,
+          }),
         });
         if (!res.ok) throw new Error("API error");
         const data = await res.json();
@@ -269,6 +286,7 @@ export default function ResumeAssistant({ locale = "en" }: Props) {
 
     applySuggestion(suggToApply);
     acceptSuggestion(msgId, suggId);
+    if (sugg.label) trackSuggestion(sugg.label); // never repeat this suggestion
 
     // Show REAL score delta after store settles — not AI estimate
     setTimeout(() => {
@@ -358,6 +376,7 @@ export default function ResumeAssistant({ locale = "en" }: Props) {
               messages={messages}
               isThinking={isThinking}
               locale={locale}
+              activeMode={activeMode}
               onClose={() => { close(); clearNewSuggestions(); }}
               onAccept={handleAccept}
               onDismiss={dismissSuggestion}

@@ -112,6 +112,7 @@ interface Props {
   messages: AssistantMessage[];
   isThinking: boolean;
   locale?: string;
+  activeMode?: string;
   onClose: () => void;
   onAccept: (msgId: string, suggId: string, finalText?: string) => void;
   onDismiss: (msgId: string, suggId: string) => void;
@@ -119,10 +120,22 @@ interface Props {
   onRefresh: () => void;
 }
 
+const MODE_LABEL: Record<string, string> = {
+  general:   "General",
+  resume:    "Resume Coach",
+  job_match: "Job Match",
+};
+const MODE_COLOR: Record<string, string> = {
+  general:   "bg-slate-500",
+  resume:    "bg-indigo-500",
+  job_match: "bg-emerald-600",
+};
+
 export function AssistantChat({
   messages,
   isThinking,
   locale,
+  activeMode = "resume",
   onClose,
   onAccept,
   onDismiss,
@@ -163,9 +176,14 @@ export function AssistantChat({
         <div className="flex items-center gap-2.5">
           <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-lg animate-pulse" />
           <div>
-            <p className="text-sm font-bold leading-none tracking-wide">
-              {isEN ? "CV-1™" : "Gringo™"}
-            </p>
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-bold leading-none tracking-wide">
+                {isEN ? "CV-1™" : "Gringo™"}
+              </p>
+              <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full text-white ${MODE_COLOR[activeMode] || "bg-indigo-500"}`}>
+                {MODE_LABEL[activeMode] || "Resume Coach"}
+              </span>
+            </div>
             <p className="text-xs text-indigo-200 leading-none mt-0.5">
               {isEN ? "AI Resume Coach" : "Coach de Currículo IA"}
             </p>
