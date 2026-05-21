@@ -408,25 +408,29 @@ export default function GringoWriter({ locale, previewHref }: Props) {
       setCurrentStep(data.step || "personal");
       setIsDone(data.done || false);
 
-      const updated: WriterMessage[] = [
-        ...newHistory,
-        { role: "assistant", content: data.message },
-      ];
+      // Only append assistant message if it has content — empty strings in
+      // history confuse the model on subsequent calls and can cause errors.
+      const updated: WriterMessage[] = data.message?.trim()
+        ? [...newHistory, { role: "assistant", content: data.message }]
+        : newHistory;
       setHistory(updated);
 
       if (data.done) {
         setTimeout(() => inputRef.current?.focus(), 300);
       }
     } catch {
-      // Remove the failed user message from history so retrying doesn't
-      // replay a broken state and loop the error.
-      setHistory(msgs);
-      setHistory(prev => [...prev, {
-        role:    "assistant",
-        content: isEN
-          ? "I had a connection issue. Please try sending your message again."
-          : "Tive um problema de conexão. Por favor, tente enviar novamente.",
-      }]);
+      // Single setHistory call — avoids the React batching race where a
+      // double call leaves the failed user message in history, causing a loop.
+      // Roll back to pre-user-message state + one error message.
+      setHistory([
+        ...msgs,
+        {
+          role:    "assistant" as const,
+          content: isEN
+            ? "Connection issue — please try again."
+            : "Problema de conexão — tente novamente.",
+        },
+      ]);
     } finally {
       setLoading(false);
       setTimeout(() => inputRef.current?.focus(), 100);

@@ -52,8 +52,9 @@ export async function POST(req: NextRequest) {
     const trimmedHistory = history.slice(-12);
 
     const completion = await client.chat.completions.create({
-      model:           "gpt-4o",
+      model:           "gpt-4o-mini",  // 10x cheaper, adequate for conversational resume flow
       temperature:     0.7,
+      max_tokens:      600,            // cap per response — resume answers are short
       response_format: { type: "json_object" },
       messages: [
         { role: "system", content: system },
@@ -78,10 +79,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(response);
   } catch (err) {
     console.error("[gringo-writer]", err);
-    return NextResponse.json(
-      { message: "", actions: [], done: false, step: "personal" },
-      { status: 500 }
-    );
+    // Return 200 with a safe recovery message so the client never sees !res.ok.
+    // A 500 causes the client to throw, which triggers the error catch, which
+    // can loop if React batches the two setHistory calls incorrectly.
+    return NextResponse.json({
+      message: "I missed that — could you say it again?",
+      actions: [], done: false, step: "personal",
+    });
   }
 }
 
