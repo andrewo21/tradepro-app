@@ -23,11 +23,14 @@ export interface LiveAtsBreakdown {
   certifications: number;
 }
 
+export type CareerLevel = "Entry Level" | "Mid Level" | "Senior" | "Executive";
+
 export interface LiveAtsResult {
-  score:     number;
-  flags:     LiveAtsFlag[];
-  breakdown: LiveAtsBreakdown;
-  label:     "Not Started" | "Weak" | "Building" | "Good" | "Strong";
+  score:        number;
+  flags:        LiveAtsFlag[];
+  breakdown:    LiveAtsBreakdown;
+  label:        "Not Started" | "Weak" | "Building" | "Good" | "Strong";
+  career_level: CareerLevel;
 }
 
 // General analysis caps at 75 — above 75 requires job description
@@ -194,7 +197,19 @@ export function computeLiveAtsScore(store: any): LiveAtsResult {
     score < 50      ? "Building"    :
     score < 65      ? "Good"        : "Strong";
 
-  return { score, flags, breakdown: bd, label };
+  // Career level detection
+  const titleLower = (p.tradeTitle || "").toLowerCase();
+  const hasExecutive = /\b(vp|vice president|director|chief|ceo|cto|coo|cfo|president|owner|founder|principal)\b/.test(titleLower);
+  const hasSenior    = /\b(senior|sr\.?|lead|manager|supervisor|superintendent|foreman|head of)\b/.test(titleLower);
+  const hasEntry     = /\b(junior|jr\.?|assistant|trainee|apprentice|intern|helper|associate)\b/.test(titleLower);
+  const jobCount     = experience.filter((e: any) => e.jobTitle).length;
+
+  const career_level: CareerLevel =
+    hasExecutive                  ? "Executive"   :
+    hasSenior                     ? "Senior"      :
+    hasEntry || jobCount <= 1     ? "Entry Level" : "Mid Level";
+
+  return { score, flags, breakdown: bd, label, career_level };
 }
 
 export const ATS_GENERAL_CAP = GENERAL_CAP;

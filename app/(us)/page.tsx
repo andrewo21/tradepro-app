@@ -259,7 +259,7 @@ export default function HomePage() {
                 work, presented right.”
               </p>
               <p className="text-xs text-neutral-500 font-medium">
-                — Dana, Site Superintendent
+                — Amanda O.
               </p>
             </div>
             <div className="bg-white border border-neutral-200 rounded-md p-4 shadow-sm">

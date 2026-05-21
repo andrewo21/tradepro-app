@@ -67,17 +67,19 @@ export default function MaintenancePage() {
 
         {/* Message */}
         <h1 className="text-3xl font-bold text-white mb-3 tracking-tight">
-          We&apos;re leveling up.
+          Something exciting is coming.
         </h1>
-        <p className="text-gray-400 text-base leading-relaxed mb-8">
-          TradePro is undergoing scheduled maintenance.
-          We&apos;ll be back shortly with something better than you left.
+        <p className="text-gray-400 text-base leading-relaxed mb-2">
+          Stay tuned for some exciting updates coming May 23rd, 2026.
+        </p>
+        <p className="text-gray-500 text-sm leading-relaxed mb-8">
+          Fique ligado — novidades incríveis chegando em 23 de maio de 2026.
         </p>
 
         {/* Status indicator */}
         <div className="inline-flex items-center gap-2 bg-gray-900 border border-gray-800 rounded-full px-4 py-2 text-sm text-gray-400">
-          <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-          Maintenance in progress
+          <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
+          May 23rd, 2026
         </div>
 
         {/* Footer */}

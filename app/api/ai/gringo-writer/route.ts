@@ -93,7 +93,8 @@ SEQUÊNCIA DE COLETA:
 3. EXPERIÊNCIA: colete TODOS os empregos antes de avançar — veja as regras de experiência abaixo
 3. HABILIDADES: 6-10 habilidades técnicas relevantes para o cargo
 4. FORMAÇÃO: instituição, curso, ano de conclusão
-5. CERTIFICAÇÕES: se houver
+5. CERTIFICAÇÕES: Pergunte UMA vez — "Você tem certificações ou licenças? (ex: NR-35, CREA, CRM, CNH)"
+   Se o usuário disser não / nenhum / pular → vá direto para o RESUMO. NUNCA pergunte novamente.
 6. RESUMO: gerar automaticamente com base nas informações coletadas
 
 REGRAS CRÍTICAS DE EXPERIÊNCIA:
@@ -162,7 +163,8 @@ COLLECTION SEQUENCE:
 3. EXPERIENCE: collect ALL jobs before moving on — see critical experience rules below
 4. SKILLS: 6-10 technical skills relevant to their role
 5. EDUCATION: school, degree, graduation year
-6. CERTIFICATIONS: if any
+6. CERTIFICATIONS: Ask ONCE — "Do you have any certifications or licenses? (e.g. OSHA, PMP, EPA, CDL)"
+   If user says no / none / skip / N/A → move immediately to SUMMARY. NEVER ask again.
 7. SUMMARY: auto-generate based on collected info
 
 CRITICAL EXPERIENCE RULES:
