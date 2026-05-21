@@ -4,6 +4,8 @@ import { create } from "zustand";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
+export type AssistantMode = "general" | "resume" | "job_match";
+
 export type SuggestionActionType =
   | "add_responsibility"
   | "update_responsibility"
@@ -55,7 +57,10 @@ export interface BulletRequest {
 interface AssistantState {
   isOpen: boolean;
   isThinking: boolean;
-  messages: AssistantMessage[];
+  messages: AssistantMessage[];           // active mode messages
+  modeMessages: Record<AssistantMode, AssistantMessage[]>; // isolated per-mode history
+  activeMode: AssistantMode;
+  usedSuggestionLabels: string[];         // cross-session dedup — never repeat these
   lastAnalyzedStep: string | null;
   lastAnalyzedHash: string | null;
   hasNewSuggestions: boolean;
@@ -64,6 +69,8 @@ interface AssistantState {
   open: () => void;
   close: () => void;
   toggle: () => void;
+  setMode: (mode: AssistantMode) => void;
+  trackSuggestion: (label: string) => void;
   requestBulletImprovement: (req: BulletRequest) => void;
   clearBulletRequest: () => void;
   setThinking: (val: boolean) => void;
@@ -80,6 +87,9 @@ export const useAssistantStore = create<AssistantState>((set) => ({
   isOpen: false,
   isThinking: false,
   messages: [],
+  modeMessages: { general: [], resume: [], job_match: [] },
+  activeMode: "resume",
+  usedSuggestionLabels: [],
   lastAnalyzedStep: null,
   lastAnalyzedHash: null,
   hasNewSuggestions: false,
@@ -88,18 +98,36 @@ export const useAssistantStore = create<AssistantState>((set) => ({
   open: () => set({ isOpen: true }),
   close: () => set({ isOpen: false }),
   toggle: () => set((s) => ({ isOpen: !s.isOpen })),
+
+  setMode: (mode) => set((s) => ({
+    activeMode: mode,
+    // Restore this mode's isolated history when switching
+    messages: s.modeMessages[mode] || [],
+  })),
+
+  trackSuggestion: (label) => set((s) => ({
+    usedSuggestionLabels: s.usedSuggestionLabels.includes(label)
+      ? s.usedSuggestionLabels
+      : [...s.usedSuggestionLabels, label],
+  })),
+
   requestBulletImprovement: (req) => set({ pendingBulletRequest: req, isOpen: true }),
   clearBulletRequest: () => set({ pendingBulletRequest: null }),
   setThinking: (val) => set({ isThinking: val }),
 
   addMessage: (msg) =>
-    set((s) => ({
-      messages: [...s.messages, msg],
-      hasNewSuggestions:
-        msg.role === "assistant" && (msg.suggestions?.length ?? 0) > 0
-          ? true
-          : s.hasNewSuggestions,
-    })),
+    set((s) => {
+      const updated = [...s.messages, msg];
+      return {
+        messages: updated,
+        // Keep mode-specific history in sync
+        modeMessages: { ...s.modeMessages, [s.activeMode]: updated },
+        hasNewSuggestions:
+          msg.role === "assistant" && (msg.suggestions?.length ?? 0) > 0
+            ? true
+            : s.hasNewSuggestions,
+      };
+    }),
 
   addUserMessage: (content) =>
     set((s) => ({
