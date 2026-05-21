@@ -47,17 +47,26 @@ export async function POST(req: NextRequest) {
       ? buildSystemEN(name, bot)
       : buildSystemPT(name, bot);
 
+    // Trim history to last 12 messages to stay within token limits.
+    // Long conversations cause token-limit 500s which loop the "snag" error.
+    const trimmedHistory = history.slice(-12);
+
     const completion = await client.chat.completions.create({
       model:           "gpt-4o",
       temperature:     0.7,
       response_format: { type: "json_object" },
       messages: [
         { role: "system", content: system },
-        ...history.map((m) => ({ role: m.role, content: m.content })),
+        ...trimmedHistory.map((m) => ({ role: m.role, content: m.content })),
       ],
     });
 
-    const raw = JSON.parse(completion.choices[0]?.message?.content || "{}");
+    const content = completion.choices[0]?.message?.content || "{}";
+    let raw: any = {};
+    try { raw = JSON.parse(content); } catch {
+      // JSON parse failure — return a safe fallback rather than 500
+      return NextResponse.json({ message: "Let's continue — what would you like to add?", actions: [], done: false, step: "personal" });
+    }
 
     const response: WriterResponse = {
       message: raw.message || "",

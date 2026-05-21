@@ -418,11 +418,14 @@ export default function GringoWriter({ locale, previewHref }: Props) {
         setTimeout(() => inputRef.current?.focus(), 300);
       }
     } catch {
+      // Remove the failed user message from history so retrying doesn't
+      // replay a broken state and loop the error.
+      setHistory(msgs);
       setHistory(prev => [...prev, {
         role:    "assistant",
         content: isEN
-          ? "Sorry, I hit a snag. Let me try again — just click Send or type your message."
-          : "Ops, tive um problema. Tente de novo — só clique em Enviar.",
+          ? "I had a connection issue. Please try sending your message again."
+          : "Tive um problema de conexão. Por favor, tente enviar novamente.",
       }]);
     } finally {
       setLoading(false);
