@@ -1,94 +1,92 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+
+const LAUNCH = new Date("2026-05-26T00:00:00").getTime();
+
+function getTimeLeft() {
+  const diff = LAUNCH - Date.now();
+  if (diff <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0, done: true };
+  return {
+    days:    Math.floor(diff / (1000 * 60 * 60 * 24)),
+    hours:   Math.floor((diff / (1000 * 60 * 60)) % 24),
+    minutes: Math.floor((diff / (1000 * 60)) % 60),
+    seconds: Math.floor((diff / 1000) % 60),
+    done:    false,
+  };
+}
+
+function Pad({ n }: { n: number }) {
+  return <>{String(n).padStart(2, "0")}</>;
+}
+
 export default function MaintenancePage() {
+  const router = useRouter();
+  const [time, setTime] = useState(getTimeLeft());
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      const t = getTimeLeft();
+      setTime(t);
+      if (t.done) {
+        clearInterval(id);
+        router.replace("/");
+      }
+    }, 1000);
+    return () => clearInterval(id);
+  }, [router]);
+
   return (
-    <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center px-6 text-center">
-      {/* Animated background grid */}
-      <div
-        className="fixed inset-0 opacity-[0.04]"
-        style={{
-          backgroundImage:
-            "linear-gradient(rgba(99,102,241,1) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,1) 1px, transparent 1px)",
-          backgroundSize: "40px 40px",
-        }}
-      />
-
-      <div className="relative z-10 max-w-lg w-full">
-        {/* Logo / brand mark */}
-        <div className="flex items-center justify-center gap-3 mb-10">
-          <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-900/50">
-            <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-              <path d="M4 5h14M4 9h10M4 13h12M4 17h8" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
-          </div>
-          <span className="text-white text-xl font-bold tracking-tight">TradePro</span>
+    <div
+      style={{
+        minHeight: "100vh",
+        background: "#000",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+      }}
+    >
+      <div style={{ textAlign: "center", color: "#fff" }}>
+        <div
+          style={{
+            display: "flex",
+            gap: "clamp(24px, 6vw, 80px)",
+            alignItems: "flex-start",
+            justifyContent: "center",
+          }}
+        >
+          {[
+            { value: time.days,    label: "DAYS"    },
+            { value: time.hours,   label: "HOURS"   },
+            { value: time.minutes, label: "MINUTES" },
+          ].map(({ value, label }) => (
+            <div key={label} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+              <span
+                style={{
+                  fontSize: "clamp(64px, 16vw, 160px)",
+                  fontWeight: 900,
+                  lineHeight: 1,
+                  letterSpacing: "-0.02em",
+                  color: "#fff",
+                }}
+              >
+                <Pad n={value} />
+              </span>
+              <span
+                style={{
+                  fontSize: "clamp(10px, 1.4vw, 14px)",
+                  fontWeight: 600,
+                  letterSpacing: "0.25em",
+                  color: "rgba(255,255,255,0.35)",
+                }}
+              >
+                {label}
+              </span>
+            </div>
+          ))}
         </div>
-
-        {/* Robot illustration */}
-        <div className="flex justify-center mb-8">
-          <svg width="96" height="120" viewBox="0 0 72 92" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <style>{`
-              @keyframes bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
-              @keyframes blink { 0%,88%,100%{transform:scaleY(1)} 94%{transform:scaleY(0.08)} }
-              @keyframes pulse { 0%,100%{opacity:1;r:4} 50%{opacity:0.4;r:6} }
-              .rb { animation: bob 2.4s ease-in-out infinite }
-              .re { animation: blink 3.5s ease-in-out infinite; transform-origin:center }
-              .re2 { animation: blink 3.5s ease-in-out infinite 0.3s; transform-origin:center }
-            `}</style>
-            <g className="rb">
-              <line x1="36" y1="4" x2="36" y2="14" stroke="#6366f1" strokeWidth="2.5" strokeLinecap="round"/>
-              <circle cx="36" cy="4" r="5" fill="#818cf8" style={{animation:"pulse 1.8s ease-in-out infinite"}}/>
-              <rect x="10" y="14" width="52" height="36" rx="12" fill="#3730a3"/>
-              <rect x="15" y="19" width="42" height="26" rx="8" fill="#1e1b4b"/>
-              <g className="re"><ellipse cx="26" cy="32" rx="5.5" ry="5" fill="#818cf8"/><ellipse cx="26" cy="32" rx="3" ry="2.5" fill="#312e81"/><circle cx="27.5" cy="30.5" r="1.2" fill="white" opacity="0.85"/></g>
-              <g className="re2"><ellipse cx="46" cy="32" rx="5.5" ry="5" fill="#818cf8"/><ellipse cx="46" cy="32" rx="3" ry="2.5" fill="#312e81"/><circle cx="47.5" cy="30.5" r="1.2" fill="white" opacity="0.85"/></g>
-              <rect x="28" y="40" width="16" height="2.5" rx="1.25" fill="#6366f1" opacity="0.8"/>
-              <rect x="27" y="50" width="18" height="7" rx="3" fill="#1e1b4b"/>
-              <rect x="6" y="57" width="60" height="34" rx="12" fill="#3730a3"/>
-              <rect x="6" y="57" width="60" height="14" rx="12" fill="#4338ca" opacity="0.5"/>
-              <rect x="12" y="63" width="28" height="20" rx="5" fill="#1e1b4b"/>
-              <circle cx="18" cy="68" r="2.8" fill="#6366f1" opacity="0.9"/>
-              <circle cx="26" cy="68" r="2.8" fill="#818cf8" opacity="0.6"/>
-              <circle cx="34" cy="68" r="2.8" fill="#6366f1" opacity="0.9"/>
-              <circle cx="18" cy="76" r="2.8" fill="#818cf8" opacity="0.6"/>
-              <circle cx="26" cy="76" r="2.8" fill="#6366f1" opacity="0.9"/>
-              <circle cx="34" cy="76" r="2.8" fill="#818cf8" opacity="0.6"/>
-              <circle cx="52" cy="71" r="8" fill="#312e81"/>
-              <circle cx="52" cy="71" r="6" fill="#4f46e5"/>
-              <rect x="51" y="65" width="2" height="7" rx="1" fill="white" opacity="0.9"/>
-              <path d="M 48 68 A 5 5 0 1 0 56 68" stroke="white" strokeWidth="1.8" strokeLinecap="round" fill="none" opacity="0.9"/>
-              <rect x="0" y="60" width="8" height="24" rx="4" fill="#3730a3"/>
-              <ellipse cx="4" cy="86" rx="5" ry="5" fill="#312e81"/>
-              <rect x="64" y="60" width="8" height="24" rx="4" fill="#3730a3"/>
-              <ellipse cx="68" cy="86" rx="5" ry="5" fill="#312e81"/>
-            </g>
-          </svg>
-        </div>
-
-        {/* Message */}
-        <h1 className="text-3xl font-bold text-white mb-3 tracking-tight">
-          Something exciting is coming.
-        </h1>
-        <p className="text-gray-400 text-base leading-relaxed mb-2">
-          Stay tuned for some exciting updates coming May 26th, 2026.
-        </p>
-        <p className="text-gray-500 text-sm leading-relaxed mb-8">
-          Fique ligado — novidades incríveis chegando em 26 de maio de 2026.
-        </p>
-
-        {/* Status indicator */}
-        <div className="inline-flex items-center gap-2 bg-gray-900 border border-gray-800 rounded-full px-4 py-2 text-sm text-gray-400">
-          <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
-          May 26th, 2026
-        </div>
-
-        {/* Footer */}
-        <p className="mt-12 text-xs text-gray-700">
-          Questions?{" "}
-          <a href="mailto:support@tradepro.app" className="text-gray-600 hover:text-gray-400 underline transition-colors">
-            support@tradepro.app
-          </a>
-        </p>
       </div>
     </div>
   );
