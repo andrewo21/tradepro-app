@@ -21,7 +21,7 @@ export default function GringoHero({ size = 280 }: { size?: number }) {
         }}
       />
       <Image
-        src="/gringo-bust.png"
+        src="/gringo-bust.png?v=2"
         alt="Gringo — AI Resume Coach"
         width={size}
         height={size}

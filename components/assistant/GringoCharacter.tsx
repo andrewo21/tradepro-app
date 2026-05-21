@@ -13,15 +13,16 @@ export type GringoMood =
   | "polish"
   | "shrug";
 
+// Approved Gringo expressions — confirmed May 21 2026
 const FRAME: Record<GringoMood, string> = {
-  idle:      "/gringo-bust.png",
-  wave:      "/gringo-bust-wave.png",
-  talking:   "/gringo-bust-talking.png",
-  thinking:  "/gringo-bust-thinking.png",
-  happy:     "/gringo-bust-happy.png",
-  celebrate: "/gringo-bust-celebrate.png",
-  polish:    "/gringo-bust-thinking.png",
-  shrug:     "/gringo-bust.png",
+  idle:      "/gringo-bust.png?v=2",
+  wave:      "/gringo-bust-wave.png?v=2",
+  talking:   "/gringo-bust-talking.png?v=2",
+  thinking:  "/gringo-bust-thinking.png?v=2",
+  happy:     "/gringo-bust-happy.png?v=2",
+  celebrate: "/gringo-bust-celebrate.png?v=2",
+  polish:    "/gringo-bust-thinking.png?v=2",
+  shrug:     "/gringo-bust.png?v=2",
 };
 
 const ANIMATION: Record<GringoMood, string> = {
