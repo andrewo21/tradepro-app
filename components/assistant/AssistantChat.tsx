@@ -158,8 +158,8 @@ export function AssistantChat({
     <div className="flex flex-col bg-white rounded-2xl shadow-2xl border border-indigo-100 overflow-hidden"
          style={{ width: 340, maxHeight: "min(520px, calc(100vh - 220px))" }}>
 
-      {/* ── Header ── */}
-      <div className="flex items-center justify-between px-4 py-3 bg-indigo-600 text-white">
+      {/* ── Header — drag the whole window from here ── */}
+      <div className="flex items-center justify-between px-4 py-3 bg-indigo-600 text-white cursor-grab active:cursor-grabbing select-none">
         <div className="flex items-center gap-2.5">
           <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-lg animate-pulse" />
           <div>

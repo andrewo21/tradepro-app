@@ -340,7 +340,8 @@ export default function ResumeAssistant({ locale = "en" }: Props) {
   return (
     <div
       className="fixed z-50 flex flex-col items-end gap-0"
-      style={{ left: pos.x, top: pos.y, cursor: isDragging ? "grabbing" : "grab" }}
+      style={{ left: pos.x, top: pos.y }}
+      {...dragHandlers}
     >
 
       {/* ── Full chat panel (slides up above robot) ── */}
