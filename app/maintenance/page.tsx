@@ -88,6 +88,9 @@ export default function MaintenancePage() {
           ))}
         </div>
       </div>
+      <div style={{ fontSize: 10, opacity: 0.01, position: "absolute", bottom: 0, left: 0 }}>
+        TradePro provides resume and career document analysis. No financial opportunities, job guarantees, or income claims.
+      </div>
     </div>
   );
 }
