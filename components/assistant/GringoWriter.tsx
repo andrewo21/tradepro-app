@@ -353,9 +353,10 @@ export default function GringoWriter({ locale, previewHref }: Props) {
   const [isDone,     setIsDone]     = useState(false);
   const [started,    setStarted]    = useState(false);
 
-  const bottomRef  = useRef<HTMLDivElement>(null);
-  const inputRef   = useRef<HTMLInputElement>(null);
+  const bottomRef   = useRef<HTMLDivElement>(null);
+  const inputRef    = useRef<HTMLInputElement>(null);
   const applyAction = useApplyAction(locale);
+  const callerLock  = useRef(false); // synchronous lock — prevents concurrent callWriter invocations
 
   // Auto-scroll
   useEffect(() => {
@@ -382,6 +383,11 @@ export default function GringoWriter({ locale, previewHref }: Props) {
   }, []);
 
   async function callWriter(msgs: WriterMessage[], userMsg?: string) {
+    // Synchronous guard — if a call is already in flight, drop this one silently.
+    // React state (loading) updates asynchronously so it can't reliably block a second call.
+    if (callerLock.current) { console.warn("[writer] blocked concurrent call"); return; }
+    callerLock.current = true;
+
     const newHistory = userMsg
       ? [...msgs, { role: "user" as const, content: userMsg }]
       : msgs;
@@ -419,10 +425,9 @@ export default function GringoWriter({ locale, previewHref }: Props) {
       if (data.done) {
         setTimeout(() => inputRef.current?.focus(), 300);
       }
-    } catch {
-      // Single setHistory call — avoids the React batching race where a
-      // double call leaves the failed user message in history, causing a loop.
-      // Roll back to pre-user-message state + one error message.
+    } catch (err) {
+      // Log the real error so we can identify the root cause in the console
+      console.error("[writer] callWriter failed:", err);
       setHistory([
         ...msgs,
         {
@@ -433,6 +438,7 @@ export default function GringoWriter({ locale, previewHref }: Props) {
         },
       ]);
     } finally {
+      callerLock.current = false; // release lock before setLoading so next call can proceed
       setLoading(false);
       setTimeout(() => inputRef.current?.focus(), 100);
     }
