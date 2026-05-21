@@ -1,65 +1,51 @@
 import { NextRequest, NextResponse } from "next/server";
 
 // ── Maintenance mode ──────────────────────────────────────────────────────────
-// Set MAINTENANCE_MODE=true in your Vercel environment variables to lock the site.
-// Access the live site by visiting any page with ?preview=<MAINTENANCE_BYPASS_KEY>
-// This sets a cookie so you won't need the param on every page.
+// MAINTENANCE_MODE=true → public sees countdown page only.
+// Private access: visit /admin-preview?pw=YOUR_PREVIEW_PASSWORD
+// This sets a 7-day cookie so you can browse freely afterward.
 
-const MAINTENANCE_ON    = process.env.MAINTENANCE_MODE === "true";
-const BYPASS_KEY        = process.env.MAINTENANCE_BYPASS_KEY || "tradepro-dev-2026";
-const BYPASS_COOKIE     = "tp_maintenance_bypass";
-const MAINTENANCE_PATH  = "/maintenance";
+const MAINTENANCE_ON = process.env.MAINTENANCE_MODE === "true";
+const PASSWORD       = process.env.PREVIEW_PASSWORD || "";
+const COOKIE_NAME    = "tp_preview_access";
+const MAINTENANCE    = "/maintenance";
 
-// Routes that are always accessible regardless of maintenance mode
+// Always accessible regardless of maintenance state
 const ALWAYS_ALLOWED = [
-  MAINTENANCE_PATH,
+  MAINTENANCE,
+  "/admin-preview",  // private access route
   "/_next",
   "/favicon",
   "/icons",
-  "/api/",          // keep API routes alive (webhooks, etc.)
+  "/api/",
   "/robots",
   "/sitemap",
 ];
 
 export function middleware(req: NextRequest) {
-  const { pathname, searchParams } = req.nextUrl;
+  const { pathname } = req.nextUrl;
 
-  // Always allow static assets and exempt paths
-  if (ALWAYS_ALLOWED.some((p) => pathname.startsWith(p))) {
+  // Always allow static/exempt paths
+  if (ALWAYS_ALLOWED.some(p => pathname.startsWith(p))) {
     return NextResponse.next();
   }
 
+  // No maintenance — pass through
   if (!MAINTENANCE_ON) {
     return NextResponse.next();
   }
 
-  // Check if user has a valid bypass cookie
-  const bypassCookie = req.cookies.get(BYPASS_COOKIE)?.value;
-  if (bypassCookie === BYPASS_KEY) {
+  // Check bypass cookie
+  const cookie = req.cookies.get(COOKIE_NAME)?.value;
+  if (PASSWORD && cookie === PASSWORD) {
     return NextResponse.next();
   }
 
-  // Check if user is supplying the bypass key in the URL (?preview=KEY)
-  const previewKey = searchParams.get("preview");
-  if (previewKey === BYPASS_KEY) {
-    // Set the bypass cookie and redirect to the page without the param
-    const url = req.nextUrl.clone();
-    url.searchParams.delete("preview");
-    const res = NextResponse.redirect(url);
-    res.cookies.set(BYPASS_COOKIE, BYPASS_KEY, {
-      path:     "/",
-      httpOnly: true,
-      maxAge:   60 * 60 * 24 * 7, // 7 days
-      sameSite: "lax",
-    });
-    return res;
-  }
-
-  // Redirect everyone else to the maintenance page
-  const maintenanceUrl = req.nextUrl.clone();
-  maintenanceUrl.pathname = MAINTENANCE_PATH;
-  maintenanceUrl.search   = "";
-  return NextResponse.rewrite(maintenanceUrl);
+  // Everyone else sees the countdown page
+  const url = req.nextUrl.clone();
+  url.pathname = MAINTENANCE;
+  url.search   = "";
+  return NextResponse.rewrite(url);
 }
 
 export const config = {
