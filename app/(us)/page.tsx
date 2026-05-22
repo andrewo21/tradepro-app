@@ -246,11 +246,10 @@ export default function HomePage() {
           <div className="grid gap-6 md:grid-cols-3">
             <div className="bg-white border border-neutral-200 rounded-md p-4 shadow-sm">
               <p className="text-sm text-neutral-800 mb-3">
-                “TradePro helped me turn years of jobsite experience into a
-                resume I’m proud to hand over.”
+                “Got a sneak peek at the early access version of TradeProTech.Ai and honestly had a great experience. The platform helped me build a professional resume from start to finish while also analyzing my strengths, weak points, and areas I could improve professionally. Really clean process and a great tool for anyone looking to level up their career.”
               </p>
               <p className="text-xs text-neutral-500 font-medium">
-                — Miguel, Commercial Electrician
+                — Luis C.
               </p>
             </div>
             <div className="bg-white border border-neutral-200 rounded-md p-4 shadow-sm">

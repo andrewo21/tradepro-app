@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-const LAUNCH = new Date("2026-05-26T00:00:00").getTime();
+const LAUNCH = new Date("2026-05-28T00:00:00").getTime();
 
 function getTimeLeft() {
   const diff = LAUNCH - Date.now();
