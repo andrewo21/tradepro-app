@@ -7,6 +7,11 @@ import Link from "next/link";
 export default function BrResumoPage() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
+  if (!mounted) return null;
+  return <BrResumoContent />;
+}
+
+function BrResumoContent() {
   const { resumoProfissional, updateResumo } = useBrResumeStore();
   const [local, setLocal] = useState(resumoProfissional);
   const [loading, setLoading] = useState(false);
@@ -36,8 +41,6 @@ export default function BrResumoPage() {
     }, 1400);
     return () => { if (timer.current) clearTimeout(timer.current); };
   }, [local]); // eslint-disable-line
-
-  if (!mounted) return null;
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">

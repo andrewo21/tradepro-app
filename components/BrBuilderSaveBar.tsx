@@ -7,6 +7,13 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 export default function BrBuilderSaveBar() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!mounted) return null;
+  return <BrBuilderSaveBarContent />;
+}
+
+function BrBuilderSaveBarContent() {
   const store = useBrResumeStore();
   const router = useRouter();
   const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");

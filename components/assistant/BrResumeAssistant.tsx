@@ -97,6 +97,13 @@ function useApplyBrSuggestion() {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function BrResumeAssistant() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!mounted) return null;
+  return <BrResumeAssistantContent />;
+}
+
+function BrResumeAssistantContent() {
   const pathname    = usePathname();
   const step        = pathToStep(pathname);
   const resumeState = useBrResumeSnapshot();

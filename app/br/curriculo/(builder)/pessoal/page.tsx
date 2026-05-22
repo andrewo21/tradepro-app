@@ -7,9 +7,13 @@ import Link from "next/link";
 export default function BrPessoalPage() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
+  if (!mounted) return null;
+  return <BrPessoalContent />;
+}
+
+function BrPessoalContent() {
   const { personalInfo, setPersonalField } = useBrResumeStore();
   const [preview, setPreview] = useState<string>(personalInfo.foto || "");
-  if (!mounted) return null;
 
   function handleFoto(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
