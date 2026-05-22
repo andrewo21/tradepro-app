@@ -71,10 +71,28 @@ export default function BrPreviewPage() {
   const resumeData = {
     personalInfo: store.personalInfo,
     resumoProfissional: store.resumoProfissional,
-    habilidades: store.habilidades,
+    // Merge habilidadesTecnicas (Gringo flow) with legacy habilidades — deduplicated
+    habilidades: (() => {
+      const tecnicas = store.habilidadesTecnicas || [];
+      const legacy   = store.habilidades || [];
+      const tecnicaTexts = new Set(tecnicas.map((h: any) => (h.text || h).toLowerCase().trim()));
+      const extra = legacy.filter((h: any) => !tecnicaTexts.has((h.text || h).toLowerCase().trim()));
+      return [...tecnicas, ...extra];
+    })(),
+    habilidadesComportamentais: store.habilidadesComportamentais || [],
+    idiomas: store.idiomas || [],
     experiencia: store.experiencia,
     formacao: store.formacao,
-    cursosCertificacoes: store.cursosCertificacoes,
+    // Deduplicated certifications — avoid repeating the same nome
+    cursosCertificacoes: (() => {
+      const seen = new Set<string>();
+      return (store.cursosCertificacoes || []).filter((c: any) => {
+        const key = (c.nome || "").toLowerCase().trim();
+        if (!key || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    })(),
   };
 
   const buildPayload = () => ({
@@ -110,10 +128,19 @@ export default function BrPreviewPage() {
       school: f.instituicao || "",
       degree: f.curso || "",
     })),
-    certifications: [
-      ...(store.cursosCertificacoes || []).filter((c: any) => c.nome).map((c: any) => c.nome),
-      ...(store.idiomas || []).map((i: any) => i.text || i).filter(Boolean).map((lang: string) => `Idioma: ${lang}`),
-    ],
+    certifications: (() => {
+      const seen = new Set<string>();
+      const result: string[] = [];
+      for (const c of (store.cursosCertificacoes || [])) {
+        const name = c.nome || "";
+        if (name && !seen.has(name.toLowerCase())) { seen.add(name.toLowerCase()); result.push(name); }
+      }
+      for (const i of (store.idiomas || [])) {
+        const lang = `Idioma: ${i.text || i}`;
+        if (!seen.has(lang.toLowerCase())) { seen.add(lang.toLowerCase()); result.push(lang); }
+      }
+      return result;
+    })(),
   });
 
   async function handleDownload() {

@@ -96,6 +96,11 @@ function buildSystemPT(name: string, bot: string): string {
 
 Nome do usuário: ${name}
 
+REGRA DE IDIOMA ABSOLUTA: TODO o conteúdo deve estar em PORTUGUÊS BRASILEIRO.
+Títulos de cargos, habilidades, resumo profissional, responsabilidades, formação — TUDO em português.
+NUNCA use inglês em nenhum campo do currículo.
+Se o usuário digitar em inglês, traduza para português nas actions.
+
 SEU OBJETIVO:
 Coletar informações de forma conversacional e escrever o currículo completo. Faça UMA pergunta por vez.
 Seja caloroso, direto e encorajador. Após cada resposta do usuário, execute as ações necessárias e faça a próxima pergunta.

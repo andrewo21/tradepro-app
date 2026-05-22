@@ -11,6 +11,8 @@ import type { GringoMood } from "./GringoCharacter";
 import CV1Character from "./CV1Character";
 import type { CV1Mood } from "./CV1Character";
 import type { WriterMessage, StoreAction } from "@/app/api/ai/gringo-writer/route";
+import { computeLiveAtsScore, atsLabelColor } from "@/lib/ats/live/liveAtsScore";
+import { mapBrDataToUsFormat } from "@/lib/pdfTemplates";
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
@@ -49,21 +51,21 @@ function useTypewriter(text: string, speed = 16): [string, boolean] {
 
 // ─── Apply store action ───────────────────────────────────────────────────────
 
-function useApplyAction(locale: "pt-BR" | "en") {
+function useApplyAction(locale: "pt-BR" | "en", setPendingSummary: (text: string) => void) {
   const brStore = useBrResumeStore();
   const usStore = useResumeStore();
 
   return useCallback((action: StoreAction) => {
     if (locale === "pt-BR") {
-      applyBR(action, brStore);
+      applyBR(action, brStore, setPendingSummary);
     } else {
-      applyUS(action, usStore);
+      applyUS(action, usStore, setPendingSummary);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [locale]);
 }
 
-function applyBR(action: StoreAction, store: any) {
+function applyBR(action: StoreAction, store: any, setPendingSummary: (text: string) => void) {
   const { type, payload } = action;
   const state = useBrResumeStore.getState();
 
@@ -75,7 +77,7 @@ function applyBR(action: StoreAction, store: any) {
       break;
 
     case "set_summary":
-      if (payload.text) store.updateResumo(payload.text);
+      if (payload.text) setPendingSummary(payload.text);
       break;
 
     case "add_experience": {
@@ -122,8 +124,13 @@ function applyBR(action: StoreAction, store: any) {
 
     case "add_education": {
       const edu = state.formacao || [];
+      const normEdu = (s: string) => (s || "").toLowerCase().trim();
+      const eduExists = edu.some((f: any) =>
+        normEdu(f.instituicao) === normEdu(payload.instituicao || "") &&
+        normEdu(f.curso) === normEdu(payload.curso || "")
+      );
+      if (eduExists) break;
       if (edu.length === 1 && !edu[0].curso) {
-        // Fill the default empty slot
         store.setField("formacao", [{
           instituicao: payload.instituicao || "",
           curso:       payload.curso       || "",
@@ -143,8 +150,11 @@ function applyBR(action: StoreAction, store: any) {
 
     case "add_certification": {
       const certs = state.cursosCertificacoes || [];
-      const newCert = { nome: payload.nome || "", instituicao: payload.instituicao || "", ano: payload.ano || "" };
-      store.setField("cursosCertificacoes", [...certs, newCert]);
+      const norm = (s: string) => (s || "").toLowerCase().trim();
+      const alreadyExists = certs.some((c: any) => norm(c.nome) === norm(payload.nome || ""));
+      if (!alreadyExists) {
+        store.setField("cursosCertificacoes", [...certs, { nome: payload.nome || "", instituicao: payload.instituicao || "", ano: payload.ano || "" }]);
+      }
       break;
     }
 
@@ -152,7 +162,7 @@ function applyBR(action: StoreAction, store: any) {
   }
 }
 
-function applyUS(action: StoreAction, store: any) {
+function applyUS(action: StoreAction, store: any, setPendingSummary: (text: string) => void) {
   const { type, payload } = action;
 
   switch (type) {
@@ -355,13 +365,22 @@ export default function GringoWriter({ locale, previewHref }: Props) {
 
   const bottomRef   = useRef<HTMLDivElement>(null);
   const inputRef    = useRef<HTMLInputElement>(null);
-  const applyAction = useApplyAction(locale);
+  const applyAction = useApplyAction(locale, setPendingSummary);
   const callerLock  = useRef(false); // synchronous lock — prevents concurrent callWriter invocations
 
   // Auto-scroll
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [history, loading]);
+
+  // PT-BR: auto-navigate to resumo when done and summary has been confirmed
+  useEffect(() => {
+    if (!isEN && isDone && pendingSummary === null && started) {
+      const t = setTimeout(() => router.push("/br/curriculo/resumo"), 1000);
+      return () => clearTimeout(t);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDone, pendingSummary, isEN, started]);
 
   // Start conversation automatically — clear existing resume data first.
   // This is a "build from scratch" flow, not an "add to existing" flow.
@@ -528,65 +547,95 @@ export default function GringoWriter({ locale, previewHref }: Props) {
           </div>
         )}
 
-        {isDone && (
+        {isDone && isEN && (
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             className="flex flex-col items-center gap-3 py-6"
           >
-{charVariant === "us" ? <CV1Character mood="celebrate" size={160} /> : <GringoCharacter mood="celebrate" size={160} />}
+            <CV1Character mood="celebrate" size={160} />
             <div className="text-center">
-              <p className="font-bold text-gray-900 text-lg">
-                {isEN ? "Resume complete!" : "Currículo pronto!"}
-              </p>
-              <p className="text-sm text-gray-500 mt-1">
-                {isEN
-                  ? "Preview it below, then download securely."
-                  : "Visualize abaixo, depois baixe com segurança."}
-              </p>
+              <p className="font-bold text-gray-900 text-lg">Resume complete!</p>
+              <p className="text-sm text-gray-500 mt-1">Preview it below, then download securely.</p>
             </div>
             <button
               onClick={() => router.push(previewHref)}
               className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200 text-sm"
             >
               <Eye className="w-4 h-4" />
-              {isEN ? "Preview & Download →" : "Ver Currículo e Baixar →"}
+              Preview &amp; Download →
             </button>
+          </motion.div>
+        )}
+
+        {isDone && !isEN && !pendingSummary && (
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex flex-col items-center gap-2 py-4 text-center"
+          >
+            <GringoCharacter mood="celebrate" size={100} />
+            <p className="text-sm text-gray-500">Redirecionando para o resumo…</p>
           </motion.div>
         )}
 
         <div ref={bottomRef} />
       </div>
 
-      {/* ── Summary approval card — shown before input when summary is pending ── */}
-      {pendingSummary && !isDone && (
-        <div className="px-4 py-3 bg-indigo-50 border-t border-indigo-200">
-          <p className="text-xs font-bold text-indigo-700 uppercase tracking-wide mb-2">
-            {isEN ? "✦ CV-1 wrote your summary — approve or edit before it goes in:" : "✦ Resumo escrito — aprove ou edite antes de salvar:"}
+      {/* ── Summary approval card ── */}
+      {pendingSummary && (
+        <div className={`px-4 py-3 border-t ${isEN ? "bg-indigo-50 border-indigo-200" : "bg-green-50 border-green-200"}`}>
+          <p className={`text-xs font-bold uppercase tracking-wide mb-2 ${isEN ? "text-indigo-700" : "text-green-800"}`}>
+            {isEN ? "✦ CV-1 wrote your summary — approve or edit before it goes in:" : "✦ Gringo escreveu seu resumo — confira antes de salvar:"}
           </p>
-          <p className="text-sm text-gray-800 bg-white border border-indigo-200 rounded-xl p-3 leading-relaxed mb-3">
+          <p className="text-sm text-gray-800 bg-white border border-green-200 rounded-xl p-3 leading-relaxed mb-3">
             {pendingSummary}
           </p>
+
+          {/* PT-BR only: Gupy ATS score */}
+          {!isEN && (() => {
+            try {
+              const brState = useBrResumeStore.getState();
+              const forScore = mapBrDataToUsFormat({ ...brState, resumoProfissional: pendingSummary });
+              const ats = computeLiveAtsScore(forScore);
+              const color = atsLabelColor(ats.label);
+              const ptLabel = { Strong: "Forte", Good: "Bom", Building: "Em construção", Weak: "Fraco", "Not Started": "Não iniciado" }[ats.label] || ats.label;
+              return (
+                <div className="flex items-center gap-3 bg-white border border-green-100 rounded-xl px-3 py-2 mb-3">
+                  <div className="flex flex-col items-center flex-shrink-0">
+                    <span className="text-2xl font-black" style={{ color }}>{ats.score}</span>
+                    <span className="text-[10px] font-bold" style={{ color }}>{ptLabel}</span>
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-neutral-700">Pontuação ATS do seu currículo</p>
+                    <p className="text-[11px] text-neutral-500">Baseada em completude e qualidade do conteúdo</p>
+                  </div>
+                </div>
+              );
+            } catch { return null; }
+          })()}
+
           <div className="flex gap-2">
             <button
               onClick={() => {
                 if (locale === "en") {
                   useResumeStore.getState().updateSummary(pendingSummary);
+                  setPendingSummary(null);
                 } else {
                   useBrResumeStore.getState().updateResumo(pendingSummary);
+                  setPendingSummary(null);
                 }
-                setPendingSummary(null);
               }}
-              className="flex-1 py-2 bg-indigo-600 text-white text-sm font-bold rounded-xl hover:bg-indigo-700 transition-colors"
+              className={`flex-1 py-2 text-white text-sm font-bold rounded-xl transition-colors ${isEN ? "bg-indigo-600 hover:bg-indigo-700" : "bg-green-700 hover:bg-green-800"}`}
             >
-              {isEN ? "✓ Use this summary" : "✓ Usar este resumo"}
+              {isEN ? "✓ Use this summary" : "✓ Está tudo certo!"}
             </button>
             <button
               onClick={() => {
                 setInput(pendingSummary);
                 setPendingSummary(null);
               }}
-              className="px-4 py-2 bg-white border border-indigo-300 text-indigo-700 text-sm font-semibold rounded-xl hover:bg-indigo-50 transition-colors"
+              className={`px-4 py-2 bg-white text-sm font-semibold rounded-xl transition-colors ${isEN ? "border border-indigo-300 text-indigo-700 hover:bg-indigo-50" : "border border-green-300 text-green-700 hover:bg-green-50"}`}
             >
               {isEN ? "Edit" : "Editar"}
             </button>
