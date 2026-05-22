@@ -6,8 +6,12 @@ import { getServerUserId } from "@/lib/userId";
 import { overrides } from "@/config/overrides";
 import UpsellModal from "@/components/UpsellModal";
 import { ProductId } from "@/lib/pricing";
-import BrBuilderSaveBar from "@/components/BrBuilderSaveBar";
-import BrResumeAssistant from "@/components/assistant/BrResumeAssistant";
+import dynamic from "next/dynamic";
+
+// Both components subscribe to Zustand persist stores and use localStorage/window.
+// Skip SSR to prevent React #418 hydration mismatches.
+const BrBuilderSaveBar   = dynamic(() => import("@/components/BrBuilderSaveBar"),                          { ssr: false, loading: () => null });
+const BrResumeAssistant  = dynamic(() => import("@/components/assistant/BrResumeAssistant"),               { ssr: false, loading: () => null });
 
 async function BrBuilderGate({ children }: { children: ReactNode }) {
   const userId = await getServerUserId();
