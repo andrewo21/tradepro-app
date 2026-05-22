@@ -1,12 +1,16 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useBrResumeStore } from "@/app/store/useBrResumeStore";
 import Link from "next/link";
 
 const TIPOS = ["Técnico", "Graduação", "Pós-Graduação", "MBA", "Curso Livre", "Outro"];
 
 export default function BrFormacaoPage() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
   const { formacao, cursosCertificacoes, setField } = useBrResumeStore();
+  if (!mounted) return null;
 
   function updateFormacao(i: number, field: string, value: string) {
     const f = [...formacao];

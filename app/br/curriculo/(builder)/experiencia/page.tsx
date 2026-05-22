@@ -27,6 +27,8 @@ function buildDataStr(mes: string, ano: string): string {
 interface DataState { mesInicio: string; anoInicio: string; mesFim: string; anoFim: string; atual: boolean; }
 
 export default function BrExperienciaPage() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
   const { experiencia, addExperiencia, removeExperiencia, updateExperienciaField, addResponsabilidade, updateResponsabilidade, setField } = useBrResumeStore();
   const [rewriting, setRewriting] = useState<{ id: string; idx: number } | null>(null);
   const [suggestions, setSuggestions] = useState<Record<string, string>>({});
@@ -49,6 +51,8 @@ export default function BrExperienciaPage() {
       return next;
     });
   }, [experiencia]);
+
+  if (!mounted) return null;
 
   function setData(expId: string, field: keyof DataState, value: string | boolean) {
     setDatas(prev => {

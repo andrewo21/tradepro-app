@@ -1,12 +1,15 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useBrResumeStore } from "@/app/store/useBrResumeStore";
 import Link from "next/link";
-import { useState } from "react";
 
 export default function BrPessoalPage() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
   const { personalInfo, setPersonalField } = useBrResumeStore();
   const [preview, setPreview] = useState<string>(personalInfo.foto || "");
+  if (!mounted) return null;
 
   function handleFoto(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
