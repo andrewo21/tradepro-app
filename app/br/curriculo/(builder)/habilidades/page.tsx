@@ -7,10 +7,12 @@ import Link from "next/link";
 export default function BrHabilidadesPage() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
-
-  const store = useBrResumeStore();
-
   if (!mounted) return null;
+  return <BrHabilidadesContent />;
+}
+
+function BrHabilidadesContent() {
+  const store = useBrResumeStore();
   const tecnicas = store.habilidadesTecnicas || [];
   const comportamentais = store.habilidadesComportamentais || [];
   const idiomas = store.idiomas || [];

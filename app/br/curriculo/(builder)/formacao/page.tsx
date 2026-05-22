@@ -9,8 +9,12 @@ const TIPOS = ["Técnico", "Graduação", "Pós-Graduação", "MBA", "Curso Livr
 export default function BrFormacaoPage() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
-  const { formacao, cursosCertificacoes, setField } = useBrResumeStore();
   if (!mounted) return null;
+  return <BrFormacaoContent />;
+}
+
+function BrFormacaoContent() {
+  const { formacao, cursosCertificacoes, setField } = useBrResumeStore();
 
   function updateFormacao(i: number, field: string, value: string) {
     const f = [...formacao];
