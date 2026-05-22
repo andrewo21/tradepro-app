@@ -1,10 +1,16 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useBrResumeStore } from "@/app/store/useBrResumeStore";
 import Link from "next/link";
 
 export default function BrHabilidadesPage() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
   const store = useBrResumeStore();
+
+  if (!mounted) return null;
   const tecnicas = store.habilidadesTecnicas || [];
   const comportamentais = store.habilidadesComportamentais || [];
   const idiomas = store.idiomas || [];
