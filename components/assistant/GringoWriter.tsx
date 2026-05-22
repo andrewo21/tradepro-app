@@ -196,16 +196,27 @@ function applyUS(action: StoreAction, store: any, setPendingSummary: (text: stri
   const { type, payload } = action;
 
   switch (type) {
-    case "set_personal":
-      if (payload.firstName)  store.updatePersonalInfo("firstName",  payload.firstName);
-      if (payload.lastName)   store.updatePersonalInfo("lastName",   payload.lastName);
-      if (payload.tradeTitle) store.updatePersonalInfo("tradeTitle", payload.tradeTitle);
-      if (payload.email)      store.updatePersonalInfo("email",      payload.email);
-      if (payload.phone)      store.updatePersonalInfo("phone",      payload.phone);
-      if (payload.city)       store.updatePersonalInfo("city",       payload.city);
-      if (payload.state)      store.updatePersonalInfo("state",      payload.state);
-      if (payload.linkedin)   store.updatePersonalInfo("linkedin",   payload.linkedin);
+    case "set_personal": {
+      // Always write via getState() to avoid any stale closure issues.
+      // Also handle "name" as a single field (AI sometimes sends full name combined).
+      const pi = (field: string, value: any) => {
+        if (!value) return;
+        useResumeStore.getState().updatePersonalInfo(field, String(value).trim());
+      };
+      // Name — accept both split fields and combined "name" field
+      const rawName: string = payload.name || "";
+      const firstName = payload.firstName || (rawName ? rawName.split(" ")[0] : "");
+      const lastName  = payload.lastName  || (rawName ? rawName.split(" ").slice(1).join(" ") : "");
+      pi("firstName",  firstName);
+      pi("lastName",   lastName);
+      pi("tradeTitle", payload.tradeTitle || payload.jobTitle || payload.title);
+      pi("email",      payload.email);
+      pi("phone",      payload.phone);
+      pi("city",       payload.city);
+      pi("state",      payload.state);
+      pi("linkedin",   payload.linkedin);
       break;
+    }
 
     case "set_summary":
       // Show as pending — user must approve before it goes into the resume
@@ -289,9 +300,10 @@ function applyUS(action: StoreAction, store: any, setPendingSummary: (text: stri
 
     case "add_skill": {
       if (!payload.text?.trim()) break;
+      const normSkill = (t: string) => t.toLowerCase().replace(/\s+/g, "").replace(/[^a-z0-9]/g, "");
       const existingSkills = useResumeStore.getState().skills;
       const alreadyExists = existingSkills.some((s: any) =>
-        (typeof s === "string" ? s : s.text || "").toLowerCase().trim() === payload.text.toLowerCase().trim()
+        normSkill(typeof s === "string" ? s : s.text || "") === normSkill(payload.text)
       );
       if (!alreadyExists) store.addSkill(payload.text);
       break;
