@@ -49,18 +49,19 @@ function useTypewriter(text: string, speed = 16): [string, boolean] {
 
 // ─── Apply store action ───────────────────────────────────────────────────────
 
-function useApplyAction(locale: "pt-BR" | "en") {
-  const brStore = useBrResumeStore();
-  const usStore = useResumeStore();
-
+// Use getState() instead of the hook so GringoWriter is NOT subscribed to either
+// Zustand store. Subscribing caused a tearing-during-hydration error (#418): the
+// persist middleware rehydrates from localStorage before React's first paint,
+// the subscription fires, and React sees a server/client mismatch.
+// getState() always returns the current snapshot at call time — no subscription needed.
+function useApplyAction(locale: "pt-BR" | "en", setPendingSummary: (s: string | null) => void) {
   return useCallback((action: StoreAction) => {
     if (locale === "pt-BR") {
-      applyBR(action, brStore);
+      applyBR(action, useBrResumeStore.getState());
     } else {
-      applyUS(action, usStore);
+      applyUS(action, useResumeStore.getState(), setPendingSummary);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [locale]);
+  }, [locale, setPendingSummary]);
 }
 
 function applyBR(action: StoreAction, store: any) {
@@ -152,7 +153,7 @@ function applyBR(action: StoreAction, store: any) {
   }
 }
 
-function applyUS(action: StoreAction, store: any) {
+function applyUS(action: StoreAction, store: any, setPendingSummary?: (s: string | null) => void) {
   const { type, payload } = action;
 
   switch (type) {
@@ -168,7 +169,7 @@ function applyUS(action: StoreAction, store: any) {
 
     case "set_summary":
       // Show as pending — user must approve before it goes into the resume
-      if (payload.text) {
+      if (payload.text && setPendingSummary) {
         setPendingSummary(payload.text);
       }
       break;
@@ -355,7 +356,7 @@ export default function GringoWriter({ locale, previewHref }: Props) {
 
   const bottomRef   = useRef<HTMLDivElement>(null);
   const inputRef    = useRef<HTMLInputElement>(null);
-  const applyAction = useApplyAction(locale);
+  const applyAction = useApplyAction(locale, setPendingSummary);
   const callerLock  = useRef(false); // synchronous lock — prevents concurrent callWriter invocations
 
   // Auto-scroll
@@ -412,10 +413,13 @@ export default function GringoWriter({ locale, previewHref }: Props) {
         }
       }
 
-      setCurrentStep(data.step || "personal");
+      // "done" is not a real step — fall back to "summary" so the progress
+      // bar reaches the last segment instead of resetting to 0.
+      const nextStep = (data.step === "done" || !data.step) ? "summary" : data.step;
+      setCurrentStep(nextStep);
       setIsDone(data.done || false);
 
-      // Only append assistant message if it has content — empty strings in
+        // Only append assistant message if it has content — empty strings in
       // history confuse the model on subsequent calls and can cause errors.
       const updated: WriterMessage[] = data.message?.trim()
         ? [...newHistory, { role: "assistant", content: data.message }]
@@ -426,10 +430,11 @@ export default function GringoWriter({ locale, previewHref }: Props) {
         setTimeout(() => inputRef.current?.focus(), 300);
       }
     } catch (err) {
-      // Log the real error so we can identify the root cause in the console
       console.error("[writer] callWriter failed:", err);
+      // Use newHistory (not msgs) so the user's message stays in history —
+      // the AI needs it as context on the next attempt.
       setHistory([
-        ...msgs,
+        ...newHistory,
         {
           role:    "assistant" as const,
           content: isEN
@@ -498,12 +503,15 @@ export default function GringoWriter({ locale, previewHref }: Props) {
       {/* ── Chat area ── */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
 
-        {history.map((msg, i) =>
-          msg.role === "assistant" ? (
+        {history.map((msg, i) => {
+          // Guard: skip rendering messages with no content — an empty string
+          // passed to the typewriter causes it to never reach done=true.
+          if (!msg?.content?.trim()) return null;
+          return msg.role === "assistant" ? (
             <BotMessage
               key={i}
               text={msg.content}
-              isLatest={i === history.length - 1 || (i === history.length - 2 && history[history.length - 1].role === "user")}
+              isLatest={i === history.length - 1 || (i === history.length - 2 && history[history.length - 1]?.role === "user")}
               charVariant={charVariant}
             />
           ) : (
@@ -512,8 +520,8 @@ export default function GringoWriter({ locale, previewHref }: Props) {
                 {msg.content}
               </div>
             </div>
-          )
-        )}
+          );
+        })}
 
         {loading && (
           <div className="flex items-center gap-3">

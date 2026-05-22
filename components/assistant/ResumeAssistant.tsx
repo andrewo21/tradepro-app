@@ -6,10 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { MessageCircle } from "lucide-react";
 import { useDraggable } from "@/hooks/useDraggable";
 import { useResumeStore } from "@/app/store/useResumeStore";
-import {
-  useAssistantStore,
-  type AssistantSuggestion,
-} from "@/app/store/useAssistantStore";
+import { useAssistantStore } from "@/app/store/useAssistantStore";
 import { pathToStep, resumeHash, buildStepPayload } from "@/lib/assistant/step_context";
 import { computeLiveAtsScore, atsLabelColor } from "@/lib/ats/live/liveAtsScore";
 import CV1Character from "./CV1Character";
@@ -17,72 +14,11 @@ import type { CV1Mood } from "./CV1Character";
 import { AssistantChat } from "./AssistantChat";
 import { SpeechBubble } from "./SpeechBubble";
 
-// ─── Apply suggestion → write to resume store ─────────────────────────────────
-
-function useApplySuggestion() {
-  const store = useResumeStore();
-  return useCallback(
-    (suggestion: AssistantSuggestion) => {
-      const { action } = suggestion;
-      const experience: any[] = store.experience || [];
-
-      switch (action.type) {
-        case "add_responsibility": {
-          const targetId = action.experienceId || experience[0]?.id;
-          if (!targetId) break;
-          store.addResponsibility(targetId);
-          setTimeout(() => {
-            const updated: any[] = useResumeStore.getState().experience;
-            const job = updated.find((e: any) => e.id === targetId);
-            if (!job) return;
-            store.updateResponsibility(targetId, job.responsibilities.length - 1, action.value);
-          }, 50);
-          break;
-        }
-        case "update_responsibility": {
-          // Replace an existing bullet in-place
-          const targetId  = action.experienceId || experience[0]?.id;
-          const bulletIdx = typeof action.bulletIndex === "number" ? action.bulletIndex : null;
-          if (!targetId || bulletIdx === null) break;
-          store.updateResponsibility(targetId, bulletIdx, action.value);
-          break;
-        }
-        case "add_achievement": {
-          const targetId = action.experienceId || experience[0]?.id;
-          if (!targetId) break;
-          store.addAchievement(targetId);
-          setTimeout(() => {
-            const updated: any[] = useResumeStore.getState().experience;
-            const job = updated.find((e: any) => e.id === targetId);
-            if (!job) return;
-            store.updateAchievement(targetId, job.achievements.length - 1, action.value);
-          }, 50);
-          break;
-        }
-        case "update_achievement": {
-          const targetId  = action.experienceId || experience[0]?.id;
-          const bulletIdx = typeof action.bulletIndex === "number" ? action.bulletIndex : null;
-          if (!targetId || bulletIdx === null) break;
-          store.updateAchievement(targetId, bulletIdx, action.value);
-          break;
-        }
-        case "add_skill":        store.addSkill(action.value); break;
-        case "update_summary":   store.updateSummary(action.value); break;
-        case "add_certification": {
-          store.addCertification();
-          setTimeout(() => {
-            const certs = useResumeStore.getState().certifications;
-            if (certs.length > 0) store.updateCertification(certs[certs.length - 1].id, action.value);
-          }, 50);
-          break;
-        }
-        default: break;
-      }
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [store]
-  );
-}
+// ─── Architecture: assistant is chat-only ─────────────────────────────────────
+//
+// The wizard steps (forms) own all data collection and writes to the store.
+// The assistant (CV-1 / Gringo) only chats — it reads data for context but
+// NEVER writes to the store. useApplySuggestion has been removed.
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
@@ -107,21 +43,16 @@ export default function ResumeAssistant({ locale = "en" }: Props) {
 
   const {
     isOpen, isThinking, messages,
-    activeMode, setMode, trackSuggestion,
+    activeMode, setMode,
     lastAnalyzedStep, lastAnalyzedHash,
     open, close, toggle, setThinking,
     addMessage, addUserMessage,
-    acceptSuggestion, dismissSuggestion,
     setLastAnalyzed, clearNewSuggestions,
-    pendingBulletRequest, clearBulletRequest,
     usedSuggestionLabels,
   } = useAssistantStore();
 
-  const [bubbleVisible, setBubbleVisible]   = useState(false);
-  const [toast, setToast]                   = useState<string | null>(null);
-  const [moodOverride, setMoodOverride]     = useState<CV1Mood | null>(null);
+  const [bubbleVisible, setBubbleVisible] = useState(false);
   const { pos, isDragging, wasDragged, dragHandlers } = useDraggable("cv1-assistant");
-  const applySuggestion = useApplySuggestion();
   const analyzeRef = useRef(false);
 
   // Declare firstName early — used in useEffects below
@@ -191,74 +122,15 @@ export default function ResumeAssistant({ locale = "en" }: Props) {
     [step, resumeState, locale]
   );
 
-  // ── Handle bullet improvement request from "Ask CV-1" button ─────────────
-  useEffect(() => {
-    if (!pendingBulletRequest) return;
-    const req = pendingBulletRequest;
-    clearBulletRequest();
-
-    const userMsg = `Hey CV-1 — can you improve this ${req.bulletType} bullet for my role as ${req.jobTitle} at ${req.company}? Here it is: "${req.bulletText}"`;
-    addUserMessage(userMsg);
-
-    // Fire targeted analysis
-    setThinking(true);
-    analyzeRef.current = true;
-    fetch("/api/ai/assistant/suggest", {
-      method:  "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        step:       "experience",
-        firstName,
-        jobTitle:   req.jobTitle,
-        locale:     req.locale,
-        liveScore:  computeLiveAtsScore(resumeState).score,
-        globalFlags: [],
-        userMessage: userMsg,
-        data: {
-          experience: [{
-            id:          req.jobId,
-            index:       0,
-            jobTitle:    req.jobTitle,
-            company:     req.company,
-            displayLabel: `${req.jobTitle} at ${req.company}`,
-            responsibilities: req.bulletType === "responsibility" ? [req.bulletText] : [],
-            achievements:     req.bulletType === "achievement"    ? [req.bulletText] : [],
-          }],
-        },
-        issues: [`Bullet to improve: "${req.bulletText}"`],
-      }),
-    })
-      .then(r => r.json())
-      .then(data => {
-        if (data.message || data.suggestions?.length) {
-          addMessage({
-            id:          `cv1-${Date.now()}`,
-            role:        "assistant",
-            content:     data.message || "",
-            suggestions: (data.suggestions || []).map((s: any) => ({
-              ...s,
-              action: {
-                ...s.action,
-                type:        req.bulletType === "responsibility" ? "update_responsibility" : "update_achievement",
-                experienceId: req.jobId,
-                bulletIndex:  req.bulletIndex,
-              },
-            })),
-            timestamp: Date.now(),
-          });
-        }
-      })
-      .catch(() => {})
-      .finally(() => { setThinking(false); analyzeRef.current = false; });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pendingBulletRequest]);
+  // "Ask CV-1 to improve" button removed — assistant is chat-only.
+  // Users ask questions by typing in the chat; CV-1 replies with read-only advice.
 
   // CV-1 does NOT auto-fire on step change.
   // Unsolicited suggestions on navigation was the root cause of recycled advice.
   // CV-1 activates only when:
   //   a) User explicitly clicks the robot (handleRobotClick)
   //   b) User sends a message (handleUserMessage)
-  //   c) User clicks "Ask CV-1 to improve" on a bullet (pendingBulletRequest)
+  //   c) User types in the chat input
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     // Only track step changes for context — no auto analysis
@@ -268,33 +140,8 @@ export default function ResumeAssistant({ locale = "en" }: Props) {
   }, [step, pathname]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Handlers ───────────────────────────────────────────────────────────────
-  function handleAccept(msgId: string, suggId: string, finalText?: string) {
-    const msg  = messages.find((m) => m.id === msgId);
-    const sugg = msg?.suggestions?.find((s) => s.id === suggId);
-    if (!sugg) return;
-
-    // Capture real score BEFORE applying
-    const scoreBefore = computeLiveAtsScore(resumeState).score;
-
-    // Use filled-in text if the user completed placeholders
-    const suggToApply = finalText
-      ? { ...sugg, action: { ...sugg.action, value: finalText }, preview: finalText }
-      : sugg;
-
-    applySuggestion(suggToApply);
-    acceptSuggestion(msgId, suggId);
-    if (sugg.label) trackSuggestion(sugg.label); // never repeat this suggestion
-
-    // Show REAL score delta after store settles — not AI estimate
-    setTimeout(() => {
-      const scoreAfter = computeLiveAtsScore(useResumeStore.getState()).score;
-      const delta = scoreAfter - scoreBefore;
-      const deltaStr = delta > 0 ? `+${delta} pts` : "updated";
-      setToast(`✓ ${sugg.label} — ${deltaStr}`);
-      setMoodOverride("celebrate");
-      setTimeout(() => { setToast(null); setMoodOverride(null); }, 2500);
-    }, 120);
-  }
+  // Assistant is chat-only. No accept handler — no store writes from the assistant.
+  // The wizard forms own all data collection and modifications.
 
   async function handleUserMessage(text: string) {
     addUserMessage(text);
@@ -339,12 +186,10 @@ export default function ResumeAssistant({ locale = "en" }: Props) {
   const scoreColor = atsLabelColor(liveAts.label);
 
   // ── CV-1 mood based on current state ─────────────────────────────────────
-  let cv1Mood: CV1Mood = moodOverride ?? "idle";
-  if (!moodOverride) {
-    if (isThinking)                    cv1Mood = "thinking";
-    else if (messages.length === 0)    cv1Mood = "wave";
-    else if (bubbleVisible && !isOpen) cv1Mood = "talking";
-  }
+  let cv1Mood: CV1Mood = "idle";
+  if (isThinking)                    cv1Mood = "thinking";
+  else if (messages.length === 0)    cv1Mood = "wave";
+  else if (bubbleVisible && !isOpen) cv1Mood = "talking";
 
   const latestMsg = messages.length > 0 ? messages[messages.length - 1] : null;
 
@@ -375,8 +220,6 @@ export default function ResumeAssistant({ locale = "en" }: Props) {
               locale={locale}
               activeMode={activeMode}
               onClose={() => { close(); clearNewSuggestions(); }}
-              onAccept={handleAccept}
-              onDismiss={dismissSuggestion}
               onSendMessage={handleUserMessage}
               onRefresh={handleRefresh}
             />
@@ -393,8 +236,6 @@ export default function ResumeAssistant({ locale = "en" }: Props) {
               isThinking={isThinking}
               locale={locale}
               name={charName}
-              onAccept={handleAccept}
-              onDismiss={dismissSuggestion}
               onOpenChat={handleOpenChat}
               onClose={() => setBubbleVisible(false)}
             />
@@ -472,19 +313,6 @@ export default function ResumeAssistant({ locale = "en" }: Props) {
         </motion.div>
       </div>
 
-      {/* Acceptance toast */}
-      <AnimatePresence>
-        {toast && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0  }}
-            exit={{   opacity: 0, y: 10  }}
-            className="fixed bottom-4 right-4 bg-emerald-600 text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-xl z-50 max-w-xs"
-          >
-            {toast}
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

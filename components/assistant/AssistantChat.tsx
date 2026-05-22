@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { X, Send, RefreshCw } from "lucide-react";
 import type { AssistantMessage } from "@/app/store/useAssistantStore";
-import { SuggestionCard } from "./SuggestionCard";
+// SuggestionCard removed — assistant is chat-only, no store writes
 
 // ── Typewriter hook ───────────────────────────────────────────────────────────
 
@@ -35,14 +35,10 @@ function useTypewriter(text: string, active: boolean, speed = 18): string {
 function MessageBubble({
   message,
   isLatest,
-  onAccept,
-  onDismiss,
   locale,
 }: {
   message: AssistantMessage;
   isLatest: boolean;
-  onAccept: (msgId: string, suggId: string, finalText?: string) => void;
-  onDismiss: (msgId: string, suggId: string) => void;
   locale?: string;
 }) {
   const isAssistant = message.role === "assistant";
@@ -65,18 +61,15 @@ function MessageBubble({
         )}
       </div>
 
-      {/* Suggestion cards — shown under assistant messages */}
+      {/* Read-only advice — no accept/dismiss, no store writes */}
       {isAssistant && activeSuggestions.length > 0 && (
-        <div className="w-full flex flex-col gap-2 pl-1">
+        <div className="w-full flex flex-col gap-1.5 pl-1 mt-1">
           {activeSuggestions.map((s) => (
-            <SuggestionCard
-              key={s.id}
-              msgId={message.id}
-              suggestion={s}
-              onAccept={onAccept}
-              onDismiss={onDismiss}
-              locale={locale}
-            />
+            <div key={s.id} className="bg-indigo-50 border border-indigo-100 rounded-xl px-3 py-2.5 text-xs text-indigo-800">
+              <p className="font-semibold mb-0.5">{s.label}</p>
+              {s.preview && <p className="text-indigo-700 leading-relaxed italic">"{s.preview}"</p>}
+              {s.reason && <p className="text-indigo-500 mt-0.5">{s.reason}</p>}
+            </div>
           ))}
         </div>
       )}
@@ -108,14 +101,14 @@ function TypingIndicator() {
 
 // ── Main chat panel ───────────────────────────────────────────────────────────
 
+// The assistant is chat-only. Suggestions are READ-ONLY advice.
+// The wizard steps (forms) own all data collection and writes.
 interface Props {
   messages: AssistantMessage[];
   isThinking: boolean;
   locale?: string;
   activeMode?: string;
   onClose: () => void;
-  onAccept: (msgId: string, suggId: string, finalText?: string) => void;
-  onDismiss: (msgId: string, suggId: string) => void;
   onSendMessage: (text: string) => void;
   onRefresh: () => void;
 }
@@ -137,8 +130,6 @@ export function AssistantChat({
   locale,
   activeMode = "resume",
   onClose,
-  onAccept,
-  onDismiss,
   onSendMessage,
   onRefresh,
 }: Props) {
@@ -221,8 +212,6 @@ export function AssistantChat({
             key={msg.id}
             message={msg}
             isLatest={i === messages.length - 1}
-            onAccept={onAccept}
-            onDismiss={onDismiss}
             locale={locale}
           />
         ))}
