@@ -49,7 +49,7 @@ function useTypewriter(text: string, speed = 16): [string, boolean] {
 
 // ─── Apply store action ───────────────────────────────────────────────────────
 
-function useApplyAction(locale: "pt-BR" | "en") {
+function useApplyAction(locale: "pt-BR" | "en", setPendingSummary: (s: string | null) => void) {
   const brStore = useBrResumeStore();
   const usStore = useResumeStore();
 
@@ -57,7 +57,7 @@ function useApplyAction(locale: "pt-BR" | "en") {
     if (locale === "pt-BR") {
       applyBR(action, brStore);
     } else {
-      applyUS(action, usStore);
+      applyUS(action, usStore, setPendingSummary);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [locale]);
@@ -152,7 +152,7 @@ function applyBR(action: StoreAction, store: any) {
   }
 }
 
-function applyUS(action: StoreAction, store: any) {
+function applyUS(action: StoreAction, store: any, setPendingSummary?: (s: string | null) => void) {
   const { type, payload } = action;
 
   switch (type) {
@@ -168,7 +168,7 @@ function applyUS(action: StoreAction, store: any) {
 
     case "set_summary":
       // Show as pending — user must approve before it goes into the resume
-      if (payload.text) {
+      if (payload.text && setPendingSummary) {
         setPendingSummary(payload.text);
       }
       break;
@@ -355,7 +355,7 @@ export default function GringoWriter({ locale, previewHref }: Props) {
 
   const bottomRef   = useRef<HTMLDivElement>(null);
   const inputRef    = useRef<HTMLInputElement>(null);
-  const applyAction = useApplyAction(locale);
+  const applyAction = useApplyAction(locale, setPendingSummary);
   const callerLock  = useRef(false); // synchronous lock — prevents concurrent callWriter invocations
 
   // Auto-scroll

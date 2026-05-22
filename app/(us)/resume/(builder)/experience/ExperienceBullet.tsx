@@ -1,12 +1,10 @@
 "use client";
 
-// ExperienceBullet — CV-1 is the exclusive AI interface.
-// Each bullet has an "Ask CV-1 to improve" button that sends the specific
-// bullet + job context directly to CV-1 for a targeted rewrite.
+// ExperienceBullet — a plain textarea for entering bullet points.
+// The wizard owns all data; the assistant only chats.
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { X } from "lucide-react";
-import { useAssistantStore } from "@/app/store/useAssistantStore";
 
 interface ExperienceBulletProps {
   jobId:       string;
@@ -21,78 +19,28 @@ interface ExperienceBulletProps {
 }
 
 export default function ExperienceBullet({
-  jobId, jobTitle, company, index, value, type, placeholder, onChange, onRemove,
+  jobId: _jobId, jobTitle: _jobTitle, company: _company, index: _index,
+  value, type: _type, placeholder, onChange, onRemove,
 }: ExperienceBulletProps) {
-  const [showTip, setShowTip] = useState(false);
-  const requestBulletImprovement = useAssistantStore((s) => s.requestBulletImprovement);
-
-  function handleAskCV1() {
-    if (!value.trim()) return;
-    requestBulletImprovement({
-      bulletText:  value,
-      jobTitle:    jobTitle || "this role",
-      company:     company  || "this company",
-      jobId,
-      bulletIndex: index,
-      bulletType:  type,
-      locale:      "en",
-    });
-  }
-
-  // Detect if this bullet was recently AI-inserted (has content and hasn't been focused yet)
-  const [wasAiInserted, setWasAiInserted] = useState(false);
-  useEffect(() => {
-    if (value.trim() && !value.includes("[")) setWasAiInserted(true);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const [focused, setFocused] = useState(false);
 
   return (
     <div className="space-y-1">
       <div className="relative flex items-start gap-2">
-        <div className="relative flex-1">
-          {wasAiInserted && !showTip && (
-            <div className="absolute -top-5 left-0 text-[10px] text-indigo-400 font-medium flex items-center gap-1">
-              <span>✨ AI assisted — click to edit</span>
-            </div>
-          )}
-          <textarea
-            spellCheck
-            value={value}
-            onChange={(e) => { onChange(e.target.value); setWasAiInserted(false); }}
-            onFocus={() => { setShowTip(true); setWasAiInserted(false); }}
-            onBlur={() => setTimeout(() => setShowTip(false), 200)}
-            placeholder={placeholder}
-            rows={2}
-            className={`w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-1 transition-colors ${
-              wasAiInserted
-                ? "border-indigo-300 bg-indigo-50/30 focus:border-indigo-400 focus:ring-indigo-200"
-                : "border-neutral-300 focus:border-blue-400 focus:ring-blue-300"
-            }`}
-          />
-
-          {/* CV-1 tooltip on focus */}
-          {showTip && value.trim() && (
-            <div className="absolute -top-10 left-0 right-10 z-20 bg-indigo-600 text-white text-xs rounded-lg px-3 py-2 shadow-lg pointer-events-none flex items-center gap-1.5">
-              <span>CV-1: I can rewrite this stronger — click the button.</span>
-              <div className="absolute -bottom-1.5 left-4 w-3 h-3 bg-indigo-600 rotate-45" />
-            </div>
-          )}
-        </div>
-
-        {/* CV-1 AI Rewrite button */}
-        {value.trim() && (
-          <button
-            type="button"
-            onClick={handleAskCV1}
-            title="CV-1: rewrite this bullet"
-            className="mt-1 flex-shrink-0 flex items-center gap-1 px-2.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-[11px] font-bold rounded-lg transition-colors shadow-sm select-none whitespace-nowrap"
-          >
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
-            </svg>
-            CV-1
-          </button>
-        )}
-
+        <textarea
+          spellCheck
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          placeholder={placeholder}
+          rows={2}
+          className={`flex-1 rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-1 transition-colors ${
+            focused
+              ? "border-blue-400 ring-blue-300"
+              : "border-neutral-300"
+          }`}
+        />
         <button
           type="button"
           onClick={onRemove}

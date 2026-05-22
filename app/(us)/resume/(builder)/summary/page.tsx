@@ -1,19 +1,23 @@
 "use client";
 
-// Summary step — CV-1 is the exclusive AI interface.
-// Auto-rewrite, accept/discard suggestion buttons removed.
-// CV-1 handles summary rewrites via the floating assistant.
+// Summary step — the wizard owns data collection.
+// One "Generate with AI" button calls the API exactly once.
+// User reviews the result and chooses to use it or keep their own.
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useResumeStore } from "@/app/store/useResumeStore";
+import { Sparkles, Check, RotateCcw } from "lucide-react";
 
 export default function SummaryPage() {
   const summary       = useResumeStore((s) => s.summary);
   const updateSummary = useResumeStore((s) => s.updateSummary);
+  const resumeStore   = useResumeStore();
 
   const [localSummary, setLocalSummary] = useState(summary);
-  const [showTip, setShowTip]           = useState(false);
+  const [aiDraft, setAiDraft]           = useState<string | null>(null);
+  const [generating, setGenerating]     = useState(false);
+  const [genError, setGenError]         = useState<string | null>(null);
   const saveTimer = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => { setLocalSummary(summary); }, [summary]);
@@ -31,39 +35,75 @@ export default function SummaryPage() {
   const hasMetrics   = /[\d$%]/.test(localSummary);
   const isGoodLength = wordCount >= 40 && wordCount <= 100;
 
+  async function handleGenerate() {
+    setGenerating(true);
+    setGenError(null);
+    setAiDraft(null);
+    try {
+      const state = resumeStore;
+      const res = await fetch("/api/ai/assistant/suggest", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mode:     "resume",
+          step:     "summary",
+          locale:   "en",
+          firstName: state.personalInfo?.firstName,
+          jobTitle:  state.personalInfo?.tradeTitle,
+          userMessage: "Write me a strong professional summary based on my resume data.",
+          data: {
+            personalInfo:   state.personalInfo,
+            experience:     state.experience,
+            skills:         state.skills,
+            education:      state.education,
+            certifications: state.certifications,
+            currentSummary: localSummary || "(empty)",
+          },
+        }),
+      });
+      const json = await res.json();
+      // Extract the generated summary from the first suggestion preview or message
+      const draft =
+        json.suggestions?.[0]?.preview ||
+        (json.message?.length > 40 ? json.message : null);
+      if (draft) {
+        setAiDraft(draft);
+      } else {
+        setGenError("CV-1 couldn't generate a summary right now. Try again.");
+      }
+    } catch {
+      setGenError("Connection error. Please try again.");
+    } finally {
+      setGenerating(false);
+    }
+  }
+
+  function acceptAiDraft() {
+    if (!aiDraft) return;
+    setLocalSummary(aiDraft);
+    updateSummary(aiDraft);
+    setAiDraft(null);
+  }
+
   return (
     <div className="min-h-screen bg-neutral-50 text-neutral-900 px-4 py-8 sm:p-10">
       <p className="text-sm text-neutral-500 mb-2">Step 6 of 8 — Professional Summary</p>
 
       <h1 className="text-2xl font-semibold text-slate-900 mb-1">Professional Summary</h1>
       <p className="text-sm text-neutral-600 mb-6 max-w-2xl">
-        Write your summary in your own words — any style is fine.{" "}
-        <span className="text-indigo-600 font-medium">
-          CV-1 can offer you a stronger version — your call whenever you&apos;re ready.
-        </span>
+        Write 2–4 sentences in your own words, or let CV-1 generate one from your resume data.
+        You stay in control — review before using.
       </p>
 
-      {/* Summary textarea with CV-1 tooltip */}
+      {/* Summary textarea */}
       <div className="relative mb-4 max-w-2xl">
         <textarea
           spellCheck
           value={localSummary}
           onChange={(e) => setLocalSummary(e.target.value)}
-          onFocus={() => setShowTip(true)}
-          onBlur={() => setTimeout(() => setShowTip(false), 200)}
           placeholder="e.g. Electrician with 8 years experience in commercial and residential wiring. Led crews of 6, delivered projects under budget. OSHA 30 certified..."
           className="w-full h-44 border border-neutral-300 rounded-xl px-4 py-3 text-sm bg-white resize-none focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 transition-all"
         />
-
-        {/* CV-1 tooltip on focus */}
-        {showTip && localSummary.trim().length > 0 && (
-          <div className="absolute -top-12 left-0 right-0 z-20 bg-indigo-600 text-white text-xs rounded-xl px-3 py-2.5 shadow-lg pointer-events-none flex items-center gap-2">
-            <span className="text-base">✨</span>
-            <span>CV-1: Want me to rewrite this with stronger impact? Just ask in the chat — I&apos;ll give you an optimized version.</span>
-            <div className="absolute -bottom-1.5 left-6 w-3 h-3 bg-indigo-600 rotate-45" />
-          </div>
-        )}
-
         <div className="absolute bottom-2 right-3 flex items-center gap-3">
           {hasMetrics && (
             <span className="text-xs text-green-600 font-medium">✓ Has metrics</span>
@@ -74,11 +114,57 @@ export default function SummaryPage() {
         </div>
       </div>
 
+      {/* AI Generate button */}
+      <div className="max-w-2xl mb-6">
+        <button
+          type="button"
+          onClick={handleGenerate}
+          disabled={generating}
+          className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm"
+        >
+          <Sparkles className="w-4 h-4" />
+          {generating ? "CV-1 is writing…" : "Generate Summary with CV-1"}
+        </button>
+        {genError && (
+          <p className="text-xs text-red-500 mt-2">{genError}</p>
+        )}
+      </div>
+
+      {/* AI draft review card */}
+      {aiDraft && (
+        <div className="max-w-2xl mb-6 border border-indigo-200 rounded-xl bg-indigo-50 overflow-hidden">
+          <div className="px-4 py-2.5 bg-indigo-600 flex items-center gap-2">
+            <Sparkles className="w-3.5 h-3.5 text-white" />
+            <span className="text-white text-xs font-bold">CV-1 Draft — Review before using</span>
+          </div>
+          <div className="px-4 py-3">
+            <p className="text-sm text-gray-800 leading-relaxed italic">&ldquo;{aiDraft}&rdquo;</p>
+          </div>
+          <div className="flex border-t border-indigo-100">
+            <button
+              onClick={acceptAiDraft}
+              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-sm font-semibold text-indigo-700 hover:bg-indigo-100 transition-colors"
+            >
+              <Check className="w-4 h-4" />
+              Use this summary
+            </button>
+            <div className="w-px bg-indigo-100" />
+            <button
+              onClick={() => setAiDraft(null)}
+              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-sm text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              Keep mine
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Quality signals */}
       <div className="flex flex-wrap gap-3 mb-8 max-w-2xl">
         {[
-          { label: "40–80 words",     done: isGoodLength },
-          { label: "Includes metrics", done: hasMetrics  },
+          { label: "40–80 words",        done: isGoodLength },
+          { label: "Includes metrics",   done: hasMetrics  },
           { label: "Job title mentioned", done: localSummary.toLowerCase().includes(
               (useResumeStore.getState().personalInfo?.tradeTitle || "").toLowerCase().split(" ")[0] || "___"
             )

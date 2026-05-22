@@ -1,15 +1,16 @@
 "use client";
 
+// BrResumeAssistant — Gringo assistant for the Brazil builder.
+// Architecture: Gringo is CHAT-ONLY. No store writes from the assistant.
+// The wizard forms (steps 1–6) own all data collection.
+
 import { useEffect, useCallback, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useDraggable } from "@/hooks/useDraggable";
 import { MessageCircle } from "lucide-react";
 import { useBrResumeStore } from "@/app/store/useBrResumeStore";
-import {
-  useAssistantStore,
-  type AssistantSuggestion,
-} from "@/app/store/useAssistantStore";
+import { useAssistantStore } from "@/app/store/useAssistantStore";
 import { pathToStep, resumeHash } from "@/lib/assistant/step_context";
 import GringoCharacter, { type GringoMood } from "./GringoCharacter";
 import { AssistantChat } from "./AssistantChat";
@@ -30,23 +31,23 @@ function useBrResumeSnapshot() {
 
   return {
     personalInfo: {
-      firstName:  s.personalInfo?.nome       || "",
-      lastName:   s.personalInfo?.sobrenome  || "",
-      tradeTitle: s.personalInfo?.tituloProfissional || "",
-      phone:      s.personalInfo?.telefone   || "",
-      email:      s.personalInfo?.email      || "",
-      city:       s.personalInfo?.cidade     || "",
-      state:      s.personalInfo?.estado     || "",
-      linkedin:   s.personalInfo?.linkedin   || "",
+      firstName:  s.personalInfo?.nome                 || "",
+      lastName:   s.personalInfo?.sobrenome             || "",
+      tradeTitle: s.personalInfo?.tituloProfissional    || "",
+      phone:      s.personalInfo?.telefone              || "",
+      email:      s.personalInfo?.email                 || "",
+      city:       s.personalInfo?.cidade                || "",
+      state:      s.personalInfo?.estado                || "",
+      linkedin:   s.personalInfo?.linkedin              || "",
     },
     summary:  s.resumoProfissional || "",
     skills:   [...(s.habilidadesTecnicas || []), ...(s.habilidadesComportamentais || [])],
     experience: (s.experiencia || []).map((e: any) => ({
       id:               e.id,
-      jobTitle:         e.cargo       || "",
-      company:          e.empresa     || "",
-      startDate:        e.dataInicio  || "",
-      endDate:          e.dataFim     || "",
+      jobTitle:         e.cargo      || "",
+      company:          e.empresa    || "",
+      startDate:        e.dataInicio || "",
+      endDate:          e.dataFim    || "",
       roleSummary:      e.roleSummary || "",
       responsibilities: e.responsabilidades || [],
       achievements:     [],
@@ -56,60 +57,21 @@ function useBrResumeSnapshot() {
   };
 }
 
-// ─── Apply suggestion → BR store ──────────────────────────────────────────────
-
-function useApplyBrSuggestion() {
-  const store = useBrResumeStore();
-  return useCallback(
-    (suggestion: AssistantSuggestion) => {
-      const { action } = suggestion;
-      const experiencia: any[] = useBrResumeStore.getState().experiencia || [];
-
-      switch (action.type) {
-        case "add_responsibility": {
-          const targetId = action.experienceId || experiencia[0]?.id;
-          if (!targetId) break;
-          store.addResponsabilidade(targetId);
-          setTimeout(() => {
-            const updated: any[] = useBrResumeStore.getState().experiencia;
-            const job = updated.find((e: any) => e.id === targetId);
-            if (!job) return;
-            store.updateResponsabilidade(targetId, job.responsabilidades.length - 1, action.value);
-          }, 50);
-          break;
-        }
-        case "add_skill": {
-          store.addHabilidadeTecnica();
-          setTimeout(() => {
-            const tecnicas = useBrResumeStore.getState().habilidadesTecnicas;
-            if (tecnicas.length > 0) store.updateHabilidadeTecnica(tecnicas.length - 1, action.value);
-          }, 50);
-          break;
-        }
-        case "update_summary": store.updateResumo(action.value); break;
-        default: break;
-      }
-    },
-    [store]
-  );
-}
-
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function BrResumeAssistant() {
   const pathname    = usePathname();
   const step        = pathToStep(pathname);
   const resumeState = useBrResumeSnapshot();
-  const applyBr     = useApplyBrSuggestion();
   const analyzeRef  = useRef(false);
 
   const {
     isOpen, isThinking, messages,
-    lastAnalyzedStep, lastAnalyzedHash,
+    lastAnalyzedStep,
     open, close, toggle, setThinking,
     addMessage, addUserMessage,
-    acceptSuggestion, dismissSuggestion,
     setLastAnalyzed, clearNewSuggestions,
+    usedSuggestionLabels,
   } = useAssistantStore();
 
   const [bubbleVisible, setBubbleVisible] = useState(false);
@@ -129,7 +91,13 @@ export default function BrResumeAssistant() {
         const res = await fetch("/api/ai/assistant/suggest", {
           method:  "POST",
           headers: { "Content-Type": "application/json" },
-          body:    JSON.stringify({ ...payload, userMessage: userMsg }),
+          body:    JSON.stringify({
+            ...payload,
+            mode:   "general",
+            locale: "pt-BR",
+            userMessage: userMsg,
+            usedSuggestionLabels,
+          }),
         });
         if (!res.ok) throw new Error("API error");
         const data = await res.json();
@@ -154,22 +122,10 @@ export default function BrResumeAssistant() {
     [step, resumeState]
   );
 
-  // No auto-fire on step change — same fix as US assistant.
+  // No auto-fire on step change — Gringo only activates on user interaction.
   useEffect(() => {
     if (lastAnalyzedStep !== step) setBubbleVisible(false);
   }, [step, pathname]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  function handleAccept(msgId: string, suggId: string, finalText?: string) {
-    const msg  = messages.find((m) => m.id === msgId);
-    const sugg = msg?.suggestions?.find((s) => s.id === suggId);
-    if (!sugg) return;
-    // Use filled-in text if user completed [X]/[Y] placeholders
-    const suggToApply = finalText
-      ? { ...sugg, action: { ...sugg.action, value: finalText }, preview: finalText }
-      : sugg;
-    applyBr(suggToApply);
-    acceptSuggestion(msgId, suggId);
-  }
 
   async function handleUserMessage(text: string) {
     addUserMessage(text);
@@ -196,7 +152,6 @@ export default function BrResumeAssistant() {
     clearNewSuggestions();
   }
 
-  const isThinkingState = isThinking;
   let gringoMood: GringoMood = "idle";
   if (isThinking)                    gringoMood = "thinking";
   else if (messages.length === 0)    gringoMood = "wave";
@@ -213,6 +168,7 @@ export default function BrResumeAssistant() {
       style={{ left: pos.x, top: pos.y, cursor: isDragging ? "grabbing" : "grab" }}
     >
 
+      {/* Full chat panel */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -227,8 +183,6 @@ export default function BrResumeAssistant() {
               isThinking={isThinking}
               locale="pt-BR"
               onClose={() => { close(); clearNewSuggestions(); }}
-              onAccept={handleAccept}
-              onDismiss={dismissSuggestion}
               onSendMessage={handleUserMessage}
               onRefresh={handleRefresh}
             />
@@ -236,6 +190,7 @@ export default function BrResumeAssistant() {
         )}
       </AnimatePresence>
 
+      {/* Speech bubble (when chat is closed) */}
       <AnimatePresence>
         {bubbleVisible && !isOpen && latestMsg && (
           <div className="mb-2 mr-2">
@@ -244,8 +199,6 @@ export default function BrResumeAssistant() {
               isThinking={isThinking}
               locale="pt-BR"
               name="Gringo"
-              onAccept={handleAccept}
-              onDismiss={dismissSuggestion}
               onOpenChat={handleOpenChat}
               onClose={() => setBubbleVisible(false)}
             />
@@ -253,6 +206,7 @@ export default function BrResumeAssistant() {
         )}
       </AnimatePresence>
 
+      {/* Gringo character */}
       <div className="relative flex flex-col items-center">
         <motion.button
           onClick={() => { if (!wasDragged()) handleRobotClick(); }}
@@ -265,7 +219,7 @@ export default function BrResumeAssistant() {
         >
           {(bubbleVisible || isThinking) && !isOpen && (
             <motion.span
-              className="absolute inset-0 rounded-full bg-indigo-400 opacity-20"
+              className="absolute inset-0 rounded-full bg-green-400 opacity-20"
               animate={{ scale: [1, 1.5, 1], opacity: [0.2, 0, 0.2] }}
               transition={{ duration: 2, repeat: Infinity }}
             />
@@ -287,7 +241,7 @@ export default function BrResumeAssistant() {
             <motion.span
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              className="absolute -top-1 -right-1 w-6 h-6 bg-indigo-600 text-white rounded-full flex items-center justify-center shadow-lg"
+              className="absolute -top-1 -right-1 w-6 h-6 bg-green-600 text-white rounded-full flex items-center justify-center shadow-lg"
             >
               <MessageCircle className="w-3.5 h-3.5" />
             </motion.span>
@@ -297,9 +251,9 @@ export default function BrResumeAssistant() {
         <motion.div
           initial={{ opacity: 0, y: -4 }}
           animate={{ opacity: 1, y: 0   }}
-          className="mt-1 px-3 py-0.5 bg-white rounded-full shadow-md border border-indigo-100"
+          className="mt-1 px-3 py-0.5 bg-white rounded-full shadow-md border border-green-100"
         >
-          <span className="text-[11px] font-bold text-indigo-600 tracking-wide">Gringo™</span>
+          <span className="text-[11px] font-bold text-green-700 tracking-wide">Gringo™</span>
         </motion.div>
       </div>
     </div>
