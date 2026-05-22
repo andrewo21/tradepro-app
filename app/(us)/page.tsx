@@ -305,7 +305,7 @@ export default function HomePage() {
                 ))}
               </ul>
               <div className="flex flex-col sm:flex-row items-center lg:items-start gap-3 flex-wrap">
-                <Link href="/resume/start" className="inline-flex items-center gap-2 px-8 py-3.5 bg-blue-500 text-white font-bold rounded-xl hover:bg-blue-400 transition shadow-lg shadow-blue-500/30 text-base">
+                <Link href="/resume/select" className="inline-flex items-center gap-2 px-8 py-3.5 bg-blue-500 text-white font-bold rounded-xl hover:bg-blue-400 transition shadow-lg shadow-blue-500/30 text-base">
                   🤖 Build with CV-1&apos;s Help →
                 </Link>
                 <Link href="/resume/select" className="inline-block px-6 py-3.5 text-blue-300 font-semibold rounded-xl border border-blue-500/40 hover:bg-blue-500/10 transition text-sm">

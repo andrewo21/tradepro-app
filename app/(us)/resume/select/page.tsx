@@ -135,7 +135,7 @@ export default function SelectPage() {
           <div className="flex-shrink-0">
             <a href="/resume/start"
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-500 hover:bg-blue-400 text-white text-sm font-bold rounded-xl transition shadow-lg shadow-blue-500/20 whitespace-nowrap">
-              Start with CV-1 →
+              Start with CV-1 — use selected template →
             </a>
           </div>
         </div>

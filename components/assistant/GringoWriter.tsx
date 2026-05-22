@@ -247,7 +247,7 @@ function applyUS(action: StoreAction, store: any, setPendingSummary: (text: stri
         if (payload.endDate)   store.updateExperience(job.id, "endDate",   payload.endDate);
         if (payload.city)      store.updateExperience(job.id, "city",      payload.city);
 
-        // Add bullets — deduplicated: skip any that already exist on this job
+        // Add bullets — deduplicated, then added sequentially to avoid race conditions
         const bullets: string[] = Array.isArray(payload.responsibilities) ? payload.responsibilities : [];
         const existingBullets = [
           ...(job.responsibilities || []).map((b: any) => (typeof b === "string" ? b : b.text || "").toLowerCase().slice(0, 30)),
@@ -255,22 +255,31 @@ function applyUS(action: StoreAction, store: any, setPendingSummary: (text: stri
         ];
 
         const newBullets = bullets.filter((text: string) =>
-          text?.trim() && !existingBullets.some(existing => text.toLowerCase().startsWith(existing.slice(0, 20)))
+          text?.trim() && !existingBullets.some(eb => text.toLowerCase().startsWith(eb.slice(0, 20)))
         );
 
+        // Fill the existing empty slot with the first bullet, then add the rest sequentially
         const emptySlot = job.responsibilities?.findIndex((r: any) => !(typeof r === "string" ? r : r.text)?.trim());
-        newBullets.forEach((text: string, i: number) => {
-          if (i === 0 && emptySlot !== -1) {
-            store.updateResponsibility(job.id, emptySlot ?? 0, text);
-          } else {
-            store.addResponsibility(job.id);
-            setTimeout(() => {
-              const u = useResumeStore.getState().experience;
-              const j = u.find((e: any) => e.id === job.id);
-              if (j) store.updateResponsibility(job.id, j.responsibilities.length - 1, text);
-            }, 60 * (i + 1));
-          }
-        });
+        let startIdx = 0;
+        if (emptySlot !== -1 && newBullets.length > 0) {
+          store.updateResponsibility(job.id, emptySlot ?? 0, newBullets[0]);
+          startIdx = 1;
+        }
+        // Sequential chain — each bullet waits for the previous to land before adding the next
+        const remaining = newBullets.slice(startIdx);
+        const addNextBullet = (idx: number) => {
+          if (idx >= remaining.length) return;
+          store.addResponsibility(job.id);
+          setTimeout(() => {
+            const u = useResumeStore.getState().experience;
+            const j = u.find((e: any) => e.id === job.id);
+            if (j) {
+              store.updateResponsibility(job.id, j.responsibilities.length - 1, remaining[idx]);
+              setTimeout(() => addNextBullet(idx + 1), 80);
+            }
+          }, 80);
+        };
+        addNextBullet(0);
       }, 80);
       break;
     }
