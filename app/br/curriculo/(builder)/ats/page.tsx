@@ -71,13 +71,19 @@ function ptLabel(label: string): string {
 }
 
 export default function BrJobTargetStep() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!mounted) return null;
+  return <BrJobTargetContent />;
+}
+
+function BrJobTargetContent() {
   const brStore   = useBrResumeStore();
   const { open }  = useAssistantStore();
   const mapped    = mapBrDataToUsFormat(brStore);
   const firstName = brStore.personalInfo?.nome || "você";
 
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const [mounted] = useState(true);
 
   let liveAts = EMPTY_ATS;
   if (mounted) {

@@ -42,6 +42,13 @@ const BR_TO_PDF_TEMPLATE: Record<string, string> = {
 };
 
 export default function BrPreviewPage() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!mounted) return null;
+  return <BrPreviewContent />;
+}
+
+function BrPreviewContent() {
   const store = useBrResumeStore();
   const [loading, setLoading] = useState(false);
   const [userId] = useState(() => getOrCreateUserId());

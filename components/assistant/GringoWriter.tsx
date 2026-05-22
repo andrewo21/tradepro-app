@@ -470,13 +470,17 @@ export default function GringoWriter({ locale, previewHref }: Props) {
   const applyAction = useApplyAction(locale, setPendingSummary);
   const callerLock  = useRef(false);
 
-  // Live score — reads store reactively so it updates as Gringo fills in data
+  // Live score — reads store reactively, but only after client mount to avoid hydration mismatch
+  const [clientMounted, setClientMounted] = useState(false);
+  useEffect(() => setClientMounted(true), []);
   const usStoreSnap = useResumeStore();
   const brStoreSnap = useBrResumeStore();
   let liveScore: ReturnType<typeof computeLiveAtsScore> | null = null;
-  try {
-    liveScore = computeLiveAtsScore(isEN ? usStoreSnap : mapBrStoreForAts(brStoreSnap));
-  } catch { /* silent */ }
+  if (clientMounted) {
+    try {
+      liveScore = computeLiveAtsScore(isEN ? usStoreSnap : mapBrStoreForAts(brStoreSnap));
+    } catch { /* silent */ }
+  }
   const scoreColor = liveScore ? atsLabelColor(liveScore.label) : "#9ca3af";
 
   // Auto-scroll
