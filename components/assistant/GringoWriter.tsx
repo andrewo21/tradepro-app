@@ -197,13 +197,26 @@ function applyUS(action: StoreAction, store: any, setPendingSummary: (text: stri
 
   switch (type) {
     case "set_personal": {
-      // Always write via getState() to avoid any stale closure issues.
-      // Also handle "name" as a single field (AI sometimes sends full name combined).
-      const pi = (field: string, value: any) => {
-        if (!value) return;
-        useResumeStore.getState().updatePersonalInfo(field, String(value).trim());
+      // Reject obvious placeholder values the AI invents when it doesn't have real data
+      const isPlaceholder = (v: string) => {
+        if (!v) return true;
+        const l = v.toLowerCase().trim();
+        return (
+          l.includes("[") || l.includes("]") ||
+          l === "city name" || l === "state name" || l === "your city" || l === "your state" ||
+          l === "city" || l === "state" || l === "n/a" || l === "not provided" ||
+          l.endsWith("@example.com") || l.endsWith("@email.com") ||
+          l === "123-456-7890" || l === "555-555-5555" || l === "000-000-0000" ||
+          l === "phone number" || l === "your phone" ||
+          l === "email address" || l === "your email"
+        );
       };
-      // Name — accept both split fields and combined "name" field
+      const pi = (field: string, value: any) => {
+        const v = String(value || "").trim();
+        if (!v || isPlaceholder(v)) return;
+        useResumeStore.getState().updatePersonalInfo(field, v);
+      };
+      // Accept both split fields and combined "name" field
       const rawName: string = payload.name || "";
       const firstName = payload.firstName || (rawName ? rawName.split(" ")[0] : "");
       const lastName  = payload.lastName  || (rawName ? rawName.split(" ").slice(1).join(" ") : "");
@@ -219,13 +232,23 @@ function applyUS(action: StoreAction, store: any, setPendingSummary: (text: stri
     }
 
     case "set_summary":
-      // Show as pending — user must approve before it goes into the resume
+      // EN: write directly — no approval card needed
       if (payload.text) {
-        setPendingSummary(payload.text);
+        useResumeStore.getState().updateSummary(payload.text);
       }
       break;
 
     case "add_experience": {
+      // Reject if company is a placeholder — prevents ghost entries
+      const companyRaw: string = payload.company || "";
+      const isPlaceholderCompany = !companyRaw.trim() ||
+        companyRaw.includes("[") || companyRaw.includes("]") ||
+        companyRaw.toLowerCase() === "unknown" ||
+        companyRaw.toLowerCase() === "n/a" ||
+        companyRaw.toLowerCase() === "company name" ||
+        companyRaw.toLowerCase() === "employer";
+      if (isPlaceholderCompany) break;
+
       const expState = useResumeStore.getState().experience;
       const norm = (s: string) => (s || "").toLowerCase().trim().replace(/[^a-z0-9]/g, "");
 
@@ -296,7 +319,30 @@ function applyUS(action: StoreAction, store: any, setPendingSummary: (text: stri
       break;
     }
 
-    case "add_responsibility": break; // disabled — use add_experience with responsibilities[]
+    case "add_responsibility": {
+      if (!payload.text?.trim()) break;
+      const expSnap = useResumeStore.getState().experience;
+      const idx = typeof payload.experienceIndex === "number" ? payload.experienceIndex : expSnap.length - 1;
+      const job = expSnap[idx] || expSnap[expSnap.length - 1];
+      if (!job) break;
+      // Dedup: skip if this bullet already exists on this job
+      const alreadyHas = [...(job.responsibilities || []), ...(job.achievements || [])]
+        .some((b: any) => (b.text || b || "").toLowerCase().trim().slice(0, 30) === payload.text.toLowerCase().trim().slice(0, 30));
+      if (alreadyHas) break;
+      // Find empty slot or add new one, then write text
+      const emptyIdx = job.responsibilities?.findIndex((r: any) => !(r.text?.trim()));
+      if (emptyIdx !== -1 && emptyIdx !== undefined) {
+        useResumeStore.getState().updateResponsibility(job.id, emptyIdx, payload.text);
+      } else {
+        store.addResponsibility(job.id);
+        setTimeout(() => {
+          const fresh = useResumeStore.getState().experience;
+          const j = fresh.find((e: any) => e.id === job.id);
+          if (j) useResumeStore.getState().updateResponsibility(job.id, j.responsibilities.length - 1, payload.text);
+        }, 80);
+      }
+      break;
+    }
 
     case "add_skill": {
       if (!payload.text?.trim()) break;
@@ -506,8 +552,9 @@ export default function GringoWriter({ locale, previewHref }: Props) {
         : newHistory;
       setHistory(updated);
 
-      if (data.done) {
-        setTimeout(() => inputRef.current?.focus(), 300);
+      if (data.done && isEN) {
+        // EN: summary already written to store — navigate to preview after a short delay
+        setTimeout(() => router.push(previewHref), 1800);
       }
     } catch (err) {
       // Log the real error so we can identify the root cause in the console
@@ -657,8 +704,8 @@ export default function GringoWriter({ locale, previewHref }: Props) {
         <div ref={bottomRef} />
       </div>
 
-      {/* ── Summary approval card ── */}
-      {pendingSummary && (
+      {/* ── Summary approval card — PT-BR only; EN writes summary directly to store ── */}
+      {pendingSummary && !isEN && (
         <div className={`px-4 py-3 border-t ${isEN ? "bg-indigo-50 border-indigo-200" : "bg-green-50 border-green-200"}`}>
           <p className={`text-xs font-bold uppercase tracking-wide mb-2 ${isEN ? "text-indigo-700" : "text-green-800"}`}>
             {isEN ? "✦ CV-1 wrote your summary — approve or edit before it goes in:" : "✦ Gringo escreveu seu resumo — confira antes de salvar:"}

@@ -240,8 +240,9 @@ CRITICAL EXPERIENCE RULES:
   Step E: ONLY NOW fire ONE add_experience action with ALL fields: title + company + dates + responsibilities[]
 - NEVER fire add_experience before you have completed Steps A through D
 - NEVER fire add_experience with company = "[Company Name]", "Unknown", "N/A", or ANY placeholder
-- NEVER send separate add_responsibility actions — they are disabled and bullets will be lost
-- The responsibilities[] array in add_experience MUST contain the actual bullet strings from Step D
+- After firing add_experience, send the bullet points as separate add_responsibility actions (one per bullet)
+- Each add_responsibility must have: { experienceIndex: number, text: "professional bullet" }
+  where experienceIndex is 0 for the most recent job, 1 for the previous, etc.
 - After completing Step E, ALWAYS ask in the same message:
   "Got it! Do you have any other previous positions you'd like to add?"
 - Only advance to SKILLS once the user confirms no more jobs
