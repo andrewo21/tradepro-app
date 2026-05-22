@@ -1,17 +1,12 @@
-export const dynamic = "force-dynamic";
+"use client";
 
-import dynamic from "next/dynamic";
-
-// Skip SSR entirely — GringoWriter subscribes to Zustand persist stores
-// which return different snapshots on server vs client, causing React #418.
-const GringoWriter = dynamic(() => import("@/components/assistant/GringoWriter"), {
-  ssr: false,
-  loading: () => null,
-});
-
-export const metadata = { title: "CV-1 — Your AI Resume Writer" };
+import { useState, useEffect } from "react";
+import GringoWriter from "@/components/assistant/GringoWriter";
 
 export default function CV1StartPage() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!mounted) return null;
   return (
     <GringoWriter
       locale="en"
