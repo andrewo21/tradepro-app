@@ -200,6 +200,7 @@ function applyUS(action: StoreAction, store: any, setPendingSummary: (text: stri
       if (payload.firstName)  store.updatePersonalInfo("firstName",  payload.firstName);
       if (payload.lastName)   store.updatePersonalInfo("lastName",   payload.lastName);
       if (payload.tradeTitle) store.updatePersonalInfo("tradeTitle", payload.tradeTitle);
+      if (payload.email)      store.updatePersonalInfo("email",      payload.email);
       if (payload.phone)      store.updatePersonalInfo("phone",      payload.phone);
       if (payload.city)       store.updatePersonalInfo("city",       payload.city);
       if (payload.state)      store.updatePersonalInfo("state",      payload.state);
