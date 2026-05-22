@@ -26,9 +26,16 @@ function buildDataStr(mes: string, ano: string): string {
 
 interface DataState { mesInicio: string; anoInicio: string; mesFim: string; anoFim: string; atual: boolean; }
 
+// ── Guard wrapper — nothing below renders until client is mounted ──────────────
 export default function BrExperienciaPage() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
+  if (!mounted) return null;
+  return <BrExperienciaContent />;
+}
+
+// ── All store reads and hooks are isolated here, only run after mount ─────────
+function BrExperienciaContent() {
   const { experiencia, addExperiencia, removeExperiencia, updateExperienciaField, addResponsabilidade, updateResponsabilidade, setField } = useBrResumeStore();
   const [rewriting, setRewriting] = useState<{ id: string; idx: number } | null>(null);
   const [suggestions, setSuggestions] = useState<Record<string, string>>({});
@@ -51,8 +58,6 @@ export default function BrExperienciaPage() {
       return next;
     });
   }, [experiencia]);
-
-  if (!mounted) return null;
 
   function setData(expId: string, field: keyof DataState, value: string | boolean) {
     setDatas(prev => {
