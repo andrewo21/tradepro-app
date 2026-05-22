@@ -71,6 +71,13 @@ function waLink(templateName: string) {
 }
 
 export default function BrCurriculoSelectPage() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!mounted) return null;
+  return <BrCurriculoSelectContent />;
+}
+
+function BrCurriculoSelectContent() {
   const { selectedTemplate, setField } = useBrResumeStore();
   const [hasAccess, setHasAccess] = useState<boolean | null>(null);
   const router = useRouter();
