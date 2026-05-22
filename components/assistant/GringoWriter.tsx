@@ -14,6 +14,31 @@ import type { WriterMessage, StoreAction } from "@/app/api/ai/gringo-writer/rout
 import { computeLiveAtsScore, atsLabelColor } from "@/lib/ats/live/liveAtsScore";
 import { mapBrDataToUsFormat } from "@/lib/pdfTemplates";
 
+// Maps BR store shape to the exact shape computeLiveAtsScore expects
+function mapBrStoreForAts(s: any) {
+  return {
+    personalInfo: {
+      firstName:  s.personalInfo?.nome       || "",
+      lastName:   s.personalInfo?.sobrenome  || "",
+      tradeTitle: s.personalInfo?.tituloProfissional || "",
+      phone:      s.personalInfo?.telefone   || s.personalInfo?.whatsapp || "",
+      email:      s.personalInfo?.email      || "",
+      city:       s.personalInfo?.cidade     || "",
+      linkedin:   s.personalInfo?.linkedin   || "",
+    },
+    summary: s.resumoProfissional || "",
+    skills: [...(s.habilidadesTecnicas || s.habilidades || [])].map((h: any) => ({ text: h.text || h })),
+    experience: (s.experiencia || []).map((e: any) => ({
+      jobTitle: e.cargo || "", company: e.empresa || "",
+      startDate: e.dataInicio || "", endDate: e.dataFim || "",
+      responsibilities: (e.responsabilidades || []).map((r: any) => ({ text: r.text || r })),
+      achievements: [],
+    })),
+    education: (s.formacao || []).map((f: any) => ({ school: f.instituicao || "", degree: f.curso || "" })),
+    certifications: (s.cursosCertificacoes || []).filter((c: any) => c.nome).map((c: any) => ({ id: c.nome, text: c.nome })),
+  };
+}
+
 // ─── Props ────────────────────────────────────────────────────────────────────
 
 interface Props {
@@ -81,7 +106,12 @@ function applyBR(action: StoreAction, store: any, setPendingSummary: (text: stri
       break;
 
     case "add_experience": {
-      store.addExperiencia();
+      const currentExp = useBrResumeStore.getState().experiencia || [];
+      const singleEmptyBR =
+        currentExp.length === 1 &&
+        !currentExp[0].cargo?.trim() &&
+        !currentExp[0].empresa?.trim();
+      if (!singleEmptyBR) store.addExperiencia();
       setTimeout(() => {
         const exp = useBrResumeStore.getState().experiencia;
         const last = exp[exp.length - 1];
@@ -196,8 +226,12 @@ function applyUS(action: StoreAction, store: any, setPendingSummary: (text: stri
       const targetId = existing?.id || null;
 
       if (!targetId) {
-        // Genuinely new job — add it
-        store.addExperience();
+        // Reuse the single empty initial slot rather than adding a second one
+        const singleEmpty =
+          expState.length === 1 &&
+          !expState[0].jobTitle?.trim() &&
+          !expState[0].company?.trim();
+        if (!singleEmpty) store.addExperience();
       }
 
       setTimeout(() => {
@@ -366,7 +400,16 @@ export default function GringoWriter({ locale, previewHref }: Props) {
   const bottomRef   = useRef<HTMLDivElement>(null);
   const inputRef    = useRef<HTMLInputElement>(null);
   const applyAction = useApplyAction(locale, setPendingSummary);
-  const callerLock  = useRef(false); // synchronous lock — prevents concurrent callWriter invocations
+  const callerLock  = useRef(false);
+
+  // Live score — reads store reactively so it updates as Gringo fills in data
+  const usStoreSnap = useResumeStore();
+  const brStoreSnap = useBrResumeStore();
+  let liveScore: ReturnType<typeof computeLiveAtsScore> | null = null;
+  try {
+    liveScore = computeLiveAtsScore(isEN ? usStoreSnap : mapBrStoreForAts(brStoreSnap));
+  } catch { /* silent */ }
+  const scoreColor = liveScore ? atsLabelColor(liveScore.label) : "#9ca3af";
 
   // Auto-scroll
   useEffect(() => {
@@ -490,11 +533,21 @@ export default function GringoWriter({ locale, previewHref }: Props) {
                 {isEN ? "AI Resume Writer" : "Escritor de Currículo IA"}
               </span>
             </p>
-            <p className="text-xs text-gray-400 mt-0.5">
-              {isDone
-                ? (isEN ? "Your resume is ready!" : "Seu currículo está pronto!")
-                : (isEN ? "Building your resume…" : "Montando seu currículo…")}
-            </p>
+            <div className="flex items-center gap-2 mt-0.5">
+              <p className="text-xs text-gray-400">
+                {isDone
+                  ? (isEN ? "Your resume is ready!" : "Seu currículo está pronto!")
+                  : (isEN ? "Building your resume…" : "Montando seu currículo…")}
+              </p>
+              {liveScore && liveScore.score > 0 && (
+                <span
+                  className="text-[11px] font-bold px-2 py-0.5 rounded-full border"
+                  style={{ color: scoreColor, borderColor: `${scoreColor}40`, backgroundColor: `${scoreColor}12` }}
+                >
+                  {isEN ? "ATS" : "Força"} {liveScore.score}/75
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
@@ -621,9 +674,11 @@ export default function GringoWriter({ locale, previewHref }: Props) {
                 if (locale === "en") {
                   useResumeStore.getState().updateSummary(pendingSummary);
                   setPendingSummary(null);
+                  if (isDone) router.push(previewHref);
                 } else {
                   useBrResumeStore.getState().updateResumo(pendingSummary);
                   setPendingSummary(null);
+                  // BR auto-navigates via useEffect when isDone && !pendingSummary
                 }
               }}
               className={`flex-1 py-2 text-white text-sm font-bold rounded-xl transition-colors ${isEN ? "bg-indigo-600 hover:bg-indigo-700" : "bg-green-700 hover:bg-green-800"}`}
