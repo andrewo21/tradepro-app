@@ -47,9 +47,9 @@ export async function POST(req: NextRequest) {
       ? buildSystemEN(name, bot)
       : buildSystemPT(name, bot);
 
-    // Trim history to last 12 messages to stay within token limits.
-    // Long conversations cause token-limit 500s which loop the "snag" error.
-    const trimmedHistory = history.slice(-12);
+    // Keep last 20 messages — enough context to prevent premature done:true
+    // when transitioning between sections (experience → skills).
+    const trimmedHistory = history.slice(-20);
 
     const completion = await client.chat.completions.create({
       model:           "gpt-4o-mini",  // 10x cheaper, adequate for conversational resume flow

@@ -593,14 +593,15 @@ export default function GringoWriter({ locale, previewHref }: Props) {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [history, loading]);
 
-  // PT-BR: auto-navigate to resumo when done and summary has been confirmed
+  // PT-BR: auto-navigate to resumo ONLY when summary step is truly complete
   useEffect(() => {
-    if (!isEN && isDone && pendingSummary === null && started) {
+    const summaryDone = currentStep === "summary" || currentStep === "done";
+    if (!isEN && isDone && pendingSummary === null && started && summaryDone) {
       const t = setTimeout(() => router.push("/br/curriculo/resumo"), 1000);
       return () => clearTimeout(t);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isDone, pendingSummary, isEN, started]);
+  }, [isDone, pendingSummary, isEN, started, currentStep]);
 
   // Start conversation automatically — clear existing resume data first.
   // This is a "build from scratch" flow, not an "add to existing" flow.
