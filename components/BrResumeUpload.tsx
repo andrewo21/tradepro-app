@@ -129,7 +129,12 @@ export default function BrResumeUpload() {
       // Done — show success, do NOT auto-advance
       setSuccess(true);
     } catch (err: any) {
-      setError(err?.message || "Erro de rede. Tente novamente.");
+      const msg = err?.message || "";
+      if (/quota/i.test(msg)) {
+        setError("Armazenamento do navegador cheio. Limpe o cache (Configurações → Limpar dados de navegação) e tente novamente.");
+      } else {
+        setError(msg || "Erro de rede. Tente novamente.");
+      }
     } finally {
       setLoading(false);
     }

@@ -175,7 +175,12 @@ export const useBrResumeStore = create<any>()(
     {
       name: "br-resume-storage",
       version: 3,
-      skipHydration: true,   // prevents server/client mismatch — rehydrate() called manually after mount
+      skipHydration: true,
+      // Exclude foto from localStorage — base64 images are 50-500KB and fill the quota
+      partialize: (state: any) => ({
+        ...state,
+        personalInfo: { ...state.personalInfo, foto: "" },
+      }),
       migrate: (persisted: any, version: number) => {
         let s = { ...persisted };
         if (version < 2) {
