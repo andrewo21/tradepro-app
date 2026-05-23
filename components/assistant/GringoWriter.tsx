@@ -170,7 +170,10 @@ function applyBR(action: StoreAction, store: any, setPendingSummary: (text: stri
           store.updateExperienciaField(last.id, "dataInicio", payload.dataInicio);
         if (payload.dataFim && !isPlaceholderDate(payload.dataFim))
           store.updateExperienciaField(last.id, "dataFim", payload.dataFim);
-        if (payload.cidade) store.updateExperienciaField(last.id, "cidade", payload.cidade);
+        const cidade = payload.cidade || payload.city || "";
+        const estado = payload.estado || payload.state || "";
+        if (cidade) store.updateExperienciaField(last.id, "cidade", cidade);
+        if (estado) store.updateExperienciaField(last.id, "estado", estado);
       }, 60);
       break;
     }
@@ -333,18 +336,20 @@ function applyUS(action: StoreAction, store: any, setPendingSummary: (text: stri
           : fresh[fresh.length - 1];
         if (!job) return;
 
-        if (payload.jobTitle)  store.updateExperience(job.id, "jobTitle",  payload.jobTitle);
-        if (payload.company)   store.updateExperience(job.id, "company",   payload.company);
-        if (payload.startDate) store.updateExperience(job.id, "startDate", payload.startDate);
-        if (payload.endDate)   store.updateExperience(job.id, "endDate",   payload.endDate);
-        if (payload.city)      store.updateExperience(job.id, "city",      payload.city);
+        if (payload.jobTitle)    store.updateExperience(job.id, "jobTitle",    payload.jobTitle);
+        if (payload.company)     store.updateExperience(job.id, "company",     payload.company);
+        if (payload.startDate)   store.updateExperience(job.id, "startDate",   payload.startDate);
+        if (payload.endDate)     store.updateExperience(job.id, "endDate",     payload.endDate);
+        if (payload.city)        store.updateExperience(job.id, "city",        payload.city);
+        if (payload.state)       store.updateExperience(job.id, "state",       payload.state);
+        if (payload.roleSummary) store.updateRoleSummary(job.id, payload.roleSummary);
 
         // Add bullets — deduplicated, then added sequentially to avoid race conditions
         const bullets: string[] = Array.isArray(payload.responsibilities) ? payload.responsibilities : [];
         const existingBullets = [
           ...(job.responsibilities || []).map((b: any) => (typeof b === "string" ? b : b.text || "").toLowerCase().slice(0, 30)),
           ...(job.achievements     || []).map((b: any) => (typeof b === "string" ? b : b.text || "").toLowerCase().slice(0, 30)),
-        ];
+        ].filter(eb => eb.trim()); // exclude empty slots so startsWith("") never falsely matches
 
         const newBullets = bullets.filter((text: string) =>
           text?.trim() && !existingBullets.some(eb => text.toLowerCase().startsWith(eb.slice(0, 20)))
@@ -372,6 +377,28 @@ function applyUS(action: StoreAction, store: any, setPendingSummary: (text: stri
           }, 80);
         };
         addNextBullet(0);
+
+        // Achievements — same sequential pattern
+        const achieves: string[] = Array.isArray(payload.achievements) ? payload.achievements : [];
+        const existingAchieves = (job.achievements || [])
+          .map((b: any) => (typeof b === "string" ? b : b.text || "").toLowerCase().slice(0, 30))
+          .filter((eb: string) => eb.trim());
+        const newAchieves = achieves.filter((text: string) =>
+          text?.trim() && !existingAchieves.some((eb: string) => text.toLowerCase().startsWith(eb.slice(0, 20)))
+        );
+        const addNextAchieve = (idx: number) => {
+          if (idx >= newAchieves.length) return;
+          store.addAchievement(job.id);
+          setTimeout(() => {
+            const u = useResumeStore.getState().experience;
+            const j = u.find((e: any) => e.id === job.id);
+            if (j) {
+              store.updateAchievement(job.id, j.achievements.length - 1, newAchieves[idx]);
+              setTimeout(() => addNextAchieve(idx + 1), 80);
+            }
+          }, 80);
+        };
+        addNextAchieve(0);
       }, 80);
       break;
     }

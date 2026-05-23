@@ -1,6 +1,6 @@
 "use client";
 
-// Etapa 7 BR — Resume Intelligence™ com Gringo
+// Etapa 6 BR — Força do Currículo com Gringo
 // Pontuação ao vivo + comparação com vaga de emprego
 
 import { useState, useCallback, useEffect } from "react";
@@ -123,13 +123,13 @@ function BrJobTargetContent() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8 pb-32">
-      <p className="text-sm text-neutral-500 mb-1">Etapa 7 de 8</p>
+      <p className="text-sm text-neutral-500 mb-1">Passo 6 — Força do Currículo</p>
 
       <div className="flex items-start gap-5 mb-8">
         <GringoCharacter mood={isThinking ? "thinking" : "talking"} size={90} />
         <div>
           <h1 className="text-2xl font-bold text-neutral-900 mb-1">
-            Resume Intelligence™ — Revisão Final do Gringo
+            Força do Currículo — Revisão Final com Gringo
           </h1>
           <p className="text-neutral-500 text-sm leading-relaxed">
             Oi, {firstName}! Aqui está sua pontuação atual. Quer ver como seu currículo se compara a uma vaga específica? Cole a descrição abaixo.
@@ -228,7 +228,7 @@ function BrJobTargetContent() {
           {loading ? (
             <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />Gringo está analisando…</>
           ) : (
-            <><TrendingUp className="w-4 h-4" />Rodar Resume Intelligence™ →</>
+            <><TrendingUp className="w-4 h-4" />Analisar Meu Currículo →</>
           )}
         </button>
       </div>
@@ -299,7 +299,7 @@ function BrJobTargetContent() {
 
       <div className="flex justify-between mt-4">
         <Link href="/br/curriculo/resumo" className="px-6 py-2.5 bg-neutral-200 text-neutral-800 rounded-xl text-sm font-medium hover:bg-neutral-300 transition">
-          ← Voltar à Etapa 6
+          ← Passo 5: Resumo
         </Link>
         <Link href="/br/curriculo/preview" className="px-6 py-2.5 bg-green-700 text-white rounded-xl text-sm font-bold hover:bg-green-800 transition flex items-center gap-2">
           Prévia Final → <ChevronRight className="w-4 h-4" />

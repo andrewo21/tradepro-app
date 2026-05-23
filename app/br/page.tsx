@@ -264,16 +264,9 @@ export default function BrazilHomePage() {
             <p className="text-green-200/80 text-base mb-6 max-w-md mx-auto leading-relaxed">
               Gringo faz perguntas, sugere melhorias e você decide o que entra no currículo. Você sempre tem o controle — veja tudo antes de pagar.
             </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link href="/br/curriculo/gringo"
-                className="inline-flex items-center gap-2 px-8 py-3.5 bg-green-500 text-white font-bold rounded-xl hover:bg-green-400 transition shadow-lg shadow-green-500/20 text-base">
-                🤖 Criar com a ajuda do Gringo →
-              </Link>
-              <Link href="/br/curriculo"
-                className="inline-block px-6 py-3.5 text-green-300 font-semibold rounded-xl border border-green-500/40 hover:bg-green-500/10 transition text-sm">
-                Prefiro preencher sozinho
-              </Link>
-            </div>
+            <p className="text-green-300/70 text-sm mt-2 text-center">
+              Encontre o Gringo no menu — disponível em cada etapa do construtor para te guiar.
+            </p>
           </div>
         </div>
       </section>

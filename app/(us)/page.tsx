@@ -303,17 +303,8 @@ export default function HomePage() {
                   </li>
                 ))}
               </ul>
-              <div className="flex flex-col sm:flex-row items-center lg:items-start gap-3 flex-wrap">
-                <Link href="/resume/select" className="inline-flex items-center gap-2 px-8 py-3.5 bg-blue-500 text-white font-bold rounded-xl hover:bg-blue-400 transition shadow-lg shadow-blue-500/30 text-base">
-                  🤖 Build with CV-1&apos;s Help →
-                </Link>
-                <Link href="/resume/select" className="inline-block px-6 py-3.5 text-blue-300 font-semibold rounded-xl border border-blue-500/40 hover:bg-blue-500/10 transition text-sm">
-                  I&apos;ll build it myself
-                </Link>
-                <CV1TourButton />
-              </div>
-              <p className="text-xs text-blue-400/60 mt-3 lg:text-left text-center">
-                Answer simple questions — CV-1 guides you step by step. You approve every change before you pay.
+              <p className="text-blue-300/70 text-sm mt-2 lg:text-left text-center">
+                Find CV-1 in the menu — available on every builder page to guide you through each step.
               </p>
             </div>
 

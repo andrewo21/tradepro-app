@@ -81,7 +81,7 @@ function BrResumoContent() {
 
       <div className="flex justify-between mt-8">
         <Link href="/br/curriculo/formacao" className="px-6 py-2 bg-neutral-200 rounded-lg text-sm hover:bg-neutral-300">← Passo 4</Link>
-        <Link href="/br/curriculo/ats" className="px-6 py-2 bg-green-700 text-white rounded-lg text-sm font-medium hover:bg-green-800">Passo 6: Análise ATS →</Link>
+        <Link href="/br/curriculo/ats" className="px-6 py-2 bg-green-700 text-white rounded-lg text-sm font-medium hover:bg-green-800">Passo 6: Força do Currículo →</Link>
       </div>
     </div>
   );
