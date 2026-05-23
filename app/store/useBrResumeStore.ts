@@ -44,7 +44,13 @@ export const useBrResumeStore = create<any>()(
       habilidadesComportamentais: [],
       idiomas: [],               // ex: [{text: "Inglês (intermediário)"}]
       habilidades: [],           // kept for backwards compat migration
-      experiencia: [createExperience()],
+      // Stable initial entry — no Date.now()/Math.random() so server/client match exactly
+      experiencia: [{
+        id: "br-exp-init",
+        cargo: "", empresa: "", cidade: "", estado: "",
+        dataInicio: "", dataFim: "", roleSummary: "",
+        responsabilidades: [{ id: "br-resp-init", text: "", suggestion: null, loading: false }],
+      }],
       formacao: [{ instituicao: "", curso: "", anoConclusao: "", tipo: "Técnico" }],
       cursosCertificacoes: [{ nome: "", instituicao: "", ano: "" }],
       selectedTemplate: "br-moderno-azul",
