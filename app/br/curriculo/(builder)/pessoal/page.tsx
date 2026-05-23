@@ -92,7 +92,10 @@ function BrPessoalContent() {
 
       <div className="flex justify-between mt-8">
         <Link href="/br/curriculo" className="px-6 py-2 bg-neutral-200 rounded-lg text-sm hover:bg-neutral-300">← Modelos</Link>
-        <Link href="/br/curriculo/habilidades" className="px-6 py-2 bg-green-700 text-white rounded-lg text-sm font-medium hover:bg-green-800">Passo 2: Habilidades →</Link>
+        <div className="flex gap-3">
+          <Link href="/br/curriculo/preview" className="px-6 py-2 bg-neutral-700 text-white rounded-lg text-sm font-medium hover:bg-neutral-800">Ver Prévia →</Link>
+          <Link href="/br/curriculo/habilidades" className="px-6 py-2 bg-green-700 text-white rounded-lg text-sm font-medium hover:bg-green-800">Passo 2: Habilidades →</Link>
+        </div>
       </div>
     </div>
   );

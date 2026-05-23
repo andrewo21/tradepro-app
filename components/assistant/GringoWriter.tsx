@@ -146,6 +146,13 @@ function applyBR(action: StoreAction, store: any, setPendingSummary: (text: stri
         d.toLowerCase().includes("data") || d.toLowerCase() === "n/a";
 
       const currentExp = useBrResumeStore.getState().experiencia || [];
+      const normBR = (s: string) => (s || "").toLowerCase().trim().replace(/[^a-z0-9]/g, "");
+      const existingBR = currentExp.find((e: any) =>
+        normBR(e.empresa) === normBR(empresaRaw) &&
+        (normBR(e.cargo) === normBR(payload.cargo || payload.jobTitle || "") || !e.cargo)
+      );
+      if (existingBR) break; // already have this job
+
       const singleEmptyBR =
         currentExp.length === 1 &&
         !currentExp[0].cargo?.trim() &&
@@ -203,36 +210,37 @@ function applyBR(action: StoreAction, store: any, setPendingSummary: (text: stri
 
     case "add_education": {
       const edu = state.formacao || [];
+      // Accept both Portuguese and English field names
+      const instituicao  = payload.instituicao || payload.school || payload.institution || "";
+      const curso        = payload.curso || payload.degree || payload.course || "";
+      const anoConclusao = payload.anoConclusao || payload.year || payload.graduationYear || "";
       const normEdu = (s: string) => (s || "").toLowerCase().trim();
       const eduExists = edu.some((f: any) =>
-        normEdu(f.instituicao) === normEdu(payload.instituicao || "") &&
-        normEdu(f.curso) === normEdu(payload.curso || "")
+        normEdu(f.instituicao) === normEdu(instituicao) &&
+        normEdu(f.curso) === normEdu(curso)
       );
-      if (eduExists) break;
-      if (edu.length === 1 && !edu[0].curso) {
-        store.setField("formacao", [{
-          instituicao: payload.instituicao || "",
-          curso:       payload.curso       || "",
-          anoConclusao: payload.anoConclusao || "",
-          tipo:        "Superior",
-        }]);
+      if (eduExists || (!instituicao && !curso)) break;
+      if (edu.length === 1 && !edu[0].curso && !edu[0].instituicao) {
+        store.setField("formacao", [{ instituicao, curso, anoConclusao, tipo: "Superior" }]);
       } else {
-        store.setField("formacao", [...edu, {
-          instituicao: payload.instituicao || "",
-          curso:       payload.curso       || "",
-          anoConclusao: payload.anoConclusao || "",
-          tipo:        "Superior",
-        }]);
+        store.setField("formacao", [...edu, { instituicao, curso, anoConclusao, tipo: "Superior" }]);
       }
       break;
     }
 
     case "add_certification": {
       const certs = state.cursosCertificacoes || [];
+      // Accept both Portuguese and English field names
+      const nome = payload.nome || payload.text || payload.name || payload.certification || "";
+      if (!nome.trim()) break;
       const norm = (s: string) => (s || "").toLowerCase().trim();
-      const alreadyExists = certs.some((c: any) => norm(c.nome) === norm(payload.nome || ""));
+      const alreadyExists = certs.some((c: any) => norm(c.nome) === norm(nome));
       if (!alreadyExists) {
-        store.setField("cursosCertificacoes", [...certs, { nome: payload.nome || "", instituicao: payload.instituicao || "", ano: payload.ano || "" }]);
+        store.setField("cursosCertificacoes", [...certs, {
+          nome,
+          instituicao: payload.instituicao || payload.institution || "",
+          ano: payload.ano || payload.year || "",
+        }]);
       }
       break;
     }

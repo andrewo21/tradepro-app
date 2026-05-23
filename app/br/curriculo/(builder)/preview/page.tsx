@@ -221,7 +221,7 @@ function BrPreviewContent() {
           <p className="text-sm text-neutral-500">Modelo: {store.selectedTemplate.replace("br-", "").replace(/-/g, " ")}</p>
         </div>
         <div className="flex gap-3">
-          <Link href="/br/curriculo/resumo" className="px-4 py-2 border rounded-lg text-sm hover:bg-neutral-50">Editar</Link>
+          <Link href="/br/curriculo/pessoal" className="px-4 py-2 border rounded-lg text-sm hover:bg-neutral-50">📸 Foto / Editar Dados</Link>
           <button
             onClick={handleDownload}
             disabled={loading || remaining === 0}
