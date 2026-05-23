@@ -3,20 +3,19 @@
 // TradePro Resume Intelligence™
 //
 // Architecture:
-//   SCORE  → text-embedding-3-small cosine similarity (deterministic, consistent)
-//   EXPLAIN → GPT-4o reads both documents and writes the plain-English breakdown
-//
-// The score is math. GPT only touches the words, never the number.
-// Same resume + same JD = same score, every time.
+//   KEYWORDS → GPT-4o-mini extracts required/preferred keywords from the JD (cheap, one-time)
+//   SCORE    → Pure deterministic formula: keyword matches × placement weights
+//              Same resume + same JD = same score, always.
+//              Add a required skill → score goes up. Remove one → score goes down.
+//   EXPLAIN  → GPT-4o writes the plain-English breakdown. Never touches the number.
 
 import OpenAI from "openai";
-import { cosineSimilarity, similarityToScore } from "../utils/embeddings";
 import { truncateText } from "../utils/text_cleaning";
 
 export interface RecruiterAssessment {
-  overall_score:  number;   // 0–100, from embeddings (deterministic)
-  job_fit_label:  string;   // plain-English label
-  match_summary:  string;   // GPT-4o plain English explanation
+  overall_score:  number;
+  job_fit_label:  string;
+  match_summary:  string;
   strengths:      string[];
   gaps:           string[];
   improvements:   string[];
@@ -24,93 +23,183 @@ export interface RecruiterAssessment {
   skills_missing: string[];
 }
 
-// ─── Score via embeddings (deterministic) ────────────────────────────────────
+interface JobKeywords {
+  required:  string[];   // must-have: skills, tools, certs, degree
+  preferred: string[];   // nice-to-have
+  title:     string[];   // job title words
+}
 
-async function computeJobFitScore(
-  client: OpenAI,
-  resumeText: string,
-  jobDescription: string,
-  candidateTitle?: string | null,
-): Promise<number> {
+// ─── Step 1: Extract keywords from job description ───────────────────────────
+// Uses GPT-4o-mini (cheap, fast). Returns structured keyword lists.
+
+async function extractJobKeywords(client: OpenAI, jobDescription: string): Promise<JobKeywords> {
   try {
-    const [resumeEmb, jobEmb] = await Promise.all([
-      client.embeddings.create({ model: "text-embedding-3-small", input: truncateText(resumeText, 8000) }),
-      client.embeddings.create({ model: "text-embedding-3-small", input: truncateText(jobDescription, 8000) }),
-    ]);
-
-    const similarity = cosineSimilarity(
-      resumeEmb.data[0].embedding,
-      jobEmb.data[0].embedding
-    );
-
-    // Convert cosine similarity to 0-100 score
-    // similarityToScore maps typical resume-JD similarity range (0.6-0.95) to 0-100
-    let score = similarityToScore(similarity);
-
-    // Title match floor — if candidate's title matches the job title,
-    // the score can't be below a meaningful threshold
-    if (candidateTitle) {
-      const titleWords = candidateTitle.toLowerCase().split(/\s+/).filter(w => w.length > 3);
-      const jdLower    = jobDescription.toLowerCase();
-      const matches    = titleWords.filter(w => jdLower.includes(w)).length;
-      if (matches >= 2) score = Math.max(45, score);  // strong title match floor
-      else if (matches >= 1) score = Math.max(28, score); // partial title match floor
-    }
-
-    return Math.min(100, Math.round(score));
+    const res = await client.chat.completions.create({
+      model:           "gpt-4o-mini",
+      temperature:     0,
+      response_format: { type: "json_object" },
+      messages: [{
+        role: "system",
+        content: `Extract specific keywords from this job description for ATS matching.
+Return JSON with exactly these three fields:
+{
+  "required":  ["skill1", "Timberline", "PMP", "Bachelor's degree"],
+  "preferred": ["nice to have item"],
+  "title":     ["senior", "project", "manager"]
+}
+Rules:
+- required  = explicitly required skills, tools, software, certifications, degrees, years of experience
+- preferred = items marked "preferred", "bonus", "nice to have", or "a plus"
+- title     = significant words from the job title (3+ chars, no articles)
+- Keep each entry SHORT (1-3 words). Be specific: "Timberline" not "estimating software"
+- Include certifications as separate entries: "PMP", "OSHA 30", "CDL"
+- Max 25 required, 15 preferred, 6 title keywords
+- Return ONLY the JSON object`,
+      }, {
+        role: "user",
+        content: truncateText(jobDescription, 4000),
+      }],
+    });
+    const raw = JSON.parse(res.choices[0]?.message?.content || "{}");
+    return {
+      required:  toArr(raw.required),
+      preferred: toArr(raw.preferred),
+      title:     toArr(raw.title),
+    };
   } catch {
-    return 0;
+    return { required: [], preferred: [], title: [] };
   }
 }
 
-// ─── Explain via GPT-4o (language only, never sets the score) ─────────────────
+// ─── Step 2: Deterministic keyword match score ───────────────────────────────
+// Placement weights — keywords in prominent positions score higher (ATS standard).
+//   Title / first 3 lines:  3× — highest ATS value
+//   Summary (first 500 chars): 2× — second highest
+//   Body (rest of resume):  1× — base value
+//   Preferred keywords:     0.5× — bonus only
+//
+// Score = (earned weighted points) / (max possible points) × 100, capped at 95.
+// Adding any required keyword always increases the score.
+// Removing any required keyword always decreases the score.
+
+function computeKeywordMatchScore(resumeText: string, keywords: JobKeywords): number {
+  if (!resumeText || (keywords.required.length + keywords.preferred.length) === 0) return 0;
+
+  const rLower = resumeText.toLowerCase();
+
+  // Identify resume sections for placement scoring
+  const lines         = resumeText.split("\n");
+  const titleSection  = lines.slice(0, 4).join(" ").toLowerCase();      // top 4 lines
+  const summarySection = resumeText.substring(0, 600).toLowerCase();    // first 600 chars
+
+  const W_TITLE    = 3;    // required keyword in title area
+  const W_SUMMARY  = 2;    // required keyword in summary
+  const W_BODY     = 1;    // required keyword anywhere else
+  const W_PREFERRED = 0.5; // preferred keyword anywhere
+
+  let earned   = 0;
+  let possible = 0;
+
+  // Score required keywords (max per keyword = W_TITLE)
+  for (const kw of keywords.required) {
+    const kwl = kw.toLowerCase().trim();
+    if (!kwl || kwl.length < 2) continue;
+    possible += W_TITLE;
+
+    if (rLower.includes(kwl)) {
+      if (titleSection.includes(kwl)) {
+        earned += W_TITLE;
+      } else if (summarySection.includes(kwl)) {
+        earned += W_SUMMARY;
+      } else {
+        earned += W_BODY;
+      }
+    }
+    // not found: +0
+  }
+
+  // Score preferred keywords (pure bonus)
+  for (const kw of keywords.preferred) {
+    const kwl = kw.toLowerCase().trim();
+    if (!kwl || kwl.length < 2) continue;
+    possible += W_PREFERRED;
+    if (rLower.includes(kwl)) earned += W_PREFERRED;
+  }
+
+  if (possible === 0) return 0;
+
+  // Scale to 0-95 (nothing is perfect without knowing the full context)
+  const raw = (earned / possible) * 100;
+  return Math.min(95, Math.round(raw));
+}
+
+// ─── Step 3: GPT-4o explains the score in plain English ───────────────────────
+// The score is already set. GPT only writes the words. Never changes the number.
 
 async function generateExplanation(
   client: OpenAI,
   resumeText: string,
   jobDescription: string,
-  jobFitScore: number,
-  locale: string
+  keywords: JobKeywords,
+  score: number,
+  locale: string,
 ): Promise<Omit<RecruiterAssessment, "overall_score" | "job_fit_label">> {
   const isEN = locale !== "pt-BR";
 
-  const systemPrompt = isEN ? `You are TradePro Resume Intelligence™, a plain-English resume analysis tool.
-The Job Fit Score has already been calculated at ${jobFitScore}/100 using AI matching technology.
-Your job is ONLY to explain this score in plain English that anyone can understand.
+  // Tell GPT exactly which keywords matched and which didn't
+  const rLower = resumeText.toLowerCase();
+  const matched = keywords.required.filter(kw => rLower.includes(kw.toLowerCase()));
+  const missing = keywords.required.filter(kw => !rLower.includes(kw.toLowerCase()));
+
+  const context = isEN
+    ? `Keywords FOUND in resume: ${matched.join(", ") || "none"}
+Keywords MISSING from resume: ${missing.join(", ") || "none"}
+Job Fit Score: ${score}/100`
+    : `Palavras-chave ENCONTRADAS no currículo: ${matched.join(", ") || "nenhuma"}
+Palavras-chave AUSENTES no currículo: ${missing.join(", ") || "nenhuma"}
+Pontuação: ${score}/100`;
+
+  const systemPrompt = isEN
+    ? `You are TradePro Resume Intelligence™.
+The Job Fit Score is ${score}/100 — already calculated mathematically from keyword matching.
+Your job is ONLY to explain this score using plain English anyone can understand.
+
+You have been given the exact list of matched and missing keywords above.
+Base your explanation entirely on this data — no hallucinations.
 
 RULES:
-1. Write like you're explaining to someone who has never heard of "ATS" or "keywords"
-2. Every strength and gap must come directly from the documents — no hallucinations
-3. Only flag skills/certs that are genuinely missing — not soft skills, not experience requirements
-4. Your explanation must be consistent with the score of ${jobFitScore}/100
-5. NEVER say "semantic" or "embeddings" — say "how well your resume matches this job"
+1. Write like you are talking to a tradesperson, not a tech expert
+2. Every point must come from the provided keyword lists
+3. skills_found = keywords from the FOUND list
+4. skills_missing = keywords from the MISSING list
+5. Your explanation must be consistent with ${score}/100
+6. NEVER mention "keywords", "ATS", "embeddings", or technical terms
+7. DO NOT invent new gaps not in the missing list
 
 Return JSON:
 {
-  "match_summary": "2-3 plain sentences explaining the ${jobFitScore}/100 score in everyday language",
-  "strengths": ["specific evidence of match, quoted from documents"],
-  "gaps": ["genuine gaps only — things truly missing that the job requires"],
-  "improvements": ["specific, actionable things to add or change"],
-  "skills_found": ["concrete technical skills/certs resume has that JD mentions"],
-  "skills_missing": ["concrete technical skills/certs JD requires that resume lacks"]
+  "match_summary": "2-3 plain sentences explaining ${score}/100",
+  "strengths": ["specific things from the matched list that help"],
+  "gaps": ["specific things from the missing list that hurt"],
+  "improvements": ["exact actionable fix for each gap — add X to your resume"],
+  "skills_found": ["from the matched keywords list"],
+  "skills_missing": ["from the missing keywords list"]
 }`
-  : `Você é o TradePro Resume Intelligence™, uma ferramenta de análise de currículo em linguagem simples.
-O Job Fit Score já foi calculado em ${jobFitScore}/100.
-Sua função é APENAS explicar essa pontuação em português simples que qualquer pessoa entenda.
-NUNCA diga "semântico" — diga "como seu currículo combina com esta vaga".
-Retorne JSON com: match_summary, strengths, gaps, improvements, skills_found, skills_missing`;
+    : `Você é o TradePro Resume Intelligence™.
+A pontuação ${score}/100 já foi calculada matematicamente.
+Explique em português simples usando APENAS os dados fornecidos acima.
+Retorne JSON: match_summary, strengths, gaps, improvements, skills_found, skills_missing`;
 
   try {
     const completion = await client.chat.completions.create({
       model:           "gpt-4o",
-      temperature:     0.3,
+      temperature:     0.2,
       response_format: { type: "json_object" },
       messages: [
         { role: "system", content: systemPrompt },
-        { role: "user",   content: `JOB DESCRIPTION:\n${jobDescription}\n\n---\n\nCANDIDATE RESUME:\n${resumeText}` },
+        { role: "user",   content: `${context}\n\nJOB DESCRIPTION:\n${truncateText(jobDescription, 3000)}\n\nRESUME:\n${truncateText(resumeText, 4000)}` },
       ],
     });
-
     const raw = JSON.parse(completion.choices[0]?.message?.content || "{}");
     return {
       match_summary:  String(raw.match_summary || ""),
@@ -134,11 +223,14 @@ export async function runRecruiterAssessment(
   locale: string = "en",
   candidateTitle?: string | null,
 ): Promise<RecruiterAssessment> {
-  // Step 1: Score via embeddings — deterministic, consistent
-  const overall_score = await computeJobFitScore(client, resumeText, jobDescription, candidateTitle);
+  // Step 1: Extract what the job requires
+  const keywords = await extractJobKeywords(client, jobDescription);
 
-  // Step 2: Explain via GPT-4o — plain English only, never changes the score
-  const explanation = await generateExplanation(client, resumeText, jobDescription, overall_score, locale);
+  // Step 2: Score deterministically — adding/removing keywords changes the number
+  const overall_score = computeKeywordMatchScore(resumeText, keywords);
+
+  // Step 3: GPT explains the score in plain English — never sets the number
+  const explanation = await generateExplanation(client, resumeText, jobDescription, keywords, overall_score, locale);
 
   return {
     overall_score,
