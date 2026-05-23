@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { ReactNode } from "react";
 import HeaderBR from "@/components/HeaderBR";
 import WhatsAppFloat from "@/components/WhatsAppFloat";
+import BrStoreHydrator from "@/components/BrStoreHydrator";
 
 export const metadata: Metadata = {
   title: {
@@ -34,6 +35,7 @@ export default function BrazilLayout({ children }: { children: ReactNode }) {
         <link rel="manifest" href="/manifest-br.json" />
         <meta name="apple-mobile-web-app-title" content="TradePro Brasil" />
       </head>
+      <BrStoreHydrator />
       <HeaderBR />
       {children}
       <WhatsAppFloat />

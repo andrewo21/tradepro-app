@@ -169,6 +169,7 @@ export const useBrResumeStore = create<any>()(
     {
       name: "br-resume-storage",
       version: 3,
+      skipHydration: true,   // prevents server/client mismatch — rehydrate() called manually after mount
       migrate: (persisted: any, version: number) => {
         let s = { ...persisted };
         if (version < 2) {
