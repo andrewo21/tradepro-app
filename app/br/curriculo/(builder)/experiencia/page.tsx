@@ -40,7 +40,7 @@ export default function BrExperienciaPage() {
 function BrExperienciaContent() {
   const { experiencia, addExperiencia, removeExperiencia, updateExperienciaField, addResponsabilidade, updateResponsabilidade, setField } = useBrResumeStore();
   const [rewriting, setRewriting] = useState<{ id: string; idx: number } | null>(null);
-  const [suggestions, setSuggestions] = useState<Record<string, string>>({});
+  const [suggestions, setSuggestions] = useState<Record<string, { text: string; reason: string }>>({});
   const [datas, setDatas] = useState<Record<string, DataState>>(() => {
     const init: Record<string, DataState> = {};
     experiencia.forEach((exp: any) => {
@@ -82,7 +82,7 @@ function BrExperienciaContent() {
       });
       const data = await res.json();
       if (data.suggestion) {
-        setSuggestions(prev => ({ ...prev, [`${expId}-${idx}`]: data.suggestion }));
+        setSuggestions(prev => ({ ...prev, [`${expId}-${idx}`]: { text: data.suggestion, reason: data.reason || "" } }));
       }
     } catch { /* silent */ }
     finally { setRewriting(null); }
@@ -90,7 +90,7 @@ function BrExperienciaContent() {
 
   function acceptSuggestion(expId: string, idx: number) {
     const key = `${expId}-${idx}`;
-    updateResponsabilidade(expId, idx, suggestions[key]);
+    updateResponsabilidade(expId, idx, suggestions[key].text);
     setSuggestions(prev => { const n = { ...prev }; delete n[key]; return n; });
   }
 
@@ -209,18 +209,26 @@ function BrExperienciaContent() {
                       </div>
 
                       {suggestions[key] && (
-                        <div className="bg-green-50 border border-green-200 rounded-lg px-3 py-2">
-                          <p className="text-xs text-green-800 font-semibold mb-1">✦ Sugestão da IA:</p>
-                          <p className="text-sm text-neutral-800 mb-2">{suggestions[key]}</p>
-                          <div className="flex gap-2">
-                            <button onClick={() => acceptSuggestion(exp.id, i)}
-                              className="px-3 py-1 bg-green-700 text-white rounded text-xs font-medium hover:bg-green-800">
-                              Aceitar
-                            </button>
-                            <button onClick={() => discardSuggestion(exp.id, i)}
-                              className="px-3 py-1 bg-neutral-200 rounded text-xs hover:bg-neutral-300">
-                              Descartar
-                            </button>
+                        <div className="border border-green-200 rounded-xl overflow-hidden shadow-sm">
+                          {suggestions[key].reason && (
+                            <div className="px-3 py-2 bg-green-50 border-b border-green-100">
+                              <p className="text-xs font-bold text-green-800 uppercase tracking-wide mb-1">✦ Gringo explica</p>
+                              <p className="text-sm text-green-900 leading-relaxed">{suggestions[key].reason}</p>
+                            </div>
+                          )}
+                          <div className="px-3 py-2 bg-white">
+                            <p className="text-xs font-bold text-neutral-500 uppercase tracking-wide mb-1.5">Versão mais forte</p>
+                            <p className="text-sm text-neutral-900 font-medium leading-relaxed">{suggestions[key].text}</p>
+                            <div className="flex gap-2 mt-2">
+                              <button onClick={() => acceptSuggestion(exp.id, i)}
+                                className="px-3 py-1.5 bg-green-700 text-white rounded-lg text-xs font-bold hover:bg-green-800">
+                                Usar esta versão
+                              </button>
+                              <button onClick={() => discardSuggestion(exp.id, i)}
+                                className="px-3 py-1.5 bg-neutral-100 text-neutral-600 rounded-lg text-xs font-semibold hover:bg-neutral-200">
+                                Manter a minha
+                              </button>
+                            </div>
                           </div>
                         </div>
                       )}

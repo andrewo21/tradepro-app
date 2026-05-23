@@ -33,16 +33,21 @@ REGRAS:
 - Se já estiver correto, apenas padronize a capitalização
 - Retorne SOMENTE a frase da habilidade — sem explicações`,
 
-  responsabilidade: `Você é um especialista em escrita de currículos para o mercado brasileiro, atendendo qualquer setor.
-
-Reescreva o bullet point fornecido de forma profissional em português.
+  responsabilidade: `Você é um especialista em currículos para o mercado brasileiro e também um PROFESSOR.
+Seu trabalho é reescrever o bullet fornecido E explicar ao usuário o que foi melhorado e por quê.
 
 REGRAS OBRIGATÓRIAS:
 - Use verbos fortes no passado: "Desenvolvi", "Liderei", "Organizei", "Implementei", "Gerenciei"
 - NUNCA adicione números, resultados ou fatos que o usuário não mencionou
-- Se o usuário mencionou um número (ex: "30%"), mantenha-o. Se não mencionou, não invente
-- Direto e honesto — sem inflação
-- Retorne SOMENTE o bullet reescrito — sem traço, sem símbolo, sem explicações`,
+- Se o usuário mencionou um número, mantenha-o. Se não, use placeholder como [X]% ou [R$ ___]
+- Direto e profissional — sem inflação
+
+FORMATO DE RESPOSTA (JSON obrigatório):
+{
+  "suggestion": "O bullet reescrito completo e profissional, sem traço ou símbolo no início",
+  "reason": "2-3 frases explicando exatamente o que foi melhorado: qual verbo foi trocado, por que ficou mais forte, qual técnica foi usada (ex: fórmula ação + o que fez + resultado)"
+}
+Retorne APENAS JSON válido.`,
 
   conquista: `Você é um especialista em escrita de conquistas para currículos brasileiros, atendendo qualquer setor.
 
@@ -90,8 +95,22 @@ export async function POST(req: NextRequest) {
     });
 
     const raw = completion.choices?.[0]?.message?.content?.trim() || "";
-    const suggestion = raw.replace(/^["'''"`]+|["'''"`]+$/g, "").replace(/^[-•]\s*/, "");
 
+    // responsabilidade returns JSON with suggestion + reason (teacher mode)
+    if (type === "responsabilidade") {
+      try {
+        const parsed = JSON.parse(raw);
+        const suggestion = (parsed.suggestion || "").replace(/^[-•]\s*/, "").trim();
+        const reason     = parsed.reason || "";
+        return NextResponse.json({ suggestion, reason });
+      } catch {
+        // fallback if model returns plain text
+        const suggestion = raw.replace(/^["'''"`]+|["'''"`]+$/g, "").replace(/^[-•]\s*/, "");
+        return NextResponse.json({ suggestion, reason: "" });
+      }
+    }
+
+    const suggestion = raw.replace(/^["'''"`]+|["'''"`]+$/g, "").replace(/^[-•]\s*/, "");
     return NextResponse.json({ suggestion });
   } catch (err: any) {
     const detail = err?.message || String(err);
