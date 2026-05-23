@@ -40,21 +40,25 @@ async function extractJobKeywords(client: OpenAI, jobDescription: string): Promi
       response_format: { type: "json_object" },
       messages: [{
         role: "system",
-        content: `Extract specific keywords from this job description for ATS matching.
-Return JSON with exactly these three fields:
+        content: `Extract SHORT searchable keywords from this job description for resume matching.
+Return JSON:
 {
-  "required":  ["skill1", "Timberline", "PMP", "Bachelor's degree"],
-  "preferred": ["nice to have item"],
+  "required":  ["Timberline", "MS Office", "PMP", "OSHA 30", "civil engineering", "estimating"],
+  "preferred": ["Revit", "AutoCAD"],
   "title":     ["senior", "project", "manager"]
 }
-Rules:
-- required  = explicitly required skills, tools, software, certifications, degrees, years of experience
-- preferred = items marked "preferred", "bonus", "nice to have", or "a plus"
-- title     = significant words from the job title (3+ chars, no articles)
-- Keep each entry SHORT (1-3 words). Be specific: "Timberline" not "estimating software"
-- Include certifications as separate entries: "PMP", "OSHA 30", "CDL"
-- Max 25 required, 15 preferred, 6 title keywords
-- Return ONLY the JSON object`,
+STRICT RULES — read carefully:
+- Every entry must be 1-3 words MAXIMUM. Never longer.
+- WRONG: "Bachelor's degree in civil engineering, architecture, or construction management"
+  RIGHT: "civil engineering", "architecture", "construction management", "bachelor's degree"
+- WRONG: "proficiency in MS Office required"  RIGHT: "MS Office"
+- WRONG: "5+ years of construction experience"  RIGHT: "construction experience"
+- required  = hard requirements: specific tools, software, certifications, degree field
+- preferred = "preferred" or "a plus" items only
+- title     = key words from job title (3+ chars)
+- Split compound requirements into separate short entries
+- Max 20 required, 10 preferred, 5 title
+- Return ONLY the JSON`,
       }, {
         role: "user",
         content: truncateText(jobDescription, 4000),
@@ -82,55 +86,59 @@ Rules:
 // Adding any required keyword always increases the score.
 // Removing any required keyword always decreases the score.
 
+// Flexible keyword match — handles single words, short phrases, and longer extractions
+function kwFound(kw: string, text: string): boolean {
+  if (!kw || kw.length < 2) return false;
+  // Direct match first
+  if (text.includes(kw)) return true;
+  // For multi-word phrases: check if the most significant word (4+ chars) appears
+  const words = kw.split(/\s+/).filter(w => w.length >= 4);
+  if (words.length === 0) return false;
+  // Single significant word — must be present
+  if (words.length === 1) return text.includes(words[0]);
+  // Multi-word: majority of significant words must appear
+  const matched = words.filter(w => text.includes(w)).length;
+  return matched >= Math.ceil(words.length * 0.6);
+}
+
 function computeKeywordMatchScore(resumeText: string, keywords: JobKeywords): number {
   if (!resumeText || (keywords.required.length + keywords.preferred.length) === 0) return 0;
 
   const rLower = resumeText.toLowerCase();
 
-  // Identify resume sections for placement scoring
-  const lines         = resumeText.split("\n");
-  const titleSection  = lines.slice(0, 4).join(" ").toLowerCase();      // top 4 lines
-  const summarySection = resumeText.substring(0, 600).toLowerCase();    // first 600 chars
+  const lines          = resumeText.split("\n");
+  const titleSection   = lines.slice(0, 4).join(" ").toLowerCase();
+  const summarySection = resumeText.substring(0, 600).toLowerCase();
 
-  const W_TITLE    = 3;    // required keyword in title area
-  const W_SUMMARY  = 2;    // required keyword in summary
-  const W_BODY     = 1;    // required keyword anywhere else
-  const W_PREFERRED = 0.5; // preferred keyword anywhere
+  const W_TITLE     = 3;
+  const W_SUMMARY   = 2;
+  const W_BODY      = 1;
+  const W_PREFERRED = 0.5;
 
   let earned   = 0;
   let possible = 0;
 
-  // Score required keywords (max per keyword = W_TITLE)
   for (const kw of keywords.required) {
     const kwl = kw.toLowerCase().trim();
     if (!kwl || kwl.length < 2) continue;
     possible += W_TITLE;
 
-    if (rLower.includes(kwl)) {
-      if (titleSection.includes(kwl)) {
-        earned += W_TITLE;
-      } else if (summarySection.includes(kwl)) {
-        earned += W_SUMMARY;
-      } else {
-        earned += W_BODY;
-      }
+    if (kwFound(kwl, rLower)) {
+      if (kwFound(kwl, titleSection))   earned += W_TITLE;
+      else if (kwFound(kwl, summarySection)) earned += W_SUMMARY;
+      else                               earned += W_BODY;
     }
-    // not found: +0
   }
 
-  // Score preferred keywords (pure bonus)
   for (const kw of keywords.preferred) {
     const kwl = kw.toLowerCase().trim();
     if (!kwl || kwl.length < 2) continue;
     possible += W_PREFERRED;
-    if (rLower.includes(kwl)) earned += W_PREFERRED;
+    if (kwFound(kwl, rLower)) earned += W_PREFERRED;
   }
 
   if (possible === 0) return 0;
-
-  // Scale to 0-95 (nothing is perfect without knowing the full context)
-  const raw = (earned / possible) * 100;
-  return Math.min(95, Math.round(raw));
+  return Math.min(95, Math.round((earned / possible) * 100));
 }
 
 // ─── Step 3: GPT-4o explains the score in plain English ───────────────────────
