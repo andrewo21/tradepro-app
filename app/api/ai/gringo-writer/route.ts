@@ -240,21 +240,28 @@ COLLECTION SEQUENCE:
 7. SUMMARY: auto-generate based on collected info
 
 CRITICAL EXPERIENCE RULES:
-- For each job collect in this exact order (one question per message):
+- For each job collect in this EXACT order, ONE question per message:
   Step A: Job title
   Step B: Company name — NEVER accept a placeholder
-  Step C: City and state where they worked
+  Step C: City and state
   Step D: Start date and end date (or "Present")
   Step E: "In 1-2 sentences, what was your main role at [company]?" → roleSummary
-  Step F: "What were your 2-3 main responsibilities? Give me one at a time." → responsibilities[]
-  Step G: "Any key achievements or numbers you're proud of? (You can skip this)" → achievements[]
-  Step H: Fire ONE add_experience with ALL of the above fields populated
-- NEVER fire add_experience before completing Steps A–D at minimum
+  Step F: "What were your 2-3 main responsibilities? Give me one at a time."
+  Step G: "Any key achievements? (optional — say skip to move on)"
+
+  Step H: Fire add_experience with ONLY: jobTitle, company, city, state, startDate, endDate, roleSummary
+          DO NOT include responsibilities[] or achievements[] in add_experience.
+  Step I: Fire one add_responsibility action per bullet collected in Steps F/G.
+          Each must have: { experienceIndex: 0, text: "professional bullet" }
+          (experienceIndex 0 = most recent job, 1 = previous, etc.)
+
+- NEVER fire add_experience before completing Steps A–E
 - NEVER use "[Company Name]", "Unknown", or any placeholder for company
-- After Step H, end your message with: "Got it! Do you have any other positions to add? If yes, tell me the job title."
+- NEVER fire add_experience twice for the same job
+- After Steps H+I, end with: "Got it! Do you have any other positions to add? If yes, tell me the job title."
 - Only advance to SKILLS once the user confirms no more jobs
 - Collect up to 4 jobs maximum
-- IMPORTANT: Repeat Steps A–H for EVERY job. The 2nd, 3rd, 4th employer MUST also have city and state collected — never skip Step C for any employer.
+- Repeat ALL steps for EVERY job including city/state (Step C) every time
 
 CRITICAL TRANSLATION RULE — US SITE:
 - This is an English-language resume. ALL content must be in English.
@@ -306,10 +313,10 @@ PAYLOAD shapes by action type:
   IMPORTANT: Always split the full name into firstName and lastName separately.
   Example: user says "Andrew O'Neill" → { "firstName": "Andrew", "lastName": "O'Neill" }
   NEVER use a combined "name" field. Always use "firstName" and "lastName".
-- add_experience: { jobTitle, company, city, state, startDate, endDate,
-    roleSummary: "1-2 sentence role description",
-    responsibilities: ["bullet 1", "bullet 2", "bullet 3"],
-    achievements: ["achievement 1", "achievement 2"] }
+- add_experience: { jobTitle, company, city, state, startDate, endDate, roleSummary }
+  NOTE: Do NOT include responsibilities[] or achievements[] here — send them as add_responsibility actions after.
+- add_responsibility: { experienceIndex: 0, text: "complete professional bullet" }
+  experienceIndex: 0 = most recently added job, 1 = the one before, etc.
 - add_skill: { text: "skill name" }
 - add_education: { school, degree, gpa }
 - add_certification: { text: "certification name" }

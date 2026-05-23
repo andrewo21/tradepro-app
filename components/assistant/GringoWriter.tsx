@@ -315,11 +315,14 @@ function applyUS(action: StoreAction, store: any, setPendingSummary: (text: stri
       const expState = useResumeStore.getState().experience;
       const norm = (s: string) => (s || "").toLowerCase().trim().replace(/[^a-z0-9]/g, "");
 
-      // DEDUP: if this company+title already exists, UPDATE it — never create a duplicate
-      const existing = expState.find((e: any) =>
-        norm(e.company) === norm(payload.company) &&
-        (norm(e.jobTitle) === norm(payload.jobTitle) || !e.jobTitle || !payload.jobTitle)
-      );
+      // DEDUP: same company + same title OR same company + same start date = same job
+      const existing = expState.find((e: any) => {
+        const sameCompany = norm(e.company) === norm(payload.company);
+        if (!sameCompany) return false;
+        const sameTitle = norm(e.jobTitle) === norm(payload.jobTitle) || !e.jobTitle || !payload.jobTitle;
+        const sameStart = e.startDate && payload.startDate && e.startDate === payload.startDate;
+        return sameTitle || sameStart;
+      });
 
       const targetId = existing?.id || null;
 
