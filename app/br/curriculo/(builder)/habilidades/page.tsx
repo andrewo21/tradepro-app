@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useBrResumeStore } from "@/app/store/useBrResumeStore";
 import Link from "next/link";
+import dynamic from "next/dynamic";
+const AskGringoButton = dynamic(() => import("@/components/AskGringoButton"), { ssr: false });
 
 export default function BrHabilidadesPage() {
   const [mounted, setMounted] = useState(false);
@@ -61,7 +63,10 @@ function BrHabilidadesContent() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
-      <p className="text-sm text-neutral-500 mb-1">Passo 2 de 6 — Habilidades</p>
+      <div className="flex items-center justify-between mb-1">
+        <p className="text-sm text-neutral-500">Passo 2 de 6 — Habilidades</p>
+        <AskGringoButton />
+      </div>
       <h1 className="text-2xl font-semibold mb-2">Habilidades Profissionais</h1>
       <p className="text-sm text-neutral-500 mb-6">
         Adicione suas habilidades. Uma por campo — use o botão <strong>+</strong> para adicionar mais.

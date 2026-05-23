@@ -5,6 +5,8 @@
 
 import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
+const AskGringoButton = dynamic(() => import("@/components/AskGringoButton"), { ssr: false });
 import { useBrResumeStore } from "@/app/store/useBrResumeStore";
 import { useAssistantStore } from "@/app/store/useAssistantStore";
 import { computeLiveAtsScore, atsLabelColor } from "@/lib/ats/live/liveAtsScore";
@@ -123,7 +125,10 @@ function BrJobTargetContent() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8 pb-32">
-      <p className="text-sm text-neutral-500 mb-1">Passo 6 — Força do Currículo</p>
+      <div className="flex items-center justify-between mb-1">
+        <p className="text-sm text-neutral-500">Passo 6 — Força do Currículo</p>
+        <AskGringoButton />
+      </div>
 
       <div className="flex items-start gap-5 mb-8">
         <GringoCharacter mood={isThinking ? "thinking" : "talking"} size={90} />

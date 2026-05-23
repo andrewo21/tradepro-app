@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
+const AskCV1Button = dynamic(() => import("@/components/AskCV1Button"), { ssr: false });
 import { useResumeStore } from "@/app/store/useResumeStore";
 
 export default function EducationPage() {
@@ -15,9 +17,10 @@ export default function EducationPage() {
 
   return (
     <div className="min-h-screen bg-neutral-50 text-neutral-900 px-4 py-8 sm:p-10">
-      <p className="text-sm text-neutral-500 mb-2">
-        Step 5 of 7 — Education
-      </p>
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-sm text-neutral-500">Step 5 of 7 — Education</p>
+        <AskCV1Button />
+      </div>
 
       <h1 className="text-2xl font-semibold mb-6">Education</h1>
 

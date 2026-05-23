@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { useBrResumeStore } from "@/app/store/useBrResumeStore";
 import Link from "next/link";
+import dynamic from "next/dynamic";
+const AskGringoButton = dynamic(() => import("@/components/AskGringoButton"), { ssr: false });
 
 const TIPOS = ["Técnico", "Graduação", "Pós-Graduação", "MBA", "Curso Livre", "Outro"];
 
@@ -39,7 +41,10 @@ function BrFormacaoContent() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
-      <p className="text-sm text-neutral-500 mb-1">Passo 4 de 6 — Formação</p>
+      <div className="flex items-center justify-between mb-1">
+        <p className="text-sm text-neutral-500">Passo 4 de 6 — Formação</p>
+        <AskGringoButton />
+      </div>
       <h1 className="text-2xl font-semibold mb-6">Formação Acadêmica e Cursos</h1>
 
       {/* Formação */}

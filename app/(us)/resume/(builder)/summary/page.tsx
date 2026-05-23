@@ -5,6 +5,8 @@
 // CV-1 handles summary rewrites via the floating assistant.
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
+const AskCV1Button = dynamic(() => import("@/components/AskCV1Button"), { ssr: false });
 import { useEffect, useRef, useState } from "react";
 import { useResumeStore } from "@/app/store/useResumeStore";
 
@@ -33,7 +35,10 @@ export default function SummaryPage() {
 
   return (
     <div className="min-h-screen bg-neutral-50 text-neutral-900 px-4 py-8 sm:p-10">
-      <p className="text-sm text-neutral-500 mb-2">Step 6 of 8 — Professional Summary</p>
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-sm text-neutral-500">Step 6 of 8 — Professional Summary</p>
+        <AskCV1Button />
+      </div>
 
       <h1 className="text-2xl font-semibold text-slate-900 mb-1">Professional Summary</h1>
       <p className="text-sm text-neutral-600 mb-6 max-w-2xl">

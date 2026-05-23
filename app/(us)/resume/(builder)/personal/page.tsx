@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useResumeStore } from "@/app/store/useResumeStore";
+const AskCV1Button = dynamic(() => import("@/components/AskCV1Button"), { ssr: false });
 
 export default function PersonalPage() {
   const personalInfo = useResumeStore((s) => s.personalInfo);
@@ -9,11 +11,10 @@ export default function PersonalPage() {
 
   return (
     <div className="min-h-screen bg-neutral-50 text-neutral-900 px-4 py-8 sm:p-10">
-      {/* Step Label */}
-      <p className="text-sm text-neutral-500 mb-2">
-        Step 2 of 7 — Personal Information
-      </p>
-
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-sm text-neutral-500">Step 2 of 7 — Personal Information</p>
+        <AskCV1Button />
+      </div>
       <h1 className="text-2xl font-semibold mb-6">Personal Information</h1>
 
       {/* Form */}

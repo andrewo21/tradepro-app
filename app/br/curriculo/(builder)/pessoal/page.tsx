@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { useBrResumeStore } from "@/app/store/useBrResumeStore";
 import Link from "next/link";
+import dynamic from "next/dynamic";
+const AskGringoButton = dynamic(() => import("@/components/AskGringoButton"), { ssr: false });
 
 export default function BrPessoalPage() {
   const [mounted, setMounted] = useState(false);
@@ -32,7 +34,10 @@ function BrPessoalContent() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
-      <p className="text-sm text-neutral-500 mb-1">Passo 1 de 6 — Dados Pessoais</p>
+      <div className="flex items-center justify-between mb-1">
+        <p className="text-sm text-neutral-500">Passo 1 de 6 — Dados Pessoais</p>
+        <AskGringoButton />
+      </div>
       <h1 className="text-2xl font-semibold mb-6">Dados Pessoais</h1>
 
       <div className="space-y-6">

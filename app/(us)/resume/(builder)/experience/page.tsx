@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
+const AskCV1Button = dynamic(() => import("@/components/AskCV1Button"), { ssr: false });
 import { useResumeStore } from "@/app/store/useResumeStore";
 import ExperienceBullet from "./ExperienceBullet";
 import { Plus, ChevronDown, ChevronUp, Trash2 } from "lucide-react";
@@ -93,9 +95,10 @@ export default function ExperiencePage() {
 
   return (
     <div className="min-h-screen bg-neutral-50 text-neutral-900 px-4 py-8 sm:p-10">
-      <p className="text-sm text-neutral-500 mb-2">
-        Step 3 of 7 — Work Experience
-      </p>
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-sm text-neutral-500">Step 3 of 7 — Work Experience</p>
+        <AskCV1Button />
+      </div>
 
       <h1 className="text-2xl font-semibold mb-6">Work Experience</h1>
 

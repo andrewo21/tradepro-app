@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useBrResumeStore } from "@/app/store/useBrResumeStore";
 import Link from "next/link";
+import dynamic from "next/dynamic";
+const AskGringoButton = dynamic(() => import("@/components/AskGringoButton"), { ssr: false });
 
 export default function BrResumoPage() {
   const [mounted, setMounted] = useState(false);
@@ -44,7 +46,10 @@ function BrResumoContent() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
-      <p className="text-sm text-neutral-500 mb-1">Passo 5 de 7 — Resumo Profissional</p>
+      <div className="flex items-center justify-between mb-1">
+        <p className="text-sm text-neutral-500">Passo 5 de 7 — Resumo Profissional</p>
+        <AskGringoButton />
+      </div>
       <h1 className="text-2xl font-semibold mb-2">Resumo Profissional</h1>
       <p className="text-sm text-neutral-500 mb-6">Escreva em português informal, gíria ou mistura de idiomas. A IA vai melhorar automaticamente enquanto você digita.</p>
 

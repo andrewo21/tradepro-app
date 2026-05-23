@@ -6,6 +6,8 @@
 
 import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
+const AskCV1Button = dynamic(() => import("@/components/AskCV1Button"), { ssr: false });
 import { useResumeStore } from "@/app/store/useResumeStore";
 import { useAssistantStore } from "@/app/store/useAssistantStore";
 import { computeLiveAtsScore, atsLabelColor } from "@/lib/ats/live/liveAtsScore";
@@ -170,7 +172,10 @@ export default function JobTargetStep() {
     <div className="max-w-3xl mx-auto px-4 py-8 pb-32">
 
       {/* ── Header ── */}
-      <p className="text-sm text-neutral-500 mb-1">Step 7 of 8</p>
+      <div className="flex items-center justify-between mb-1">
+        <p className="text-sm text-neutral-500">Step 7 of 8</p>
+        <AskCV1Button />
+      </div>
 
       <div className="flex items-start gap-5 mb-8">
         <CV1Character mood={isThinking ? "thinking" : "talking"} size={90} />
