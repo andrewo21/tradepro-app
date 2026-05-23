@@ -184,8 +184,7 @@ export default function JobTargetStep() {
             Resume Intelligence™ — CV-1 Final Review
           </h1>
           <p className="text-neutral-500 text-sm leading-relaxed">
-            Hey {firstName}! Here&apos;s your current resume strength. Want to see how it matches a specific job?
-            Paste the description below — I&apos;ll run a full gap analysis.
+            Hey {firstName}! Here&apos;s your resume completeness score. To get your real ATS score, paste a job description below — CV-1 will compare your resume against it and show you exactly what&apos;s missing.
           </p>
         </div>
       </div>
@@ -207,8 +206,8 @@ export default function JobTargetStep() {
       <div className="bg-white border border-neutral-200 rounded-2xl p-6 mb-6 shadow-sm">
         <div className="flex items-center justify-between mb-5">
           <div>
-            <p className="font-bold text-neutral-800 text-base">Current Resume Strength</p>
-            <p className="text-xs text-neutral-500 mt-0.5">Based on completeness, structure, and content quality</p>
+            <p className="font-bold text-neutral-800 text-base">Resume Completeness Score</p>
+            <p className="text-xs text-neutral-500 mt-0.5">Measures whether all key sections are filled in — not keyword match</p>
           </div>
           <ScoreRing score={liveAts.score} label={liveAts.label} color={scoreColor} />
         </div>
@@ -274,10 +273,10 @@ export default function JobTargetStep() {
       <div className="bg-gradient-to-br from-slate-900 to-blue-950 border border-blue-800/30 rounded-2xl p-6 mb-6 shadow-xl">
         <div className="flex items-center gap-2.5 mb-2">
           <Target className="w-5 h-5 text-blue-400" />
-          <h2 className="text-white font-bold text-base">Compare Your Resume to a Target Job</h2>
+          <h2 className="text-white font-bold text-base">ATS Score — Compare Against a Job Description</h2>
         </div>
         <p className="text-blue-200/70 text-sm mb-4">
-          Paste any job description — CV-1 will scan for keyword gaps, missing skills, and give you a match score.
+          This is your real ATS score. Paste any job description — CV-1 compares your resume against it and shows exactly which keywords, skills, and qualifications are missing.
         </p>
 
         <textarea
