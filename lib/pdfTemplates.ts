@@ -201,7 +201,10 @@ export function drawStandardContemporaryPDF(doc: any, data: any) {
   const PHOTO_SIZE = 54;
 
   if (data.photo) drawPhoto(doc, data.photo, R - PHOTO_SIZE, 20, PHOTO_SIZE);
-  doc.font("Helvetica-Bold").fontSize(22).fillColor("#111827").text(name || "", L, 36);
+  // Constrain name to left 55% so right-aligned contact info never overlaps
+  const nameWidth = data.photo ? Math.floor(CONTENT_W * 0.5) : Math.floor(CONTENT_W * 0.55);
+  doc.font("Helvetica-Bold").fontSize(22).fillColor("#111827")
+    .text(name || "", L, 36, { width: nameWidth, lineBreak: false });
   const afterName = doc.y + 3;
   if (title) doc.font("Helvetica").fontSize(12).fillColor("#444444").text(title, L, afterName);
 

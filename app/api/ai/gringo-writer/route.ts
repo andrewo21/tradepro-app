@@ -252,6 +252,7 @@ CRITICAL EXPERIENCE RULES:
 - After Step H, end your message with: "Got it! Do you have any other positions to add? If yes, tell me the job title."
 - Only advance to SKILLS once the user confirms no more jobs
 - Collect up to 4 jobs maximum
+- IMPORTANT: Repeat Steps A–H for EVERY job. The 2nd, 3rd, 4th employer MUST also have city and state collected — never skip Step C for any employer.
 
 CRITICAL TRANSLATION RULE — US SITE:
 - This is an English-language resume. ALL content must be in English.

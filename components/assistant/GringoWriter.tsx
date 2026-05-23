@@ -340,8 +340,14 @@ function applyUS(action: StoreAction, store: any, setPendingSummary: (text: stri
         if (payload.company)     store.updateExperience(job.id, "company",     payload.company);
         if (payload.startDate)   store.updateExperience(job.id, "startDate",   payload.startDate);
         if (payload.endDate)     store.updateExperience(job.id, "endDate",     payload.endDate);
-        if (payload.city)        store.updateExperience(job.id, "city",        payload.city);
-        if (payload.state)       store.updateExperience(job.id, "state",       payload.state);
+        // Reject placeholder city/state — always defined before use
+        const isPlaceholderGeo = (v: string) => !v || v.includes("[") || v.includes("]") ||
+          v.toLowerCase() === "city" || v.toLowerCase() === "state" ||
+          v.toLowerCase() === "your city" || v.toLowerCase() === "your state";
+        if (payload.city  && !isPlaceholderGeo(payload.city))
+          store.updateExperience(job.id, "city",  payload.city);
+        if (payload.state && !isPlaceholderGeo(payload.state))
+          store.updateExperience(job.id, "state", payload.state);
         if (payload.roleSummary) store.updateRoleSummary(job.id, payload.roleSummary);
 
         // Add bullets — deduplicated, then added sequentially to avoid race conditions
