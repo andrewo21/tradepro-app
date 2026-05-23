@@ -288,8 +288,10 @@ function applyUS(action: StoreAction, store: any, setPendingSummary: (text: stri
       pi("tradeTitle", payload.tradeTitle || payload.jobTitle || payload.title);
       pi("email",      payload.email);
       pi("phone",      payload.phone);
-      pi("city",       payload.city);
-      pi("state",      payload.state);
+      // Only update city/state if not already set — prevents school location overwriting real city
+      const currentPI = useResumeStore.getState().personalInfo;
+      if (!currentPI.city)  pi("city",  payload.city);
+      if (!currentPI.state) pi("state", payload.state);
       pi("linkedin",   payload.linkedin);
       break;
     }
@@ -315,12 +317,14 @@ function applyUS(action: StoreAction, store: any, setPendingSummary: (text: stri
       const expState = useResumeStore.getState().experience;
       const norm = (s: string) => (s || "").toLowerCase().trim().replace(/[^a-z0-9]/g, "");
 
-      // DEDUP: same company + same title OR same company + same start date = same job
+      // DEDUP: same company + same title OR same company + same normalized start date = same job
+      const normDate = (d: string) => (d || "").replace(/\D/g, "").slice(0, 6); // "05/2003" → "052003"
       const existing = expState.find((e: any) => {
         const sameCompany = norm(e.company) === norm(payload.company);
         if (!sameCompany) return false;
         const sameTitle = norm(e.jobTitle) === norm(payload.jobTitle) || !e.jobTitle || !payload.jobTitle;
-        const sameStart = e.startDate && payload.startDate && e.startDate === payload.startDate;
+        const sameStart = e.startDate && payload.startDate &&
+          normDate(e.startDate) === normDate(payload.startDate) && normDate(e.startDate).length >= 4;
         return sameTitle || sameStart;
       });
 
@@ -423,12 +427,8 @@ function applyUS(action: StoreAction, store: any, setPendingSummary: (text: stri
     case "add_responsibility": {
       if (!payload.text?.trim()) break;
       const expSnap = useResumeStore.getState().experience;
-      // experienceIndex: 0 = MOST RECENTLY ADDED job (last in array), 1 = previous, etc.
-      const total = expSnap.length;
-      const arrayIdx = typeof payload.experienceIndex === "number"
-        ? Math.max(0, total - 1 - payload.experienceIndex)
-        : total - 1;
-      const job = expSnap[arrayIdx] || expSnap[total - 1];
+      // Always target the last entry — it is always the most recently added job
+      const job = expSnap[expSnap.length - 1];
       if (!job) break;
       // Dedup: skip if this bullet already exists on this job
       const alreadyHas = [...(job.responsibilities || []), ...(job.achievements || [])]
