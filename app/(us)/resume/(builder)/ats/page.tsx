@@ -66,7 +66,7 @@ function buildResumeText(store: any): string {
 
 // ─── Score ring component ─────────────────────────────────────────────────────
 
-function ScoreRing({ score, max = 95, label, color }: { score: number; max?: number; label: string; color: string }) {
+function ScoreRing({ score, max = 75, label, color }: { score: number; max?: number; label: string; color: string }) {
   const pct = Math.min(100, (score / max) * 100);
   const r   = 36;
   const circ = 2 * Math.PI * r;
@@ -216,12 +216,12 @@ export default function JobTargetStep() {
         {/* Breakdown bars */}
         <div className="space-y-2.5">
           {([
-            ["Personal Info", liveAts.breakdown.personal, 12],
-            ["Summary",       liveAts.breakdown.summary,  13],
-            ["Experience",    liveAts.breakdown.experience, 35],
-            ["Skills",        liveAts.breakdown.skills,    12],
-            ["Education",     liveAts.breakdown.education,  8],
-            ["Certifications", liveAts.breakdown.certifications, 6],
+            ["Personal Info", liveAts.breakdown.personal,       14],
+            ["Summary",       liveAts.breakdown.summary,        18],
+            ["Experience",    liveAts.breakdown.experience,     36],
+            ["Skills",        liveAts.breakdown.skills,         10],
+            ["Education",     liveAts.breakdown.education,       8],
+            ["Certifications",liveAts.breakdown.certifications,  6],
           ] as [string, number, number][]).map(([label, pts, max]) => (
             <div key={label}>
               <div className="flex justify-between text-xs text-neutral-600 mb-1">

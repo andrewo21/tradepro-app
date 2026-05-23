@@ -51,6 +51,7 @@ export default function AskCV1Button() {
     setThinking(true);
     try {
       const { buildStepPayload, resumeHash } = await import("@/lib/assistant/step_context");
+      const { computeLiveAtsScore } = await import("@/lib/ats/live/liveAtsScore");
       const snapshot = {
         personalInfo: resumeStore.personalInfo,
         summary: resumeStore.summary,
@@ -60,10 +61,26 @@ export default function AskCV1Button() {
         certifications: resumeStore.certifications,
       };
       const payload = buildStepPayload(step, snapshot as any, "en");
+
+      // Compute live score and pass breakdown so CV-1 can give point-specific advice
+      let scoreContext = "";
+      try {
+        const ats = computeLiveAtsScore(snapshot as any);
+        const gaps = [
+          `Personal Info: ${Math.round(ats.breakdown.personal)}/14 (gap: ${14 - Math.round(ats.breakdown.personal)} pts) — +6 for professional title, +1.5 for LinkedIn, +1 for phone/email`,
+          `Summary: ${Math.round(ats.breakdown.summary)}/18 (gap: ${18 - Math.round(ats.breakdown.summary)} pts) — +5 for adding a metric/number, +3 for including job title keyword, +4 for 40+ words`,
+          `Experience: ${Math.round(ats.breakdown.experience)}/36 (gap: ${36 - Math.round(ats.breakdown.experience)} pts) — +2.5 per bullet with a metric (%, $, quantity), +3 per job with title+company`,
+          `Skills: ${Math.round(ats.breakdown.skills)}/10 (gap: ${10 - Math.round(ats.breakdown.skills)} pts) — +0.7 per skill up to 8 pts, certs in skills list score 2x`,
+          `Education: ${Math.round(ats.breakdown.education)}/8 (gap: ${8 - Math.round(ats.breakdown.education)} pts) — +4 for any entry, +4 for school+degree`,
+          `Certifications: ${Math.round(ats.breakdown.certifications)}/6 (gap: ${6 - Math.round(ats.breakdown.certifications)} pts) — 3 pts per cert, max 6`,
+        ].join("\n");
+        scoreContext = `\n\nLIVE SCORE BREAKDOWN (use this to give point-specific advice):\nTotal: ${ats.score}/75\n${gaps}\n\nFlags: ${ats.flags.map(f => f.message).join("; ") || "none"}`;
+      } catch { /* silent */ }
+
       const res = await fetch("/api/ai/assistant/suggest", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...payload, userMessage: text }),
+        body: JSON.stringify({ ...payload, userMessage: text + scoreContext }),
       });
       if (!res.ok) throw new Error("API error");
       const data = await res.json();
