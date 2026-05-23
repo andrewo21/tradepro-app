@@ -342,7 +342,12 @@ function applyUS(action: StoreAction, store: any, setPendingSummary: (text: stri
           : fresh[fresh.length - 1];
         if (!job) return;
 
-        if (payload.jobTitle)    store.updateExperience(job.id, "jobTitle",    payload.jobTitle);
+        if (payload.jobTitle) {
+          store.updateExperience(job.id, "jobTitle", payload.jobTitle);
+          // Auto-set resume header title from first job if not already set
+          const current = useResumeStore.getState().personalInfo;
+          if (!current.tradeTitle) useResumeStore.getState().updatePersonalInfo("tradeTitle", payload.jobTitle);
+        }
         if (payload.company)     store.updateExperience(job.id, "company",     payload.company);
         if (payload.startDate)   store.updateExperience(job.id, "startDate",   payload.startDate);
         if (payload.endDate)     store.updateExperience(job.id, "endDate",     payload.endDate);
@@ -418,8 +423,12 @@ function applyUS(action: StoreAction, store: any, setPendingSummary: (text: stri
     case "add_responsibility": {
       if (!payload.text?.trim()) break;
       const expSnap = useResumeStore.getState().experience;
-      const idx = typeof payload.experienceIndex === "number" ? payload.experienceIndex : expSnap.length - 1;
-      const job = expSnap[idx] || expSnap[expSnap.length - 1];
+      // experienceIndex: 0 = MOST RECENTLY ADDED job (last in array), 1 = previous, etc.
+      const total = expSnap.length;
+      const arrayIdx = typeof payload.experienceIndex === "number"
+        ? Math.max(0, total - 1 - payload.experienceIndex)
+        : total - 1;
+      const job = expSnap[arrayIdx] || expSnap[total - 1];
       if (!job) break;
       // Dedup: skip if this bullet already exists on this job
       const alreadyHas = [...(job.responsibilities || []), ...(job.achievements || [])]
@@ -638,7 +647,9 @@ export default function GringoWriter({ locale, previewHref }: Props) {
       if (data.actions?.length) {
         for (const action of data.actions) {
           try { applyAction(action); } catch (e) { console.warn("[writer action]", action.type, e); }
-          await new Promise(r => setTimeout(r, 80));
+          // 150ms between actions — gives add_experience's 80ms setTimeout time to complete
+          // before a following add_responsibility reads the store
+          await new Promise(r => setTimeout(r, 150));
         }
       }
 
