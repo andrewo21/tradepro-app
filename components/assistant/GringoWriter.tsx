@@ -102,8 +102,11 @@ function applyBR(action: StoreAction, store: any, setPendingSummary: (text: stri
         return l.includes("[") || l.includes("]") ||
           l === "nome" || l === "sobrenome" || l === "cidade" || l === "estado" ||
           l === "seu nome" || l === "sua cidade" || l === "n/a" || l === "não informado" ||
-          l.endsWith("@example.com") || l.endsWith("@email.com") ||
-          l === "telefone" || l === "seu telefone" || l === "seu email";
+          l.endsWith("@example.com") || l.endsWith("@email.com") || l.endsWith(".aio") ||
+          l === "telefone" || l === "seu telefone" || l === "seu email" ||
+          // Reject profession words used as first names
+          ["pintor", "eletricista", "gerente", "técnico", "engenheiro", "analista", "diretor",
+           "supervisor", "operador", "assistente", "coordenador"].includes(l);
       };
       const sp = (field: string, value: any) => {
         const v = String(value || "").trim();
