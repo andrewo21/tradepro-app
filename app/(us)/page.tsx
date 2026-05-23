@@ -151,7 +151,6 @@ export default function HomePage() {
         "
       >
         <motion.div
-          initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, ease: 'easeOut' }}
           className="relative w-full h-full min-h-[600px] md:min-h-0 overflow-hidden"

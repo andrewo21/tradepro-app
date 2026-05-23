@@ -135,7 +135,7 @@ export default function BrazilHomePage() {
       {/* HERO */}
       <section className="relative z-0 w-full flex items-center justify-center min-h-[600px] md:h-[80vh] lg:h-[90vh]">
         <motion.div
-          initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, ease: "easeOut" }}
+          animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, ease: "easeOut" }}
           className="relative w-full h-full min-h-[600px] overflow-hidden"
         >
           <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: "url('https://www.transparenttextures.com/patterns/rough-paper.png')", backgroundSize: "cover", opacity: 0.25 }} />
