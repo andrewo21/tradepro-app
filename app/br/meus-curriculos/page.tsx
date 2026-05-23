@@ -11,6 +11,13 @@ interface Resume { id: string; title: string; locale: string; updated_at: string
 interface Profile { nome: string; sobrenome: string; telefone: string; cidade: string; estado: string; }
 
 export default function MeusCurriculosPage() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!mounted) return null;
+  return <MeusCurriculosContent />;
+}
+
+function MeusCurriculosContent() {
   const router = useRouter();
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [loading, setLoading] = useState(true);

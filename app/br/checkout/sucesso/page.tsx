@@ -112,6 +112,13 @@ function SucessoContent() {
 }
 
 export default function SucessoPage() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!mounted) return (
+    <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
+      <p className="text-gray-500">Carregando…</p>
+    </div>
+  );
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
