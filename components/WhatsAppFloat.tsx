@@ -1,20 +1,20 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 
 const WA_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_BR || "";
 const WA_MESSAGE = encodeURIComponent("Olá! Gostaria de criar meu currículo profissional com a TradePro. Pode me ajudar?");
 const WA_URL = WA_NUMBER ? `https://wa.me/${WA_NUMBER}?text=${WA_MESSAGE}` : "#";
 
-// Pages where the float would overlap the chat send button or builder inputs
-const HIDDEN_PATHS = [
-  "/br/curriculo/gringo",
-  "/br/curriculo/modelo",
-];
+const HIDDEN_PATHS = ["/br/curriculo/gringo", "/br/curriculo/modelo"];
 
 export default function WhatsAppFloat() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
   const pathname = usePathname();
-  if (!WA_NUMBER) return null;
+
+  if (!mounted || !WA_NUMBER) return null;
   if (HIDDEN_PATHS.some(p => pathname?.startsWith(p))) return null;
 
   return (
