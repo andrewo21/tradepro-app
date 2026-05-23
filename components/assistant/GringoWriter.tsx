@@ -95,17 +95,56 @@ function applyBR(action: StoreAction, store: any, setPendingSummary: (text: stri
   const state = useBrResumeStore.getState();
 
   switch (type) {
-    case "set_personal":
-      Object.entries(payload).forEach(([k, v]) => {
-        if (v) store.setPersonalField(k, v as string);
-      });
+    case "set_personal": {
+      const isBRPlaceholder = (v: string) => {
+        if (!v) return true;
+        const l = v.toLowerCase().trim();
+        return l.includes("[") || l.includes("]") ||
+          l === "nome" || l === "sobrenome" || l === "cidade" || l === "estado" ||
+          l === "seu nome" || l === "sua cidade" || l === "n/a" || l === "não informado" ||
+          l.endsWith("@example.com") || l.endsWith("@email.com") ||
+          l === "telefone" || l === "seu telefone" || l === "seu email";
+      };
+      const sp = (field: string, value: any) => {
+        const v = String(value || "").trim();
+        if (!v || isBRPlaceholder(v)) return;
+        store.setPersonalField(field, v);
+      };
+      // Accept Portuguese field names AND English fallbacks the AI sometimes uses
+      const rawName = payload.name || payload.fullName || "";
+      const nome     = payload.nome     || payload.firstName || (rawName ? rawName.split(" ")[0] : "");
+      const sobrenome = payload.sobrenome || payload.lastName  || (rawName ? rawName.split(" ").slice(1).join(" ") : "");
+      sp("nome",              nome);
+      sp("sobrenome",         sobrenome);
+      sp("tituloProfissional", payload.tituloProfissional || payload.tradeTitle || payload.jobTitle || payload.title);
+      sp("email",             payload.email);
+      sp("telefone",          payload.telefone || payload.phone);
+      sp("whatsapp",          payload.whatsapp);
+      sp("cidade",            payload.cidade || payload.city);
+      sp("estado",            payload.estado || payload.state);
+      sp("linkedin",          payload.linkedin);
       break;
+    }
 
     case "set_summary":
       if (payload.text) setPendingSummary(payload.text);
       break;
 
     case "add_experience": {
+      // Reject placeholder company names
+      const empresaRaw: string = payload.empresa || payload.company || "";
+      const isPlaceholderEmpresa = !empresaRaw.trim() ||
+        empresaRaw.includes("[") || empresaRaw.includes("]") ||
+        empresaRaw.toLowerCase() === "desconhecida" ||
+        empresaRaw.toLowerCase() === "n/a" ||
+        empresaRaw.toLowerCase() === "nome da empresa" ||
+        empresaRaw.toLowerCase() === "empresa";
+      if (isPlaceholderEmpresa) break;
+
+      const isPlaceholderDate = (d: string) =>
+        !d || d.includes("[") || d.includes("]") ||
+        d.toLowerCase().includes("data") || d.toLowerCase() === "n/a";
+
       const currentExp = useBrResumeStore.getState().experiencia || [];
       const singleEmptyBR =
         currentExp.length === 1 &&
@@ -116,11 +155,15 @@ function applyBR(action: StoreAction, store: any, setPendingSummary: (text: stri
         const exp = useBrResumeStore.getState().experiencia;
         const last = exp[exp.length - 1];
         if (!last) return;
-        if (payload.cargo)     store.updateExperienciaField(last.id, "cargo",      payload.cargo);
-        if (payload.empresa)   store.updateExperienciaField(last.id, "empresa",    payload.empresa);
-        if (payload.dataInicio) store.updateExperienciaField(last.id, "dataInicio", payload.dataInicio);
-        if (payload.dataFim)   store.updateExperienciaField(last.id, "dataFim",    payload.dataFim);
-        if (payload.cidade)    store.updateExperienciaField(last.id, "cidade",     payload.cidade);
+        const cargo   = payload.cargo   || payload.jobTitle || "";
+        const empresa = payload.empresa || payload.company  || "";
+        if (cargo)   store.updateExperienciaField(last.id, "cargo",   cargo);
+        if (empresa) store.updateExperienciaField(last.id, "empresa", empresa);
+        if (payload.dataInicio && !isPlaceholderDate(payload.dataInicio))
+          store.updateExperienciaField(last.id, "dataInicio", payload.dataInicio);
+        if (payload.dataFim && !isPlaceholderDate(payload.dataFim))
+          store.updateExperienciaField(last.id, "dataFim", payload.dataFim);
+        if (payload.cidade) store.updateExperienciaField(last.id, "cidade", payload.cidade);
       }, 60);
       break;
     }
@@ -142,15 +185,21 @@ function applyBR(action: StoreAction, store: any, setPendingSummary: (text: stri
       break;
     }
 
-    case "add_skill":
-      if (payload.text) {
-        store.addHabilidadeTecnica();
-        setTimeout(() => {
-          const tecnicas = useBrResumeStore.getState().habilidadesTecnicas;
-          store.updateHabilidadeTecnica(tecnicas.length - 1, payload.text);
-        }, 60);
-      }
+    case "add_skill": {
+      if (!payload.text?.trim()) break;
+      const normSkillBR = (t: string) => t.toLowerCase().replace(/\s+/g, "").replace(/[^a-z0-9]/g, "");
+      const existingTecnicas = useBrResumeStore.getState().habilidadesTecnicas || [];
+      const alreadyExistsBR = existingTecnicas.some((s: any) =>
+        normSkillBR(s.text || s) === normSkillBR(payload.text)
+      );
+      if (alreadyExistsBR) break;
+      store.addHabilidadeTecnica();
+      setTimeout(() => {
+        const tecnicas = useBrResumeStore.getState().habilidadesTecnicas;
+        store.updateHabilidadeTecnica(tecnicas.length - 1, payload.text);
+      }, 60);
       break;
+    }
 
     case "add_education": {
       const edu = state.formacao || [];
