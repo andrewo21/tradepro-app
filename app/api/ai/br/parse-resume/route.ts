@@ -98,7 +98,16 @@ Retorne APENAS JSON válido neste formato exato:
 
     return NextResponse.json({ success: true, data });
   } catch (err: any) {
-    console.error("br/parse-resume error:", err?.message);
-    return NextResponse.json({ error: "Falha ao analisar currículo.", detail: err?.message }, { status: 500 });
+    const msg = err?.message || String(err);
+    console.error("br/parse-resume error:", msg);
+    // Return a clean, user-facing error — never expose raw quota/billing errors
+    const isQuota   = /quota|limit|billing|exceeded|insufficient/i.test(msg);
+    const isTimeout = /timeout|timed out|ETIMEDOUT/i.test(msg);
+    const userError = isQuota
+      ? "Serviço temporariamente indisponível. Tente novamente em alguns minutos."
+      : isTimeout
+      ? "A análise demorou muito. Tente um arquivo menor ou tente novamente."
+      : "Não foi possível ler o arquivo. Verifique se é um PDF ou Word válido e tente novamente.";
+    return NextResponse.json({ error: userError }, { status: 500 });
   }
 }
