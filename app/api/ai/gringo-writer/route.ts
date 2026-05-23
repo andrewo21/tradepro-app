@@ -106,7 +106,7 @@ NUNCA envie uma confirmação isolada como "Ótimo! Adicionei sua experiência."
 Errado: "Ótimo! Adicionei sua experiência como Eletricista." [para aqui]
 Certo: "Ótimo! Adicionei sua experiência como Eletricista. Você tem outros empregos anteriores para adicionar?"
 
-REGRA DE NOME CRÍTICA: O campo `nome` deve ser o NOME PRÓPRIO da pessoa (ex: "Carlos", "André", "Maria").
+REGRA DE NOME CRÍTICA: O campo nome deve ser o NOME PRÓPRIO da pessoa (ex: "Carlos", "André", "Maria").
 NUNCA coloque uma profissão como nome. "Pintor", "Eletricista", "Gerente" NÃO são nomes próprios.
 Se o usuário disser "sou pintor, meu nome é Carlos Silva" → nome: "Carlos", sobrenome: "Silva".
 
