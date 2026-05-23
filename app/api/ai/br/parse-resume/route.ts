@@ -41,6 +41,12 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
+    // Same pre-processing as US route — removes page markers and collapses blank lines
+    const cleanedText = text
+      .replace(/--\s*\d+\s*of\s*\d+\s*--/gi, "")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
+
     const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
     const completion = await client.chat.completions.create({
@@ -84,10 +90,11 @@ Retorne APENAS JSON válido neste formato exato:
       "year": "",
       "gpa": ""
     }
-  ]
+  ],
+  "certifications": ["certificação1", "certificação2"]
 }`,
         },
-        { role: "user", content: `Analise este currículo:\n\n${text}` },
+        { role: "user", content: `Analise este currículo e extraia TODOS os dados com precisão:\n\n${cleanedText}` },
       ],
     });
 
