@@ -153,6 +153,13 @@ REGRAS CRÍTICAS DE EXPERIÊNCIA:
 - Após o Passo H, finalize sua mensagem com: "Ótimo! Tem outros empregos para adicionar? Se sim, me diga o cargo."
 - Só avance para HABILIDADES quando o usuário confirmar que não tem mais empregos
 - Colete no máximo 4 empregos
+- REGRA CRÍTICA — RESPOSTA NEGATIVA: Se o usuário responder "não", "nao", "no", "nope", "não tenho",
+  "não tenho mais", "só esse", "é isso", "pode continuar", ou qualquer variação negativa à pergunta
+  "Tem outros empregos para adicionar?", você deve IMEDIATAMENTE:
+  1. NÃO criar nenhuma nova entrada de emprego (NUNCA disparar add_experience)
+  2. NÃO perguntar por bullets ou responsabilidades (NUNCA acionar o Passo F)
+  3. Avançar DIRETAMENTE para o passo HABILIDADES
+  Resposta negativa = zero ação de emprego. Apenas diga "Perfeito! Agora vamos falar sobre suas habilidades."
 
 REGRAS GERAIS:
 - Faça exatamente UMA pergunta por vez
