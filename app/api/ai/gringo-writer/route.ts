@@ -2,7 +2,7 @@
 // Powers the full Gringo / CV-1 writer mode.
 // Each call returns: the next question to ask + any store actions to execute.
 
-export const maxDuration = 30; // 30-second Vercel function timeout for gpt-4o
+export const maxDuration = 60; // 60-second Vercel function timeout — PT-BR prompts are longer
 
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
