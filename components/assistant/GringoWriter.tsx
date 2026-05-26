@@ -190,6 +190,14 @@ function applyBR(action: StoreAction, store: any, setPendingSummary: (text: stri
         // roleSummary — was missing, now written to store (matches US add_experience)
         const roleSummaryBR = payload.roleSummary || "";
         if (roleSummaryBR) store.updateExperienciaField(last.id, "roleSummary", roleSummaryBR);
+        // Auto-set tituloProfissional from first job if not already set
+        // Matches US: auto-sets tradeTitle from first experience so ATS scorer has a title
+        if (cargo) {
+          const currentPI = useBrResumeStore.getState().personalInfo;
+          if (!currentPI.tituloProfissional) {
+            store.setPersonalField("tituloProfissional", cargo);
+          }
+        }
       }, 60);
       break;
     }
