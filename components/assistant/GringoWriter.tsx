@@ -708,7 +708,14 @@ export default function GringoWriter({ locale, previewHref }: Props) {
             raw                       ? String(raw).trim() : "";
           return text.length > 0;
         });
-        if (bullets.length === 0) {
+        // PT-BR only: allow skip if user explicitly wants to move on
+        const ptSkipKeywords = ["skip","pular","continuar","não tenho","nao tenho",
+          "nothing","nothing more","no bullets","sem bullets","nada mais","nada",
+          "pode passar","pode ir","avançar","proximo","próximo","sem mais","next"];
+        const userWantsToSkipBR = !isEN && userMsg &&
+          ptSkipKeywords.some(k => userMsg.toLowerCase().includes(k));
+
+        if (bullets.length === 0 && !userWantsToSkipBR) {
           blockedByMissingBullets = true;
         }
       }
