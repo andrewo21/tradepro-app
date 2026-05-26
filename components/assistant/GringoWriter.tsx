@@ -708,12 +708,23 @@ export default function GringoWriter({ locale, previewHref }: Props) {
             raw                       ? String(raw).trim() : "";
           return text.length > 0;
         });
-        // PT-BR only: allow skip if user explicitly wants to move on
-        const ptSkipKeywords = ["skip","pular","continuar","não tenho","nao tenho",
-          "nothing","nothing more","no bullets","sem bullets","nada mais","nada",
-          "pode passar","pode ir","avançar","proximo","próximo","sem mais","next"];
-        const userWantsToSkipBR = !isEN && userMsg &&
-          ptSkipKeywords.some(k => userMsg.toLowerCase().includes(k));
+        // PT-BR only: allow advancement if user says anything meaning "no more" in EN or PT
+        const ptSkipKeywords = [
+          // English — "no more" intent
+          "no more","no more bullets","nothing more","nothing else","that's all",
+          "that's it","thats all","thats it","all done","i'm done","im done",
+          "done","move on","proceed","no bullets","no more jobs","skip",
+          "next","finished","i gave","gave you",
+          // Portuguese — "no more" intent
+          "não tenho","nao tenho","nada mais","nada","sem bullets","sem mais",
+          "pular","avançar","continuar","pode ir","pode passar","pode continuar",
+          "já dei","ja dei","ja falei","já falei","já informei","ja informei",
+          "próximo","proximo","só isso","so isso","é isso","e isso","tá bom",
+          "ta bom","ok","já","ja",
+        ];
+        const msgLower = (userMsg || "").toLowerCase().trim();
+        const userWantsToSkipBR = !isEN && msgLower &&
+          (ptSkipKeywords.some(k => msgLower.includes(k)) || msgLower === "nao" || msgLower === "não" || msgLower === "no");
 
         if (bullets.length === 0 && !userWantsToSkipBR) {
           blockedByMissingBullets = true;
