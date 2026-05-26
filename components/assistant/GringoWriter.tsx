@@ -139,7 +139,8 @@ function applyBR(action: StoreAction, store: any, setPendingSummary: (text: stri
     }
 
     case "set_summary":
-      if (payload.text) setPendingSummary(payload.text);
+      // PT-BR: write directly to store like US — no manual confirmation card
+      if (payload.text) useBrResumeStore.getState().updateResumo(payload.text);
       break;
 
     case "add_experience": {
@@ -186,6 +187,9 @@ function applyBR(action: StoreAction, store: any, setPendingSummary: (text: stri
         const estado = payload.estado || payload.state || "";
         if (cidade) store.updateExperienciaField(last.id, "cidade", cidade);
         if (estado) store.updateExperienciaField(last.id, "estado", estado);
+        // roleSummary — was missing, now written to store (matches US add_experience)
+        const roleSummaryBR = payload.roleSummary || "";
+        if (roleSummaryBR) store.updateExperienciaField(last.id, "roleSummary", roleSummaryBR);
       }, 60);
       break;
     }
@@ -617,7 +621,7 @@ export default function GringoWriter({ locale, previewHref }: Props) {
   useEffect(() => {
     const summaryDone = currentStep === "summary" || currentStep === "done";
     if (!isEN && isDone && pendingSummary === null && started && summaryDone) {
-      const t = setTimeout(() => router.push("/br/curriculo/resumo"), 1000);
+      const t = setTimeout(() => router.push(previewHref), 1000); // goes to /br/curriculo/preview like US goes to preview
       return () => clearTimeout(t);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
