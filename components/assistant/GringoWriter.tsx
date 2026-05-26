@@ -654,17 +654,49 @@ export default function GringoWriter({ locale, previewHref }: Props) {
         }
       }
 
-      setCurrentStep(data.step || "personal");
-      setIsDone(data.done || false);
+      // ── Bullet collection guard ──────────────────────────────────────────────
+      // If the AI just finished collecting an experience entry but stored no
+      // responsibilities, block progression and force the user to provide bullets.
+      const incomingStep = data.step || "personal";
+      const advancingPastExperience =
+        (incomingStep === "skills" || incomingStep === "education" ||
+         incomingStep === "certifications" || incomingStep === "summary" ||
+         incomingStep === "done") &&
+        currentStep === "experience";
 
-      // Only append assistant message if it has content — empty strings in
-      // history confuse the model on subsequent calls and can cause errors.
-      const updated: WriterMessage[] = data.message?.trim()
-        ? [...newHistory, { role: "assistant", content: data.message }]
-        : newHistory;
-      setHistory(updated);
+      let blockedByMissingBullets = false;
+      if (advancingPastExperience) {
+        const expStore = isEN
+          ? useResumeStore.getState().experience
+          : useBrResumeStore.getState().experiencia;
+        const lastExp = expStore?.[expStore.length - 1];
+        const bulletField = isEN ? "responsibilities" : "responsabilidades";
+        const bullets = (lastExp?.[bulletField] || []).filter((r: any) => (r.text || r || "").trim());
+        if (bullets.length === 0) {
+          blockedByMissingBullets = true;
+        }
+      }
 
-      if (data.done && isEN) {
+      if (blockedByMissingBullets) {
+        // Stay on experience step and inject the required message
+        setCurrentStep("experience");
+        setIsDone(false);
+        const blockedMsg = isEN
+          ? "I still need 2–4 bullet points for this role before we continue. What was your first main responsibility in this position?"
+          : "Preciso de 2 a 4 bullets para este cargo antes de continuar. Qual foi sua primeira responsabilidade principal neste emprego?";
+        setHistory([...newHistory, { role: "assistant", content: blockedMsg }]);
+      } else {
+        setCurrentStep(incomingStep);
+        setIsDone(data.done || false);
+
+        // Only append assistant message if it has content
+        const updated: WriterMessage[] = data.message?.trim()
+          ? [...newHistory, { role: "assistant", content: data.message }]
+          : newHistory;
+        setHistory(updated);
+      }
+
+      if (data.done && isEN && !blockedByMissingBullets) {
         // EN: summary already written to store — navigate to preview after a short delay
         setTimeout(() => router.push(previewHref), 1800);
       }

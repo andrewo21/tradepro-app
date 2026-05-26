@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
     const trimmedHistory = history.slice(-20);
 
     const completion = await client.chat.completions.create({
-      model:           "gpt-4o-mini",  // 10x cheaper, adequate for conversational resume flow
+      model:           "gpt-4o",
       temperature:     0.7,
       max_tokens:      600,            // cap per response — resume answers are short
       response_format: { type: "json_object" },
