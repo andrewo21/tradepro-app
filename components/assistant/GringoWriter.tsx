@@ -191,18 +191,29 @@ function applyBR(action: StoreAction, store: any, setPendingSummary: (text: stri
     }
 
     case "add_responsibility": {
+      const bulletTextBR = sanitizeBullet(payload.text);
+      if (!bulletTextBR) break;
       setTimeout(() => {
         const exp = useBrResumeStore.getState().experiencia;
-        const idx = typeof payload.experienceIndex === "number" ? payload.experienceIndex : exp.length - 1;
-        const job = exp[idx] || exp[exp.length - 1];
-        if (!job || !payload.text) return;
-        store.addResponsabilidade(job.id);
-        setTimeout(() => {
-          const updated = useBrResumeStore.getState().experiencia;
-          const updatedJob = updated.find((e: any) => e.id === job.id);
-          if (!updatedJob) return;
-          store.updateResponsabilidade(job.id, updatedJob.responsabilidades.length - 1, payload.text);
-        }, 60);
+        const job = exp[exp.length - 1]; // always target most recently added job
+        if (!job) return;
+        // Dedup: skip if this bullet already exists (matches US implementation)
+        const alreadyHasBR = [...(job.responsabilidades || [])]
+          .some((r: any) => sanitizeBullet(r.text ?? r).toLowerCase().slice(0, 30) === bulletTextBR.toLowerCase().slice(0, 30));
+        if (alreadyHasBR) return;
+        // Fill empty slot or add new one
+        const emptyIdxBR = job.responsabilidades?.findIndex((r: any) => !sanitizeBullet(r.text ?? r));
+        if (emptyIdxBR !== undefined && emptyIdxBR !== -1) {
+          store.updateResponsabilidade(job.id, emptyIdxBR, bulletTextBR);
+        } else {
+          store.addResponsabilidade(job.id);
+          setTimeout(() => {
+            const updated = useBrResumeStore.getState().experiencia;
+            const updatedJob = updated.find((e: any) => e.id === job.id);
+            if (!updatedJob) return;
+            store.updateResponsabilidade(job.id, updatedJob.responsabilidades.length - 1, bulletTextBR);
+          }, 60);
+        }
       }, 80);
       break;
     }
