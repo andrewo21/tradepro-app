@@ -187,16 +187,33 @@ function applyBR(action: StoreAction, store: any, setPendingSummary: (text: stri
         const estado = payload.estado || payload.state || "";
         if (cidade) store.updateExperienciaField(last.id, "cidade", cidade);
         if (estado) store.updateExperienciaField(last.id, "estado", estado);
-        // roleSummary — was missing, now written to store (matches US add_experience)
+        // roleSummary
         const roleSummaryBR = payload.roleSummary || "";
         if (roleSummaryBR) store.updateExperienciaField(last.id, "roleSummary", roleSummaryBR);
-        // Auto-set tituloProfissional from first job if not already set
-        // Matches US: auto-sets tradeTitle from first experience so ATS scorer has a title
+        // Auto-set tituloProfissional from first job
         if (cargo) {
           const currentPI = useBrResumeStore.getState().personalInfo;
-          if (!currentPI.tituloProfissional) {
-            store.setPersonalField("tituloProfissional", cargo);
-          }
+          if (!currentPI.tituloProfissional) store.setPersonalField("tituloProfissional", cargo);
+        }
+        // Process inline bullets from add_experience payload (PT-BR sends them as responsabilidades[])
+        // This is the missing loop — the AI sends bullets here but applyBR was never reading them
+        const inlineBullets: string[] = Array.isArray(payload.responsabilidades) ? payload.responsabilidades
+          : Array.isArray(payload.responsibilities) ? payload.responsibilities : [];
+        if (inlineBullets.length > 0) {
+          const jobIdBR = last.id;
+          const addNextBRInline = (idx: number) => {
+            if (idx >= inlineBullets.length) return;
+            const bt = sanitizeBullet(inlineBullets[idx]);
+            if (!bt) { addNextBRInline(idx + 1); return; }
+            store.addResponsabilidade(jobIdBR);
+            setTimeout(() => {
+              const updated = useBrResumeStore.getState().experiencia;
+              const uj = updated.find((e: any) => e.id === jobIdBR);
+              if (uj) store.updateResponsabilidade(jobIdBR, uj.responsabilidades.length - 1, bt);
+              setTimeout(() => addNextBRInline(idx + 1), 80);
+            }, 80);
+          };
+          setTimeout(() => addNextBRInline(0), 100);
         }
       }, 60);
       break;
