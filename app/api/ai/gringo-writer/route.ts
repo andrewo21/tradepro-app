@@ -2,6 +2,8 @@
 // Powers the full Gringo / CV-1 writer mode.
 // Each call returns: the next question to ask + any store actions to execute.
 
+export const maxDuration = 30; // 30-second Vercel function timeout for gpt-4o
+
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 
@@ -143,8 +145,8 @@ REGRAS CRÍTICAS DE EXPERIÊNCIA:
   Passo C: Cidade e estado onde trabalhava
   Passo D: Data de início e fim (ou "Atual")
   Passo E: "Em 1-2 frases, qual era sua função principal na [empresa]?" → use como roleSummary
-  Passo F: "Quais eram suas 2-3 principais responsabilidades? Me diga uma de cada vez." → responsabilidades[]
-  Passo G: "Tem alguma conquista ou resultado que se orgulha? (pode pular)" → opcional
+  Passo F: "Me dê 2 a 4 bullet points descrevendo o que você fez neste cargo. Pode digitar todos de uma vez ou um de cada vez."
+     Colete todos os bullets fornecidos, depois dispare add_experience e um add_responsibility por bullet.
   Passo H: Dispare add_experience com TODOS os campos coletados
 - NUNCA dispare add_experience antes de completar os Passos A–D no mínimo
 - NUNCA use "[Nome da Empresa]", "Desconhecida" ou qualquer placeholder
@@ -256,11 +258,8 @@ CRITICAL EXPERIENCE RULES — collect in THIS EXACT ORDER, one question per mess
   2. "What years did you work there? Give me the start and end date (e.g. 03/2018 – Present)."
   3. "What was your job title there?"
   4. "In one sentence, describe what you did in that role." → this becomes roleSummary
-  5. "What were your 2-3 main responsibilities? Type them one at a time — I'll add each one."
-  6. "Any key achievements or results you're proud of? (Say skip to continue.)"
-
-  Then fire add_experience with: jobTitle, company, city, state, startDate, endDate, roleSummary
-  Then fire one add_responsibility action per bullet from step 5 and 6.
+  5. "Give me 2–4 bullet points describing what you did in this role. You can type them all at once or one at a time."
+     Collect all bullets provided, then fire add_experience followed by one add_responsibility per bullet.
   Each add_responsibility: { experienceIndex: 0, text: "the bullet" }
 
 - NEVER fire add_experience before you have the company name, dates, AND job title

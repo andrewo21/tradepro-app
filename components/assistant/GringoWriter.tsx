@@ -74,6 +74,15 @@ function useTypewriter(text: string, speed = 16): [string, boolean] {
   return [displayed, done];
 }
 
+// ─── Bullet text sanitizer ────────────────────────────────────────────────────
+function sanitizeBullet(raw: any): string {
+  if (typeof raw === "string")   return raw.trim();
+  if (Array.isArray(raw))        return raw.join(" ").trim();
+  if (typeof raw === "object" && raw !== null && "content" in raw) return String(raw.content).trim();
+  if (raw)                       return String(raw).trim();
+  return "";
+}
+
 // ─── Apply store action ───────────────────────────────────────────────────────
 
 function useApplyAction(locale: "pt-BR" | "en", setPendingSummary: (text: string) => void) {
@@ -368,8 +377,8 @@ function applyUS(action: StoreAction, store: any, setPendingSummary: (text: stri
         // Add bullets — deduplicated, then added sequentially to avoid race conditions
         const bullets: string[] = Array.isArray(payload.responsibilities) ? payload.responsibilities : [];
         const existingBullets = [
-          ...(job.responsibilities || []).map((b: any) => (typeof b === "string" ? b : b.text || "").toLowerCase().slice(0, 30)),
-          ...(job.achievements     || []).map((b: any) => (typeof b === "string" ? b : b.text || "").toLowerCase().slice(0, 30)),
+          ...(job.responsibilities || []).map((b: any) => sanitizeBullet(b.text ?? b).toLowerCase().slice(0, 30)),
+          ...(job.achievements     || []).map((b: any) => sanitizeBullet(b.text ?? b).toLowerCase().slice(0, 30)),
         ].filter(eb => eb.trim()); // exclude empty slots so startsWith("") never falsely matches
 
         const newBullets = bullets.filter((text: string) =>
@@ -432,7 +441,7 @@ function applyUS(action: StoreAction, store: any, setPendingSummary: (text: stri
       if (!job) break;
       // Dedup: skip if this bullet already exists on this job
       const alreadyHas = [...(job.responsibilities || []), ...(job.achievements || [])]
-        .some((b: any) => (b.text || b || "").toLowerCase().trim().slice(0, 30) === payload.text.toLowerCase().trim().slice(0, 30));
+        .some((b: any) => sanitizeBullet(b.text ?? b).toLowerCase().slice(0, 30) === sanitizeBullet(payload.text).toLowerCase().slice(0, 30));
       if (alreadyHas) break;
       // Find empty slot or add new one, then write text
       const emptyIdx = job.responsibilities?.findIndex((r: any) => !(r.text?.trim()));
@@ -634,12 +643,20 @@ export default function GringoWriter({ locale, previewHref }: Props) {
 
     setLoading(true);
     try {
-      const res = await fetch("/api/ai/gringo-writer", {
-        method:  "POST",
-        headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ history: newHistory, locale }),
-      });
-      if (!res.ok) throw new Error("API error");
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
+      let res: Response;
+      try {
+        res = await fetch("/api/ai/gringo-writer", {
+          method:  "POST",
+          headers: { "Content-Type": "application/json" },
+          body:    JSON.stringify({ history: newHistory, locale }),
+          signal:  controller.signal,
+        });
+      } finally {
+        clearTimeout(timeoutId);
+      }
+      if (!res!.ok) throw new Error("API error");
 
       const data = await res.json();
 
