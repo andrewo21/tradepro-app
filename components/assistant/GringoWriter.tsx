@@ -671,7 +671,15 @@ export default function GringoWriter({ locale, previewHref }: Props) {
           : useBrResumeStore.getState().experiencia;
         const lastExp = expStore?.[expStore.length - 1];
         const bulletField = isEN ? "responsibilities" : "responsabilidades";
-        const bullets = (lastExp?.[bulletField] || []).filter((r: any) => (r.text || r || "").trim());
+        const bullets = (lastExp?.[bulletField] || []).filter((r: any) => {
+          const raw = r.text ?? r;
+          const text =
+            typeof raw === "string"   ? raw.trim() :
+            Array.isArray(raw)        ? raw.join(" ").trim() :
+            typeof raw === "object" && raw !== null && "content" in raw ? String(raw.content).trim() :
+            raw                       ? String(raw).trim() : "";
+          return text.length > 0;
+        });
         if (bullets.length === 0) {
           blockedByMissingBullets = true;
         }
