@@ -88,7 +88,8 @@ function BrPreviewContent() {
     })(),
     habilidadesComportamentais: store.habilidadesComportamentais || [],
     idiomas: store.idiomas || [],
-    experiencia: store.experiencia,
+    // Section 1: only real entries (filter empty initial slot)
+    experiencia: (store.experiencia || []).filter((e: any) => e.cargo?.trim() || e.empresa?.trim()),
     formacao: store.formacao,
     // Deduplicated certifications — avoid repeating the same nome
     cursosCertificacoes: (() => {
@@ -120,17 +121,20 @@ function BrPreviewContent() {
       ...(store.habilidadesTecnicas || store.habilidades || []).map((h: any) => h.text || h),
     ].filter(Boolean),
     softSkills: (store.habilidadesComportamentais || []).map((h: any) => h.text || h).filter(Boolean),
-    experience: (store.experiencia || []).map((exp: any) => ({
-      jobTitle: exp.cargo || "",
-      company: exp.empresa || "",
-      city: exp.cidade || "",
-      state: exp.estado || "",
-      startDate: exp.dataInicio || "",
-      endDate: exp.dataFim || "",
-      roleSummary: exp.roleSummary || "",
-      responsibilities: (exp.responsabilidades || []).map((r: any) => r.text || r).filter(Boolean),
-      achievements: [],
-    })),
+    // Section 1 + 2: filter empty entries, normalize bullet objects to strings
+    experience: (store.experiencia || [])
+      .filter((exp: any) => exp.cargo?.trim() || exp.empresa?.trim())
+      .map((exp: any) => ({
+        jobTitle: exp.cargo || "",
+        company: exp.empresa || "",
+        city: exp.cidade || "",
+        state: exp.estado || "",
+        startDate: exp.dataInicio || "",
+        endDate: exp.dataFim || "",
+        roleSummary: exp.roleSummary || "",
+        responsibilities: (exp.responsabilidades || []).map((r: any) => typeof r === "string" ? r : (r.text || "")).filter(Boolean),
+        achievements: [],
+      })),
     education: (store.formacao || []).map((f: any) => ({
       school: f.instituicao || "",
       degree: f.curso || "",

@@ -71,17 +71,21 @@ export default function ResumePreviewPage() {
     },
     summary: summary || "",
     skills: skills?.map((s: any) => s.text || s).filter(Boolean) || [],
-    experience: experience.map((exp: any) => ({
-      jobTitle: exp.jobTitle || "",
-      company: exp.company || "",
-      city: exp.city || "",
-      state: exp.state || "",
-      startDate: exp.startDate || "",
-      endDate: exp.endDate || "",
-      roleSummary: exp.roleSummary || "",
-      responsibilities: exp.responsibilities?.map((r: any) => r.text || "").filter(Boolean) || [],
-      achievements: exp.achievements?.map((a: any) => a.text || "").filter(Boolean) || [],
-    })),
+    // Section 1: only render entries that have actual content (filter empty initial slots)
+    // Section 2: normalize bullets — always extract .text from objects
+    experience: experience
+      .filter((exp: any) => exp.jobTitle?.trim() || exp.company?.trim())
+      .map((exp: any) => ({
+        jobTitle: exp.jobTitle || "",
+        company: exp.company || "",
+        city: exp.city || "",
+        state: exp.state || "",
+        startDate: exp.startDate || "",
+        endDate: exp.endDate || "",
+        roleSummary: exp.roleSummary || "",
+        responsibilities: (exp.responsibilities || []).map((r: any) => typeof r === "string" ? r : (r.text || "")).filter(Boolean),
+        achievements: (exp.achievements || []).map((a: any) => typeof a === "string" ? a : (a.text || "")).filter(Boolean),
+      })),
     education: education || [],
     certifications: certifications?.map((c: any) => typeof c === "string" ? c : (c.text || "")).filter(Boolean) || [],
   });
@@ -146,7 +150,9 @@ export default function ResumePreviewPage() {
       linkedin: personalInfo.linkedin || "",
     },
     summary: summary || "",
-    experience: experience.map((exp: any) => ({
+    experience: experience
+      .filter((exp: any) => exp.jobTitle?.trim() || exp.company?.trim())
+      .map((exp: any) => ({
       jobTitle: exp.jobTitle || "",
       company: exp.company || "",
       city: exp.city || "",
@@ -154,8 +160,8 @@ export default function ResumePreviewPage() {
       startDate: exp.startDate || "",
       endDate: exp.endDate || "",
       roleSummary: exp.roleSummary || "",
-      responsibilities: exp.responsibilities?.map((r: any) => r.text || "").filter(Boolean) || [],
-      achievements: exp.achievements?.map((a: any) => a.text || "").filter(Boolean) || [],
+      responsibilities: (exp.responsibilities || []).map((r: any) => typeof r === "string" ? r : (r.text || "")).filter(Boolean),
+      achievements: (exp.achievements || []).map((a: any) => typeof a === "string" ? a : (a.text || "")).filter(Boolean),
     })),
     education: education || [],
     skills: skills?.map((s: any) => s.text || "").filter(Boolean) || [],

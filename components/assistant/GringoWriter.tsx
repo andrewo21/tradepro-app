@@ -285,7 +285,7 @@ function applyUS(action: StoreAction, store: any, setPendingSummary: (text: stri
       const lastName  = payload.lastName  || (rawName ? rawName.split(" ").slice(1).join(" ") : "");
       pi("firstName",  firstName);
       pi("lastName",   lastName);
-      pi("tradeTitle", payload.tradeTitle || payload.jobTitle || payload.title);
+      // tradeTitle set only from add_experience (first job) — not from personal step
       pi("email",      payload.email);
       pi("phone",      payload.phone);
       // Only update city/state if not already set — prevents school location overwriting real city
