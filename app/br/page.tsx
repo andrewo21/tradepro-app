@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { ptBR } from "@/lib/i18n/pt-BR";
 import GringoDynamic from "@/components/assistant/GringoDynamic";
+import CinematicIntro from "@/components/CinematicIntro";
 
 const TYPED_WORDS = ptBR.landing.skills.words;
 
@@ -132,6 +133,9 @@ export default function BrazilHomePage() {
   return (
     <div className="min-h-screen flex flex-col bg-neutral-200 text-neutral-900">
 
+      {/* CINEMATIC INTRO — shows once per user, never again */}
+      <CinematicIntro videoId="1196132428" />
+
       {/* HERO */}
       <section className="relative z-0 w-full flex items-center justify-center min-h-[600px] md:h-[80vh] lg:h-[90vh]">
         <motion.div
@@ -184,6 +188,26 @@ export default function BrazilHomePage() {
         </motion.div>
       </section>
 
+      {/* GRINGO INTRODUCTION VIDEO */}
+      <section className="w-full bg-neutral-900 py-12 px-4">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-2xl font-semibold text-white mb-3">
+            Vídeo de Introdução — Gringo
+          </h2>
+          <p className="text-neutral-400 text-sm mb-8 max-w-2xl mx-auto">
+            Veja como o Gringo transforma sua experiência em um currículo profissional em minutos.
+          </p>
+          <div className="aspect-video rounded-xl overflow-hidden shadow-2xl">
+            <iframe
+              src="https://player.vimeo.com/video/1196132094?badge=0&autopause=0&player_id=0&app_id=58479"
+              title="Gringo — Vídeo de Introdução"
+              allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media"
+              allowFullScreen
+              className="w-full h-full"
+            />
+          </div>
+        </div>
+      </section>
 
       {/* ATS SECTION — what it is + before/after proof */}
       <section className="w-full bg-white border-t border-neutral-200 py-16 px-4">
