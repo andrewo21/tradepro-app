@@ -1,4 +1,5 @@
 "use client";
+import CinematicIntro from "@/components/CinematicIntro";
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
@@ -134,6 +135,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-neutral-200 text-neutral-900">
+      <CinematicIntro videoId="1196132428" />
 
       {/* Brazil region banner */}
       <div className="w-full bg-green-800 text-white text-xs py-2 px-4 text-center">
@@ -324,17 +326,23 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* VIDEO SECTION — placeholder while new videos are being produced */}
+     {/* CV-1 INTRODUCTION VIDEO */}
       <section className="w-full bg-neutral-50 border-t border-neutral-200 py-16 px-4">
         <div className="max-w-5xl mx-auto text-center">
           <h2 className="text-3xl font-semibold mb-3">
-            See TradePro Transform a Resume in Minutes
+            CV-1 Introduction Video
           </h2>
           <p className="text-neutral-600 mb-8 max-w-2xl mx-auto">
             Turn real work experience into a clean, professional resume — fast, simple, and stress‑free.
           </p>
-          <div className="max-w-3xl mx-auto aspect-video bg-neutral-200 border border-dashed border-neutral-400 rounded-lg flex items-center justify-center text-neutral-500 text-sm mb-8">
-            Video coming soon
+          <div className="max-w-3xl mx-auto aspect-video rounded-xl overflow-hidden shadow-2xl mb-8">
+            <iframe
+              src="https://player.vimeo.com/video/1196131519?badge=0&autopause=0&player_id=0&app_id=58479"
+              title="CV-1 Introduction Video"
+              allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media"
+              allowFullScreen
+              className="w-full h-full"
+            />
           </div>
           <Link
             href="/resume"
