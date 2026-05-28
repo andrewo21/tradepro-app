@@ -248,7 +248,7 @@ export default function HomePage() {
           <div className="grid gap-6 md:grid-cols-3">
             <div className="bg-white border border-neutral-200 rounded-md p-4 shadow-sm">
               <p className="text-sm text-neutral-800 mb-3">
-                “Got a sneak peek at the early access version of TradeProTech.Ai and honestly had a great experience. The platform helped me build a professional resume from start to finish while also analyzing my strengths, weak points, and areas I could improve professionally. Really clean process and a great tool for anyone looking to level up their career.”
+                "Got a sneak peek at the early access version of TradeProTech.Ai and honestly had a great experience. The platform helped me build a professional resume from start to finish while also analyzing my strengths, weak points, and areas I could improve professionally. Really clean process and a great tool for anyone looking to level up their career."
               </p>
               <p className="text-xs text-neutral-500 font-medium">
                 — Luis C.
@@ -256,18 +256,18 @@ export default function HomePage() {
             </div>
             <div className="bg-white border border-neutral-200 rounded-md p-4 shadow-sm">
               <p className="text-sm text-neutral-800 mb-3">
-                “Cleanest resume I’ve ever had. No fluff, no gimmicks — just my
-                work, presented right.”
+                "Cleanest resume I’ve ever had. No fluff, no gimmicks — just my
+                work, presented right."
               </p>
               <p className="text-xs text-neutral-500 font-medium">
                 — Amanda O.
               </p>
             </div>
-            <div className=”bg-white border border-neutral-200 rounded-md p-4 shadow-sm”>
-              <p className=”text-sm text-neutral-800 mb-3”>
-                “Working with TradePro was an excellent experience. TradePro delivers polished, professional resumes that effectively highlight skills, accomplishments, and career experience. The process is efficient, responsive, and tailored to individual career goals. Their attention to detail and ability to strengthen professional presentation helps clients feel more confident when pursuing new opportunities.”
+            <div className="bg-white border border-neutral-200 rounded-md p-4 shadow-sm">
+              <p className="text-sm text-neutral-800 mb-3">
+                "Working with TradePro was an excellent experience. TradePro delivers polished, professional resumes that effectively highlight skills, accomplishments, and career experience. The process is efficient, responsive, and tailored to individual career goals. Their attention to detail and ability to strengthen professional presentation helps clients feel more confident when pursuing new opportunities."
               </p>
-              <p className=”text-xs text-neutral-500 font-medium”>
+              <p className="text-xs text-neutral-500 font-medium">
                 — Toni D.
               </p>
             </div>
