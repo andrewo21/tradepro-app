@@ -59,7 +59,7 @@ export const ptBR = {
     bundle: {
       name: "Pacote Completo",
       desc: "Tudo que você precisa para criar um currículo e carta de apresentação profissional.",
-      price: "R$ 49",
+      price: "R$ 79",
       originalPrice: "R$ 149",
       badge: "Oferta por Tempo Limitado",
       features: [

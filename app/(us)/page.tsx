@@ -263,13 +263,12 @@ export default function HomePage() {
                 — Amanda O.
               </p>
             </div>
-            <div className="bg-white border border-neutral-200 rounded-md p-4 shadow-sm">
-              <p className="text-sm text-neutral-800 mb-3">
-                “Finally something built for trades, not office jobs. It feels
-                like it understands how we work.”
+            <div className=”bg-white border border-neutral-200 rounded-md p-4 shadow-sm”>
+              <p className=”text-sm text-neutral-800 mb-3”>
+                “Working with TradePro was an excellent experience. TradePro delivers polished, professional resumes that effectively highlight skills, accomplishments, and career experience. The process is efficient, responsive, and tailored to individual career goals. Their attention to detail and ability to strengthen professional presentation helps clients feel more confident when pursuing new opportunities.”
               </p>
-              <p className="text-xs text-neutral-500 font-medium">
-                — Chris, HVAC Technician
+              <p className=”text-xs text-neutral-500 font-medium”>
+                — Toni D.
               </p>
             </div>
           </div>

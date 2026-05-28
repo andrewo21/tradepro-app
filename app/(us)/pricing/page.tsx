@@ -124,7 +124,7 @@ export default function PricingPage() {
 
               {/* BADGE */}
               <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-amber-500 text-white text-xs font-semibold px-3 py-1 rounded-full shadow">
-                Most Popular
+                🔥 Launch Price — Ending Soon
               </div>
 
               <div className="bg-white border border-neutral-300 rounded-lg shadow-sm p-6 sm:p-8 flex flex-col flex-1">
@@ -135,8 +135,9 @@ export default function PricingPage() {
                   Unlock everything — premium templates, cover letters, and upcoming tools.
                 </p>
 
-                <div className="flex items-center justify-center mb-6">
+                <div className="flex flex-col items-center justify-center mb-6 gap-1">
                   <div className="text-5xl font-bold">$29.99</div>
+                  <div className="text-sm text-neutral-400"><span className="line-through">$49.99</span> Regular Price</div>
                 </div>
 
                 <ul className="text-left text-neutral-700 space-y-3 mb-8">

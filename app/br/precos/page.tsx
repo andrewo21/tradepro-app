@@ -76,12 +76,8 @@ export default function BrazilPricingPage() {
             <p className="text-neutral-600 mb-6">{b.desc}</p>
 
             {/* Price */}
-            <div className="flex items-center justify-center gap-4 mb-2">
+            <div className="flex items-center justify-center mb-2">
               <div className="text-6xl font-bold text-green-700">{b.price}</div>
-              <div className="text-left">
-                <div className="text-2xl text-neutral-400 line-through">{b.originalPrice}</div>
-                <div className="text-sm text-red-600 font-bold">Economize R$ 100</div>
-              </div>
             </div>
             <p className="text-sm text-neutral-500 mb-8">Pagamento único · Sem mensalidade · Sem renovação</p>
 
