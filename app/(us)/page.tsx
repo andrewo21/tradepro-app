@@ -2,12 +2,50 @@
 import CinematicIntro from "@/components/CinematicIntro";
 
 import Image from "next/image";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import Footer from "@/components/Footer";
 import CV1Welcome from "@/components/assistant/CV1Welcome";
 
+const TRADE_TITLES = [
+  "HVAC Technician",
+  "Electrician",
+  "Welder",
+  "Pipefitter",
+  "Carpenter",
+  "Plumber",
+  "Mechanic",
+  "Ironworker",
+  "Painter",
+  "Roofer",
+];
+
 export default function HomePage() {
+  const [lineIndex, setLineIndex] = useState(0);
+  const [charIndex, setCharIndex] = useState(0);
+  const [lines, setLines] = useState<string[]>(Array(TRADE_TITLES.length).fill(""));
+  const [isResetting, setIsResetting] = useState(false);
+
+  useEffect(() => {
+    if (isResetting) return;
+    const word = TRADE_TITLES[lineIndex];
+    const interval = setInterval(() => {
+      setLines(prev => { const n = [...prev]; n[lineIndex] = word.slice(0, charIndex + 1); return n; });
+      if (charIndex < word.length - 1) {
+        setCharIndex(c => c + 1);
+      } else {
+        clearInterval(interval);
+        if (lineIndex < TRADE_TITLES.length - 1) {
+          setTimeout(() => { setLineIndex(l => l + 1); setCharIndex(0); }, 350);
+        } else {
+          setTimeout(() => { setIsResetting(true); setLines(Array(TRADE_TITLES.length).fill("")); setLineIndex(0); setCharIndex(0); setIsResetting(false); }, 1200);
+        }
+      }
+    }, 90);
+    return () => clearInterval(interval);
+  }, [charIndex, lineIndex, isResetting]);
+
   return (
     <div className="min-h-screen flex flex-col bg-neutral-200 text-neutral-900">
       <CinematicIntro videoId="1196132428" />
@@ -24,7 +62,7 @@ export default function HomePage() {
       <section
         className="
           relative z-0 w-full flex items-center justify-center
-          min-h-[600px] md:h-[80vh] lg:h-[90vh]
+          min-h-[600px] md:h-[90vh] lg:h-screen
         "
       >
         <motion.div
@@ -54,7 +92,7 @@ export default function HomePage() {
           <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle,_transparent_50%,_rgba(0,0,0,0.65)_100%)]" />
 
           {/* CONTENT */}
-          <div className="relative px-8 py-10 md:px-16 md:py-16 text-neutral-50 flex flex-col items-center justify-center min-h-[600px] md:min-h-[80vh] lg:min-h-[90vh]">
+          <div className="relative px-8 py-10 md:px-16 md:py-16 text-neutral-50 flex flex-col items-center justify-center min-h-[600px] md:min-h-[90vh] lg:min-h-screen">
 
             <div className="text-center mb-6">
               <h1 className="text-4xl md:text-5xl font-bold leading-tight">
@@ -63,11 +101,23 @@ export default function HomePage() {
               </h1>
             </div>
 
-            <div className="max-w-2xl mx-auto text-center mb-10">
+            <div className="max-w-2xl mx-auto text-center mb-8">
               <p className="text-lg md:text-xl text-neutral-200 leading-relaxed">
                 Your skills built it. Your resume should sell it.
                 Build a professional resume in minutes — no writing experience needed.
               </p>
+            </div>
+
+            <div className="max-w-xl mx-auto mb-10">
+              <h3 className="text-xs font-bold tracking-widest uppercase text-neutral-400 border-b border-neutral-600 pb-1 mb-2">Built For:</h3>
+              <div className="font-mono text-base md:text-lg leading-relaxed mt-2 min-h-[120px]">
+                {TRADE_TITLES.map((_, idx) => (
+                  <div key={idx} className="h-7">
+                    {lines[idx]}
+                    {idx === lineIndex && <span className="inline-block w-2 animate-pulse">|</span>}
+                  </div>
+                ))}
+              </div>
             </div>
 
             <Link

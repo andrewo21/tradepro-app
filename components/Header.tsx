@@ -58,7 +58,7 @@ export default function Header() {
       </div>
 
       {/* BRANDING — centered against the full page width, not affected by menu button */}
-      <div className="w-full text-center px-4 pt-8 pb-6 sm:pt-10 sm:pb-8">
+      <div className="w-full text-center px-4 pt-8 pb-6 sm:pt-10 sm:pb-8 md:pt-4 md:pb-3">
         <img
           src="/brand/Tradepro-logo.svg"
           alt="TradePro Technologies"
