@@ -64,7 +64,11 @@ export default function BrTecnicoModerno({ data, mode = "preview", showWatermark
           <section>
             <h2 className="font-bold text-xs uppercase tracking-widest mb-2" style={{ color: BLUE }}>Experiência</h2>
             <div className="space-y-3">
-              {data.experiencia.map((exp: any, i: number) => (
+              {data.experiencia.filter((exp: any, i: number, arr: any[]) => {
+                const key = (exp.empresa || exp.company || "").toLowerCase().replace(/\s+/g, "");
+                if (!key) return true;
+                return arr.findIndex((e: any) => (e.empresa || e.company || "").toLowerCase().replace(/\s+/g, "") === key) === i;
+              }).map((exp: any, i: number) => (
                 <div key={i}>
                   <div className="flex justify-between items-start">
                     <div><p className="font-bold text-neutral-900">{exp.cargo || exp.jobTitle}</p><p className="text-xs text-neutral-500">{exp.empresa || exp.company}</p></div>

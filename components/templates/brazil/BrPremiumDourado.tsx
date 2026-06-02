@@ -53,7 +53,11 @@ export default function BrPremiumDourado({ data, mode = "preview", showWatermark
             <h2 className="font-bold text-xs uppercase tracking-widest mb-2" style={{ color: NAVY }}>Trajetória Profissional</h2>
             <div className="h-0.5 mb-3" style={{ background: `linear-gradient(to right, ${GOLD}, transparent)` }} />
             <div className="space-y-4">
-              {data.experiencia.map((exp: any, i: number) => (
+              {data.experiencia.filter((exp: any, i: number, arr: any[]) => {
+                const key = (exp.empresa || exp.company || "").toLowerCase().replace(/\s+/g, "");
+                if (!key) return true;
+                return arr.findIndex((e: any) => (e.empresa || e.company || "").toLowerCase().replace(/\s+/g, "") === key) === i;
+              }).map((exp: any, i: number) => (
                 <div key={i}>
                   <div className="flex justify-between items-start">
                     <div><p className="font-bold" style={{ color: NAVY }}>{exp.cargo || exp.jobTitle}</p><p className="text-xs text-neutral-500 italic">{exp.empresa || exp.company}</p></div>

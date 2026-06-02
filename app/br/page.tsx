@@ -1,63 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { ptBR } from "@/lib/i18n/pt-BR";
 import GringoDynamic from "@/components/assistant/GringoDynamic";
 import CinematicIntro from "@/components/CinematicIntro";
-
-const TYPED_WORDS = ptBR.landing.skills.words;
-
-function NewsletterBR() {
-  const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const t = ptBR.landing.newsletter;
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/newsletter", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
-      if (res.ok) setSubmitted(true);
-      else setError(ptBR.common.error);
-    } catch { setError(ptBR.common.network); }
-    finally { setLoading(false); }
-  }
-
-  return (
-    <section className="w-full bg-neutral-900 border-t border-neutral-700 py-14 px-4">
-      <div className="max-w-xl mx-auto text-center">
-        <h2 className="text-2xl font-semibold text-white mb-2">{t.title}</h2>
-        <p className="text-neutral-400 text-sm mb-8">{t.subtitle}</p>
-        {submitted ? (
-          <div className="text-green-400 font-medium text-lg">{t.success}</div>
-        ) : (
-          <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 justify-center">
-            <input
-              type="email" required value={email} onChange={e => setEmail(e.target.value)}
-              placeholder={t.placeholder}
-              className="flex-1 px-4 py-3 rounded-md text-sm text-neutral-900 bg-white border border-neutral-300 focus:outline-none"
-            />
-            <button type="submit" disabled={loading}
-              className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-md disabled:opacity-50 whitespace-nowrap"
-            >
-              {loading ? "..." : t.button}
-            </button>
-          </form>
-        )}
-        {error && <p className="text-red-400 text-sm mt-3">{error}</p>}
-      </div>
-    </section>
-  );
-}
 
 const WA_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_BR || "";
 const WA_MESSAGE = encodeURIComponent("Olá! Gostaria de criar meu currículo profissional com a TradePro. Pode me ajudar?");
@@ -106,30 +53,6 @@ function WhatsAppSection() {
 }
 
 export default function BrazilHomePage() {
-  const [lineIndex, setLineIndex] = useState(0);
-  const [charIndex, setCharIndex] = useState(0);
-  const [lines, setLines] = useState<string[]>(Array(TYPED_WORDS.length).fill(""));
-  const [isResetting, setIsResetting] = useState(false);
-
-  useEffect(() => {
-    if (isResetting) return;
-    const word = TYPED_WORDS[lineIndex];
-    const interval = setInterval(() => {
-      setLines(prev => { const n = [...prev]; n[lineIndex] = word.slice(0, charIndex + 1); return n; });
-      if (charIndex < word.length - 1) {
-        setCharIndex(c => c + 1);
-      } else {
-        clearInterval(interval);
-        if (lineIndex < TYPED_WORDS.length - 1) {
-          setTimeout(() => { setLineIndex(l => l + 1); setCharIndex(0); }, 350);
-        } else {
-          setTimeout(() => { setIsResetting(true); setLines(Array(TYPED_WORDS.length).fill("")); setLineIndex(0); setCharIndex(0); setIsResetting(false); }, 1200);
-        }
-      }
-    }, 90);
-    return () => clearInterval(interval);
-  }, [charIndex, lineIndex, isResetting]);
-
   return (
     <div className="min-h-screen flex flex-col bg-neutral-200 text-neutral-900">
 
@@ -147,16 +70,11 @@ export default function BrazilHomePage() {
           <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle,_transparent_50%,_rgba(0,0,0,0.65)_100%)]" />
 
           <div className="relative px-8 py-10 md:px-16 md:py-16 text-neutral-50 flex flex-col items-center justify-center min-h-[600px] md:min-h-[80vh]">
-            <div className="text-center mb-8">
-              <h1 className="text-4xl md:text-5xl font-bold leading-tight">
-                <span className="text-white">{ptBR.landing.hero.split("TradePro")[0]}</span>
-                <span className="text-black">TradePro</span>
-                <span className="text-green-400"> Technologies</span>
-              </h1>
-            </div>
 
-            <div className="max-w-xl mx-auto text-center mb-2">
-              <p className="text-sm md:text-base text-neutral-200">{ptBR.landing.mission}</p>
+            <div className="text-center mb-6">
+              <h1 className="text-4xl md:text-5xl font-bold leading-tight text-white">
+                Transforme sua experiência real em um currículo profissional — rápido, simples e feito para você.
+              </h1>
             </div>
 
             <div className="max-w-xl mx-auto text-center mb-2">
@@ -165,24 +83,19 @@ export default function BrazilHomePage() {
               </p>
             </div>
 
-            <div className="max-w-xl mx-auto text-center mb-5">
+            <div className="max-w-xl mx-auto text-center mb-10">
               <p className="text-sm md:text-base text-amber-300 font-semibold">
                 Recrutadores veem uma análise do seu currículo. Você nunca viu essa análise.{" "}
                 <span className="text-white">Até agora.</span>
               </p>
             </div>
 
-            <div className="max-w-xl mx-auto mb-8">
-              <h3 className="text-lg font-semibold tracking-wide uppercase mb-1 border-b border-neutral-400 pb-1">Habilidades</h3>
-              <div className="font-mono text-base md:text-lg leading-relaxed mt-2 min-h-[120px]">
-                {TYPED_WORDS.map((_, idx) => (
-                  <div key={idx} className="h-7">
-                    {lines[idx]}
-                    {idx === lineIndex && <span className="inline-block w-2 animate-pulse">|</span>}
-                  </div>
-                ))}
-              </div>
-            </div>
+            <Link
+              href="/br/curriculo"
+              className="inline-block px-10 py-4 bg-green-600 hover:bg-green-700 text-white text-base font-bold rounded-md shadow-lg tracking-wide transition"
+            >
+              Criar Meu Currículo
+            </Link>
 
           </div>
         </motion.div>
@@ -295,7 +208,7 @@ export default function BrazilHomePage() {
         </div>
       </section>
 
-      {/* HOW IT WORKS — TradePro ATS Engine™ (dark, includes the "até agora" quote) */}
+      {/* HOW IT WORKS — TradePro ATS Engine™ */}
       <section className="w-full bg-neutral-900 py-16 px-4">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-10">
@@ -398,6 +311,23 @@ export default function BrazilHomePage() {
       <section className="w-full bg-neutral-50 border-t border-neutral-300 py-16 px-4">
         <div className="max-w-5xl mx-auto text-center">
           <h2 className="text-2xl font-semibold mb-8">{ptBR.landing.pricing.title}</h2>
+
+          {/* Trust badge bar */}
+          <div className="flex flex-wrap justify-center gap-3 mb-8">
+            {[
+              { icon: "✓", label: "Pagamento Único" },
+              { icon: "✕", label: "Sem Assinatura" },
+              { icon: "🔒", label: "Checkout Seguro" },
+              { icon: "⚡", label: "Acesso Imediato" },
+              { icon: "👁", label: "Veja Antes de Pagar" },
+            ].map((b) => (
+              <div key={b.label} className="flex items-center gap-2 bg-white border border-neutral-200 rounded-full px-4 py-2 text-sm text-neutral-700 font-medium shadow-sm">
+                <span className="text-green-600">{b.icon}</span>
+                {b.label}
+              </div>
+            ))}
+          </div>
+
           <div className="max-w-sm mx-auto text-sm">
             <div className="border-2 border-green-500 rounded-xl p-8 bg-white shadow-lg text-center">
               <span className="bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full mb-4 inline-block">
@@ -412,14 +342,18 @@ export default function BrazilHomePage() {
               <p className="text-xs text-neutral-500 mb-4">Todos os 9 modelos incluídos · Pagamento único</p>
             </div>
           </div>
-          <Link href="/br/precos" className="inline-block mt-8 px-8 py-3 rounded-md bg-neutral-900 text-neutral-50 text-sm font-semibold shadow-md hover:bg-neutral-800">
+
+          <p className="text-sm text-neutral-600 font-medium mt-6 mb-3">
+            Visualize seu currículo completo antes de pagar. Sem surpresas, sem risco.
+          </p>
+          <Link href="/br/precos" className="inline-block px-8 py-3 rounded-md bg-neutral-900 text-neutral-50 text-sm font-semibold shadow-md hover:bg-neutral-800">
             {ptBR.landing.pricing.cta}
           </Link>
+          <p className="text-xs text-neutral-500 mt-3">
+            🔒 Suas informações são confidenciais. Nunca compartilhamos ou vendemos seus dados. Jamais.
+          </p>
         </div>
       </section>
-
-      {/* NEWSLETTER */}
-      <NewsletterBR />
 
       {/* FOOTER */}
       <footer className="w-full bg-neutral-900 text-neutral-400 text-xs border-t border-neutral-700">

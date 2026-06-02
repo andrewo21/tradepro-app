@@ -52,7 +52,11 @@ export default function BrConstrucaoBold({ data, mode = "preview", showWatermark
           <section>
             <h2 className="font-black text-xs uppercase tracking-widest text-neutral-900 border-b-2 border-orange-500 pb-1 mb-2">Experiência em Obra</h2>
             <div className="space-y-4">
-              {data.experiencia.map((exp: any, i: number) => (
+              {data.experiencia.filter((exp: any, i: number, arr: any[]) => {
+                const key = (exp.empresa || exp.company || "").toLowerCase().replace(/\s+/g, "");
+                if (!key) return true;
+                return arr.findIndex((e: any) => (e.empresa || e.company || "").toLowerCase().replace(/\s+/g, "") === key) === i;
+              }).map((exp: any, i: number) => (
                 <div key={i}>
                   <div className="flex justify-between items-start">
                     <div><p className="font-bold text-neutral-900">{exp.cargo || exp.jobTitle}</p><p className="text-xs text-neutral-500">{exp.empresa || exp.company}</p></div>

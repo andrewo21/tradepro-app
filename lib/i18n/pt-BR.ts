@@ -29,7 +29,7 @@ export const ptBR = {
       title: "O que os profissionais estão dizendo",
       items: [
         { text: "Tive acesso antecipado à TradePro e foi uma ótima experiência. A plataforma me ajudou a criar um currículo profissional do zero, analisando meus pontos fortes, fracos e áreas de melhoria. Processo muito limpo e uma excelente ferramenta para quem quer se destacar no mercado.", author: "Luis C." },
-        { text: "Para mim, a experiência do cliente é a parte mais importante de qualquer serviço — e a sua é excepcional. Esse trabalho pode ajudar muita gente que não sabe como criar um bom currículo ou apresentação.", author: "Carla, Enfermeira" },
+        { text: "Nunca soube como escrever meu currículo direito. O Gringo me guiou em cada passo. Na primeira semana já tinha entrevista marcada.", author: "Carla, Enfermeira" },
         { text: "Fácil de usar e o resultado ficou incrível. Consegui entrevista na primeira semana.", author: "Paulo, Técnico em TI" },
       ],
     },

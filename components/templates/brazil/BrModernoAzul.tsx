@@ -75,7 +75,11 @@ export default function BrModernoAzul({ data, mode = "preview", showWatermark = 
           <section>
             <h2 className="text-blue-800 font-bold text-sm uppercase tracking-wide border-b border-blue-200 pb-1 mb-2">Experiência Profissional</h2>
             <div className="space-y-4">
-              {data.experiencia.map((exp: any, i: number) => (
+              {data.experiencia.filter((exp: any, i: number, arr: any[]) => {
+                const key = (exp.empresa || exp.company || "").toLowerCase().replace(/\s+/g, "");
+                if (!key) return true;
+                return arr.findIndex((e: any) => (e.empresa || e.company || "").toLowerCase().replace(/\s+/g, "") === key) === i;
+              }).map((exp: any, i: number) => (
                 <div key={i}>
                   <div className="flex items-start justify-between">
                     <div>

@@ -2,137 +2,12 @@
 import CinematicIntro from "@/components/CinematicIntro";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import Footer from "@/components/Footer";
-import { CV1TourButton } from "@/components/assistant/CV1Tour";
 import CV1Welcome from "@/components/assistant/CV1Welcome";
 
-function NewsletterSignup() {
-  const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/newsletter", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
-      if (res.ok) {
-        setSubmitted(true);
-      } else {
-        const data = await res.json().catch(() => ({}));
-        setError(data.error || "Something went wrong. Please try again.");
-      }
-    } catch {
-      setError("Network error. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  return (
-    <section className="w-full bg-neutral-900 border-t border-neutral-700 py-14 px-4">
-      <div className="max-w-xl mx-auto text-center">
-        <h2 className="text-2xl font-semibold text-white mb-2">
-          Stay in the loop
-        </h2>
-        <p className="text-neutral-400 text-sm mb-8">
-          New tools, templates, and updates — built for the trades. No spam, ever.
-        </p>
-
-        {submitted ? (
-          <div className="text-green-400 font-medium text-lg">
-            ✓ You're on the list. We'll be in touch.
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 justify-center">
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
-              className="flex-1 px-4 py-3 rounded-md text-sm text-neutral-900 bg-white border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-500"
-            />
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-md disabled:opacity-50 whitespace-nowrap"
-            >
-              {loading ? "Signing up…" : "Get Updates"}
-            </button>
-          </form>
-        )}
-
-        {error && (
-          <p className="text-red-400 text-sm mt-3">{error}</p>
-        )}
-      </div>
-    </section>
-  );
-}
-
-const TYPED_WORDS = [
-  "Precision",
-  "Craftsmanship",
-  "Leadership",
-  "Safety-Focused",
-  "Problem-Solving",
-];
-
 export default function HomePage() {
-  const [lineIndex, setLineIndex] = useState(0);
-  const [charIndex, setCharIndex] = useState(0);
-  const [lines, setLines] = useState<string[]>(
-    Array(TYPED_WORDS.length).fill("")
-  );
-  const [isResetting, setIsResetting] = useState(false);
-
-  useEffect(() => {
-    if (isResetting) return;
-
-    const currentWord = TYPED_WORDS[lineIndex];
-    const typingSpeed = 90;
-
-    const interval = setInterval(() => {
-      setLines((prev) => {
-        const next = [...prev];
-        next[lineIndex] = currentWord.slice(0, charIndex + 1);
-        return next;
-      });
-
-      if (charIndex < currentWord.length - 1) {
-        setCharIndex((c) => c + 1);
-      } else {
-        clearInterval(interval);
-        if (lineIndex < TYPED_WORDS.length - 1) {
-          setTimeout(() => {
-            setLineIndex((l) => l + 1);
-            setCharIndex(0);
-          }, 350);
-        } else {
-          setTimeout(() => {
-            setIsResetting(true);
-            setLines(Array(TYPED_WORDS.length).fill(""));
-            setLineIndex(0);
-            setCharIndex(0);
-            setIsResetting(false);
-          }, 1200);
-        }
-      }
-    }, typingSpeed);
-
-    return () => clearInterval(interval);
-  }, [charIndex, lineIndex, isResetting]);
-
   return (
     <div className="min-h-screen flex flex-col bg-neutral-200 text-neutral-900">
       <CinematicIntro videoId="1196132428" />
@@ -178,51 +53,33 @@ export default function HomePage() {
           <div className="absolute inset-0 opacity-40 pointer-events-none bg-[radial-gradient(circle_at_0_0,rgba(255,255,255,0.08)_0,transparent_50%),radial-gradient(circle_at_100%_0,rgba(0,0,0,0.25)_0,transparent_55%)]" />
           <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle,_transparent_50%,_rgba(0,0,0,0.65)_100%)]" />
 
-          {/* CONTENT — centered within full-width backdrop */}
+          {/* CONTENT */}
           <div className="relative px-8 py-10 md:px-16 md:py-16 text-neutral-50 flex flex-col items-center justify-center min-h-[600px] md:min-h-[80vh] lg:min-h-[90vh]">
 
-            {/* NEW WELCOME LINE — no white shading */}
-            <div className="text-center mb-8">
+            <div className="text-center mb-6">
               <h1 className="text-4xl md:text-5xl font-bold leading-tight">
-                <span className="text-white">Welcome to </span>
-                <span className="text-black">TradePro</span>
-                <span className="text-red-600"> Technologies</span>
+                <span className="text-white">Built for the Trades.</span><br />
+                <span className="text-red-500">Engineered to Get You Hired.</span>
               </h1>
             </div>
 
-            {/* TAGLINE + MISSION */}
-            <div className="max-w-2xl mx-auto text-center mb-6">
-              <h2 className="text-3xl md:text-4xl font-semibold mb-2">
-                
-              </h2>
-              <p className="text-base md:text-lg text-neutral-200">
-                TradePro’s mission is to build resumes that command confidence,
-                pride, and excitement.
+            <div className="max-w-2xl mx-auto text-center mb-10">
+              <p className="text-lg md:text-xl text-neutral-200 leading-relaxed">
+                Your skills built it. Your resume should sell it.
+                Build a professional resume in minutes — no writing experience needed.
               </p>
             </div>
 
-            {/* SKILLS */}
-            <div className="max-w-xl mx-auto">
-              <h3 className="text-lg font-semibold tracking-wide uppercase mb-1 border-b border-neutral-400 pb-1">
-                Skills
-              </h3>
-              <div className="font-mono text-base md:text-lg leading-relaxed mt-2 min-h-[120px]">
-                {TYPED_WORDS.map((_, idx) => (
-                  <div key={idx} className="h-7">
-                    {lines[idx]}
-                    {idx === lineIndex && (
-                      <span className="inline-block w-2 animate-pulse">|</span>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
+            <Link
+              href="/pricing"
+              className="inline-block px-10 py-4 bg-red-600 hover:bg-red-700 text-white text-base font-bold rounded-md shadow-lg tracking-wide transition"
+            >
+              Build My Resume
+            </Link>
 
           </div>
         </motion.div>
       </section>
-
-      {/* REST OF PAGE (unchanged) */}
 
       {/* BRAND VIDEO */}
       <section className="w-full bg-neutral-900 py-12 px-4">
@@ -256,7 +113,7 @@ export default function HomePage() {
             </div>
             <div className="bg-white border border-neutral-200 rounded-md p-4 shadow-sm">
               <p className="text-sm text-neutral-800 mb-3">
-                "Cleanest resume I’ve ever had. No fluff, no gimmicks — just my
+                "Cleanest resume I've ever had. No fluff, no gimmicks — just my
                 work, presented right."
               </p>
               <p className="text-xs text-neutral-500 font-medium">
@@ -265,7 +122,7 @@ export default function HomePage() {
             </div>
             <div className="bg-white border border-neutral-200 rounded-md p-4 shadow-sm">
               <p className="text-sm text-neutral-800 mb-3">
-                "Working with TradePro was an excellent experience. TradePro delivers polished, professional resumes that effectively highlight skills, accomplishments, and career experience. The process is efficient, responsive, and tailored to individual career goals. Their attention to detail and ability to strengthen professional presentation helps clients feel more confident when pursuing new opportunities."
+                "I wasn't sure what to expect, but TradePro made the whole thing easy. It took my work history and turned it into something I'm actually proud to hand over. Finally feels like my resume represents what I can actually do."
               </p>
               <p className="text-xs text-neutral-500 font-medium">
                 — Toni D.
@@ -477,13 +334,6 @@ export default function HomePage() {
             </div>
 
           </div>
-
-          <Link
-            href="/pricing"
-            className="inline-block mt-8 px-8 py-3 rounded-md bg-neutral-900 text-neutral-50 text-sm font-semibold tracking-wide shadow-md hover:bg-neutral-800"
-          >
-            View Full Pricing
-          </Link>
         </div>
       </section>
 
@@ -491,11 +341,11 @@ export default function HomePage() {
       <section className="w-full bg-neutral-100 border-t border-neutral-300 py-12 px-4">
         <div className="max-w-5xl mx-auto flex flex-col items-center text-center">
           <h2 className="text-2xl font-semibold mb-3">
-            Ready to build a resume you’re proud of?
+            Ready to build a resume you're proud of?
           </h2>
           <p className="text-neutral-700 mb-6 max-w-xl">
             Not a resume that just works, but a resume that projects confidence,
-            pride, and excitement..
+            pride, and excitement.
           </p>
 
           <Link
@@ -506,9 +356,6 @@ export default function HomePage() {
           </Link>
         </div>
       </section>
-
-      {/* EMAIL SIGNUP */}
-      <NewsletterSignup />
 
       {/* GLOBAL FOOTER */}
       <CV1Welcome />
