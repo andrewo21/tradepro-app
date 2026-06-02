@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { MessageCircle, X } from "lucide-react";
 import { useBrResumeStore } from "@/app/store/useBrResumeStore";
 import { useAssistantStore, type AssistantSuggestion } from "@/app/store/useAssistantStore";
@@ -9,6 +9,8 @@ import { pathToStep } from "@/lib/assistant/step_context";
 import { AssistantChat } from "@/components/assistant/AssistantChat";
 import GringoCharacter from "@/components/assistant/GringoCharacter";
 import { mapBrDataToUsFormat } from "@/lib/pdfTemplates";
+import { mapBrStoreForAts } from "@/lib/ats/brStoreForAts";
+import { computeLiveAtsScore, atsLabelColor } from "@/lib/ats/live/liveAtsScore";
 
 function useApplyBrSuggestion() {
   const store = useBrResumeStore();
@@ -44,10 +46,21 @@ function useApplyBrSuggestion() {
 
 export default function AskGringoButton() {
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
   const pathname = usePathname();
   const step = pathToStep(pathname);
   const brStore = useBrResumeStore();
   const apply = useApplyBrSuggestion();
+
+  // Live score — same pattern as CV-1 in ResumeAssistant.tsx
+  // computeLiveAtsScore expects US store shape; mapBrStoreForAts converts BR fields
+  const liveAts = mounted ? (() => {
+    try { return computeLiveAtsScore(mapBrStoreForAts(brStore)); }
+    catch { return null; }
+  })() : null;
+  const scoreColor = liveAts ? atsLabelColor(liveAts.label) : "#9ca3af";
+  const ptLabel: Record<string, string> = { Strong: "Forte", Good: "Bom", Building: "Em construção", Weak: "Fraco", "Not Started": "Não iniciado" };
 
   const {
     isThinking, messages, setThinking,
@@ -92,7 +105,7 @@ export default function AskGringoButton() {
   }
 
   return (
-    <div className="relative">
+    <div className="relative flex flex-col items-center gap-0.5">
       <button
         onClick={() => { setOpen(o => !o); clearNewSuggestions(); }}
         className="flex items-center gap-2 px-4 py-2 bg-green-700 text-white text-sm font-bold rounded-xl hover:bg-green-800 transition-colors shadow-md"
@@ -101,6 +114,19 @@ export default function AskGringoButton() {
         Perguntar ao Gringo
         <MessageCircle className="w-4 h-4" />
       </button>
+
+      {/* Live score pill — same pattern as CV-1 in ResumeAssistant */}
+      {liveAts && liveAts.score > 0 && (
+        <div
+          className="px-2.5 py-0.5 rounded-full shadow-sm border text-center flex items-center gap-1.5"
+          style={{ backgroundColor: scoreColor + "15", borderColor: scoreColor + "40" }}
+        >
+          <span className="text-[10px] font-bold" style={{ color: scoreColor }}>Pontuação</span>
+          <span className="text-sm font-black" style={{ color: scoreColor }}>{liveAts.score}</span>
+          <span className="text-[9px] font-medium text-neutral-400">/75</span>
+          <span className="text-[9px] font-medium" style={{ color: scoreColor }}>— {ptLabel[liveAts.label] || liveAts.label}</span>
+        </div>
+      )}
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/30"

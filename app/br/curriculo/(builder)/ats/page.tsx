@@ -11,6 +11,7 @@ import { useBrResumeStore } from "@/app/store/useBrResumeStore";
 import { useAssistantStore } from "@/app/store/useAssistantStore";
 import { computeLiveAtsScore, atsLabelColor } from "@/lib/ats/live/liveAtsScore";
 import { mapBrDataToUsFormat } from "@/lib/pdfTemplates";
+import { mapBrStoreForAts } from "@/lib/ats/brStoreForAts";
 import GringoCharacter from "@/components/assistant/GringoCharacter";
 import { Check, AlertCircle, Zap, MessageCircle, ChevronRight, Target, TrendingUp } from "lucide-react";
 
@@ -111,35 +112,11 @@ function ptFlagMessage(msg: string): string {
   return msg;
 }
 
-function mapBrStoreForScore(s: any) {
-  return {
-    personalInfo: {
-      firstName:  s.personalInfo?.nome              || "",
-      lastName:   s.personalInfo?.sobrenome         || "",
-      tradeTitle: s.personalInfo?.tituloProfissional || "",
-      phone:      s.personalInfo?.telefone          || s.personalInfo?.whatsapp || "",
-      email:      s.personalInfo?.email             || "",
-      city:       s.personalInfo?.cidade            || "",
-      linkedin:   s.personalInfo?.linkedin          || "",
-    },
-    summary: s.resumoProfissional || "",
-    skills: [...(s.habilidadesTecnicas || s.habilidades || [])].map((h: any) => ({ text: (h.text || h).replace(/^[•·]\s*/, "") })),
-    experience: (s.experiencia || []).map((e: any) => ({
-      jobTitle: e.cargo || "", company: e.empresa || "",
-      startDate: e.dataInicio || "", endDate: e.dataFim || "",
-      responsibilities: (e.responsabilidades || []).map((r: any) => ({ text: r.text || r })),
-      achievements: [],
-    })),
-    education: (s.formacao || []).map((f: any) => ({ school: f.instituicao || "", degree: f.curso || "" })),
-    certifications: (s.cursosCertificacoes || []).filter((c: any) => c.nome).map((c: any) => ({ id: c.nome, text: c.nome })),
-  };
-}
-
 function BrJobTargetContent() {
   const brStore   = useBrResumeStore();
   const { open }  = useAssistantStore();
   const mapped    = mapBrDataToUsFormat(brStore);      // for resume text + hasResumeData check
-  const scoreData = mapBrStoreForScore(brStore);       // for computeLiveAtsScore
+  const scoreData = mapBrStoreForAts(brStore);         // for computeLiveAtsScore — same mapping as AskGringoButton
   const firstName = brStore.personalInfo?.nome || "você";
 
   const [mounted] = useState(true);
