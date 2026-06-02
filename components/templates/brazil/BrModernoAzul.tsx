@@ -63,7 +63,7 @@ export default function BrModernoAzul({ data, mode = "preview", showWatermark = 
             <div className="flex flex-wrap gap-2">
               {data.habilidades.map((s: any, i: number) => (
                 <span key={i} className="bg-blue-50 text-blue-800 border border-blue-200 px-2 py-0.5 rounded text-xs font-medium">
-                  {s.text || s}
+                  {(s.text || s).toString().replace(/^[•·]\s*/, "")}
                 </span>
               ))}
             </div>

@@ -64,7 +64,7 @@ export default function BrMinimalistaBR({ data, mode = "preview", showWatermark 
               <p className="text-[10px] uppercase tracking-widest text-neutral-400 mb-2">Habilidades</p>
               <ul className="space-y-1">
                 {data.habilidades.map((s: any, i: number) => (
-                  <li key={i} className="text-xs text-neutral-600">{s.text || s}</li>
+                  <li key={i} className="text-xs text-neutral-600">{(s.text || s).toString().replace(/^[•·]\s*/, "")}</li>
                 ))}
               </ul>
             </section>

@@ -29,7 +29,7 @@ export default function BrSimplesDirecto({ data, mode = "preview", showWatermark
       {data?.habilidades?.length > 0 && (
         <div className="mb-5">
           <h2 className="text-xs font-bold uppercase tracking-widest text-neutral-900 mb-2">Habilidades</h2>
-          <p className="text-neutral-700">{data.habilidades.map((s: any) => s.text || s).filter(Boolean).join(" • ")}</p>
+          <p className="text-neutral-700">{data.habilidades.map((s: any) => (s.text || s).toString().replace(/^[•·]\s*/, "")).filter(Boolean).join(" • ")}</p>
         </div>
       )}
       {data?.experiencia?.length > 0 && (

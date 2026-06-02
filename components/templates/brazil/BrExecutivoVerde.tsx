@@ -44,7 +44,7 @@ export default function BrExecutivoVerde({ data, mode = "preview", showWatermark
             <div className="h-0.5 mb-3" style={{ backgroundColor: GOLD }} />
             <div className="flex flex-wrap gap-2">
               {data.habilidades.map((s: any, i: number) => (
-                <span key={i} className="text-xs px-2 py-0.5 rounded border font-medium" style={{ borderColor: DARK_GREEN, color: DARK_GREEN }}>{s.text || s}</span>
+                <span key={i} className="text-xs px-2 py-0.5 rounded border font-medium" style={{ borderColor: DARK_GREEN, color: DARK_GREEN }}>{(s.text || s).toString().replace(/^[•·]\s*/, "")}</span>
               ))}
             </div>
           </section>

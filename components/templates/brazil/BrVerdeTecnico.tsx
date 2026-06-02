@@ -51,7 +51,7 @@ export default function BrVerdeTecnico({ data, mode = "preview", showWatermark =
               {data.habilidades.map((s: any, i: number) => (
                 <li key={i} className="text-[11px] text-green-100 flex items-start gap-1">
                   <span className="text-green-400 flex-shrink-0">▸</span>
-                  {s.text || s}
+                  {(s.text || s).toString().replace(/^[•·]\s*/, "")}
                 </li>
               ))}
             </ul>

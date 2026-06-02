@@ -87,7 +87,7 @@ export default function BrClasicoProfissional({ data, mode = "preview", showWate
               <h2 className="font-bold text-sm uppercase tracking-widest text-neutral-500 border-b pb-1 mb-2">Habilidades</h2>
               <ul className="space-y-1">
                 {data.habilidades.map((s: any, i: number) => (
-                  <li key={i} className="text-neutral-700 text-xs">• {s.text || s}</li>
+                  <li key={i} className="text-neutral-700 text-xs">• {(s.text || s).toString().replace(/^[•·]\s*/, "")}</li>
                 ))}
               </ul>
             </section>

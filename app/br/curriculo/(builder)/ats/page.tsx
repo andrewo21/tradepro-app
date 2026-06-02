@@ -79,17 +79,74 @@ export default function BrJobTargetStep() {
   return <BrJobTargetContent />;
 }
 
+// Translates English ATS flag messages to Portuguese
+function ptFlagMessage(msg: string): string {
+  const map: Record<string, string> = {
+    "Full name is missing": "Nome completo está faltando",
+    "Professional title is missing — this is a primary ATS keyword field": "Título profissional está faltando — este é o campo de palavra-chave mais importante",
+    "LinkedIn URL adds credibility and searchability": "URL do LinkedIn aumenta credibilidade e visibilidade",
+    "Professional summary is empty — this is the highest-value ATS placement position": "Resumo profissional está vazio — esta é a posição de maior valor no ATS",
+    "No skills listed — ATS cannot find keyword matches": "Nenhuma habilidade listada — o ATS não consegue encontrar correspondências",
+    "Education section is empty": "Seção de formação está vazia",
+    "No certifications listed — industry certs significantly boost ATS scores": "Nenhuma certificação listada — certificações do setor aumentam muito a pontuação",
+  };
+  if (map[msg]) return map[msg];
+  // Pattern-based translations
+  if (msg.startsWith("Summary is") && msg.includes("words")) {
+    const m = msg.match(/Summary is (\d+) words/);
+    return m ? `Resumo tem ${m[1]} palavras — 40+ palavras com métricas pontuam muito melhor` : msg;
+  }
+  if (msg.includes("job title missing")) return msg.replace(/^(.*): job title missing.*$/, "$1: título do cargo faltando — o ATS não consegue categorizar esta função");
+  if (msg.includes("start date missing")) return msg.replace(/^(.*): start date missing.*$/, "$1: data de início faltando — o ATS sinaliza histórico incompleto");
+  if (msg.includes("end date missing")) return msg.replace(/^(.*): end date missing.*$/, "$1: data de saída faltando — o ATS sinaliza histórico incompleto");
+  if (msg.includes("no bullet points")) return msg.replace(/^(.*): no bullet points.*$/, "$1: sem bullets — o ATS vê uma função vazia");
+  if (msg.includes("bullets have no numbers")) {
+    const m = msg.match(/^(.*): (\d+) bullets have no numbers/);
+    return m ? `${m[1]}: ${m[2]} bullets sem números ou métricas — pontuam mal no ATS` : msg;
+  }
+  if (msg.includes("Only") && msg.includes("skills")) {
+    const m = msg.match(/Only (\d+) skills/);
+    return m ? `Apenas ${m[1]} habilidades — a maioria das vagas espera 8-12 habilidades relevantes` : msg;
+  }
+  return msg;
+}
+
+function mapBrStoreForScore(s: any) {
+  return {
+    personalInfo: {
+      firstName:  s.personalInfo?.nome              || "",
+      lastName:   s.personalInfo?.sobrenome         || "",
+      tradeTitle: s.personalInfo?.tituloProfissional || "",
+      phone:      s.personalInfo?.telefone          || s.personalInfo?.whatsapp || "",
+      email:      s.personalInfo?.email             || "",
+      city:       s.personalInfo?.cidade            || "",
+      linkedin:   s.personalInfo?.linkedin          || "",
+    },
+    summary: s.resumoProfissional || "",
+    skills: [...(s.habilidadesTecnicas || s.habilidades || [])].map((h: any) => ({ text: (h.text || h).replace(/^[•·]\s*/, "") })),
+    experience: (s.experiencia || []).map((e: any) => ({
+      jobTitle: e.cargo || "", company: e.empresa || "",
+      startDate: e.dataInicio || "", endDate: e.dataFim || "",
+      responsibilities: (e.responsabilidades || []).map((r: any) => ({ text: r.text || r })),
+      achievements: [],
+    })),
+    education: (s.formacao || []).map((f: any) => ({ school: f.instituicao || "", degree: f.curso || "" })),
+    certifications: (s.cursosCertificacoes || []).filter((c: any) => c.nome).map((c: any) => ({ id: c.nome, text: c.nome })),
+  };
+}
+
 function BrJobTargetContent() {
   const brStore   = useBrResumeStore();
   const { open }  = useAssistantStore();
-  const mapped    = mapBrDataToUsFormat(brStore);
+  const mapped    = mapBrDataToUsFormat(brStore);      // for resume text + hasResumeData check
+  const scoreData = mapBrStoreForScore(brStore);       // for computeLiveAtsScore
   const firstName = brStore.personalInfo?.nome || "você";
 
   const [mounted] = useState(true);
 
   let liveAts = EMPTY_ATS;
   if (mounted) {
-    try { liveAts = computeLiveAtsScore(mapped); } catch { /* silent */ }
+    try { liveAts = computeLiveAtsScore(scoreData); } catch { /* silent */ }
   }
   const scoreColor = atsLabelColor(liveAts.label);
 
@@ -195,13 +252,13 @@ function BrJobTargetContent() {
             {errorFlags.map((f, i) => (
               <div key={i} className="flex items-start gap-2 p-2.5 bg-red-50 rounded-xl border border-red-100 text-xs text-red-700">
                 <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
-                <span>⚠️ Dado Faltando: {f.message}</span>
+                <span>⚠️ Dado Faltando: {ptFlagMessage(f.message)}</span>
               </div>
             ))}
             {warnFlags.map((f, i) => (
               <div key={i} className="flex items-start gap-2 p-2.5 bg-amber-50 rounded-xl border border-amber-100 text-xs text-amber-700">
                 <Zap className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
-                <span>{f.message}</span>
+                <span>{ptFlagMessage(f.message)}</span>
               </div>
             ))}
           </div>

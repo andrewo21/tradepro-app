@@ -43,7 +43,7 @@ export default function BrConstrucaoBold({ data, mode = "preview", showWatermark
             <h2 className="font-black text-xs uppercase tracking-widest text-neutral-900 border-b-2 border-orange-500 pb-1 mb-2">Habilidades Técnicas</h2>
             <div className="flex flex-wrap gap-2">
               {data.habilidades.map((s: any, i: number) => (
-                <span key={i} className="bg-neutral-900 text-white text-xs px-2 py-0.5 rounded font-medium">{s.text || s}</span>
+                <span key={i} className="bg-neutral-900 text-white text-xs px-2 py-0.5 rounded font-medium">{(s.text || s).toString().replace(/^[•·]\s*/, "")}</span>
               ))}
             </div>
           </section>

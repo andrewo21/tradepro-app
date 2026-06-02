@@ -30,7 +30,7 @@ export default function BrTecnicoModerno({ data, mode = "preview", showWatermark
             <p className="text-[9px] uppercase tracking-widest text-blue-300 font-bold mb-1">Habilidades</p>
             <ul className="space-y-0.5">
               {data.habilidades.map((s: any, i: number) => (
-                <li key={i} className="text-[10px] text-blue-100 flex items-start gap-1"><span className="text-blue-300">▸</span>{s.text || s}</li>
+                <li key={i} className="text-[10px] text-blue-100 flex items-start gap-1"><span className="text-blue-300">▸</span>{(s.text || s).toString().replace(/^[•·]\s*/, "")}</li>
               ))}
             </ul>
           </div>

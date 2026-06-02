@@ -43,7 +43,7 @@ export default function BrPremiumDourado({ data, mode = "preview", showWatermark
             <div className="h-0.5 mb-3" style={{ background: `linear-gradient(to right, ${GOLD}, transparent)` }} />
             <div className="flex flex-wrap gap-2">
               {data.habilidades.map((s: any, i: number) => (
-                <span key={i} className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: GOLD_LIGHT, color: GOLD, border: `1px solid #d97706` }}>{s.text || s}</span>
+                <span key={i} className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: GOLD_LIGHT, color: GOLD, border: `1px solid #d97706` }}>{(s.text || s).toString().replace(/^[•·]\s*/, "")}</span>
               ))}
             </div>
           </section>

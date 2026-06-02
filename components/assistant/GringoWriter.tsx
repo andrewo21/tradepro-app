@@ -840,7 +840,7 @@ export default function GringoWriter({ locale, previewHref }: Props) {
                   className="text-[11px] font-bold px-2 py-0.5 rounded-full border"
                   style={{ color: scoreColor, borderColor: `${scoreColor}40`, backgroundColor: `${scoreColor}12` }}
                 >
-                  {isEN ? "ATS" : "Força"} {liveScore.score}/75
+                  {isEN ? "ATS" : "Pontuação"} {liveScore.score}/75
                 </span>
               )}
             </div>
@@ -862,6 +862,17 @@ export default function GringoWriter({ locale, previewHref }: Props) {
 
       {/* ── Progress bar ── */}
       <ProgressBar step={currentStep} locale={locale} />
+
+      {/* ── BR live score strip ── */}
+      {!isEN && clientMounted && liveScore && liveScore.score > 0 && (
+        <div className="flex items-center justify-between px-4 py-1.5 bg-green-50 border-b border-green-100 text-xs">
+          <span className="text-green-800 font-medium">Pontuação do currículo</span>
+          <span className="font-bold px-2 py-0.5 rounded-full border text-[11px]"
+            style={{ color: scoreColor, borderColor: `${scoreColor}40`, backgroundColor: `${scoreColor}12` }}>
+            {liveScore.score}/75 — {({ Strong: "Forte", Good: "Bom", Building: "Em construção", Weak: "Fraco", "Not Started": "Não iniciado" })[liveScore.label] || liveScore.label}
+          </span>
+        </div>
+      )}
 
       {/* ── Chat area ── */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">

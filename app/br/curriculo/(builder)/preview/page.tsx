@@ -226,6 +226,7 @@ function BrPreviewContent() {
         </div>
         <div className="flex gap-3">
           <Link href="/br/curriculo/pessoal" className="px-4 py-2 border rounded-lg text-sm hover:bg-neutral-50">📸 Foto / Editar Dados</Link>
+          <Link href="/br/curriculo/ats" className="px-4 py-2 border border-green-300 text-green-700 rounded-lg text-sm hover:bg-green-50 font-medium">📊 Ver Pontuação ATS</Link>
           <button
             onClick={handleDownload}
             disabled={loading || remaining === 0}

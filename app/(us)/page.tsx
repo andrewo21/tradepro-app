@@ -136,7 +136,7 @@ export default function HomePage() {
         <div className="max-w-4xl mx-auto">
           <div className="aspect-video rounded-xl overflow-hidden shadow-2xl">
             <iframe
-              src="https://player.vimeo.com/video/1190159148?badge=0&autopause=0&player_id=0&app_id=58479"
+              src="https://player.vimeo.com/video/1196778559?badge=0&autopause=1&autoplay=1&muted=1&player_id=0&app_id=58479"
               title="TradePro — Built for the people who build everything else"
               allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media"
               allowFullScreen
