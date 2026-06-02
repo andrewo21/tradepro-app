@@ -839,16 +839,27 @@ export default function GringoWriter({ locale, previewHref }: Props) {
       {/* ── Progress bar ── */}
       <ProgressBar step={currentStep} locale={locale} />
 
-      {/* ── BR live score strip ── */}
-      {!isEN && clientMounted && liveScore && liveScore.score > 0 && (
-        <div className="flex items-center justify-between px-4 py-1.5 bg-green-50 border-b border-green-100 text-xs">
-          <span className="text-green-800 font-medium">Pontuação do currículo</span>
-          <span className="font-bold px-2 py-0.5 rounded-full border text-[11px]"
-            style={{ color: scoreColor, borderColor: `${scoreColor}40`, backgroundColor: `${scoreColor}12` }}>
-            {liveScore.score}/75 — {({ Strong: "Forte", Good: "Bom", Building: "Em construção", Weak: "Fraco", "Not Started": "Não iniciado" })[liveScore.label] || liveScore.label}
-          </span>
-        </div>
-      )}
+      {/* ── BR live score — same pill component as AskGringoButton (Option B) ── */}
+      {!isEN && clientMounted && (() => {
+        const brLabel: Record<string, string> = { Strong: "Forte", Good: "Bom", Building: "Em construção", Weak: "Fraco", "Not Started": "Não iniciado" };
+        const score  = liveScore?.score ?? 0;
+        const label  = liveScore?.label ?? "Not Started";
+        const color  = liveScore ? scoreColor : "#9ca3af";
+        return (
+          <div className="flex items-center justify-between px-4 py-2 bg-green-50 border-b border-green-100">
+            <span className="text-[11px] font-semibold text-green-800">Força do currículo</span>
+            <div
+              className="px-2.5 py-0.5 rounded-full shadow-sm border flex items-center gap-1.5"
+              style={{ backgroundColor: color + "15", borderColor: color + "40" }}
+            >
+              <span className="text-[10px] font-bold" style={{ color }}>Pontuação</span>
+              <span className="text-sm font-black" style={{ color }}>{score}</span>
+              <span className="text-[9px] font-medium text-neutral-400">/75</span>
+              <span className="text-[9px] font-medium" style={{ color }}>— {brLabel[label] || label}</span>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ── Chat area ── */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">

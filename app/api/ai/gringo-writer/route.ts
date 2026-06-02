@@ -34,14 +34,17 @@ export interface WriterResponse {
 export async function POST(req: NextRequest) {
   const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
+  // Parse locale before the main try so error fallbacks can use it
+  let isEN = true;
   try {
-    const { history, locale, firstName } = await req.json() as {
+    const body = await req.json() as {
       history:    WriterMessage[];
       locale:     string;
       firstName?: string;
     };
+    const { history, locale, firstName } = body;
 
-    const isEN   = locale !== "pt-BR";
+    isEN = locale !== "pt-BR";
     const name   = firstName || "";   // never inject a placeholder — ask for name first
     const bot    = isEN ? "CV-1" : "Gringo";
 
@@ -67,8 +70,11 @@ export async function POST(req: NextRequest) {
     const content = completion.choices[0]?.message?.content || "{}";
     let raw: any = {};
     try { raw = JSON.parse(content); } catch {
-      // JSON parse failure — return a safe fallback rather than 500
-      return NextResponse.json({ message: "Let's continue — what would you like to add?", actions: [], done: false, step: "personal" });
+      // JSON parse failure — return a locale-aware safe fallback rather than 500
+      return NextResponse.json({
+        message: isEN ? "Let's continue — what would you like to add?" : "Vamos continuar — pode me dar mais informações?",
+        actions: [], done: false, step: "personal",
+      });
     }
 
     const response: WriterResponse = {
@@ -85,7 +91,7 @@ export async function POST(req: NextRequest) {
     // A 500 causes the client to throw, which triggers the error catch, which
     // can loop if React batches the two setHistory calls incorrectly.
     return NextResponse.json({
-      message: "I missed that — could you say it again?",
+      message: isEN ? "I missed that — could you say it again?" : "Não entendi bem — pode repetir?",
       actions: [], done: false, step: "personal",
     });
   }
