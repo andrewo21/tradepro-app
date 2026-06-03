@@ -600,17 +600,16 @@ export default function GringoWriter({ locale, previewHref }: Props) {
   const applyAction = useApplyAction(locale, setPendingSummary);
   const callerLock  = useRef(false);
 
-  // Live score — reads store reactively, but only after client mount to avoid hydration mismatch
-  const [clientMounted, setClientMounted] = useState(false);
-  useEffect(() => setClientMounted(true), []);
+  // Live score — GringoWriter is always client-only (GringoPage guards with if (!mounted) return null)
+  // so we compute synchronously on every render; no clientMounted gate needed.
+  // useBrResumeStore() subscribes reactively — every applyBR store write triggers a re-render
+  // and the score recalculates automatically.
   const usStoreSnap = useResumeStore();
   const brStoreSnap = useBrResumeStore();
   let liveScore: ReturnType<typeof computeLiveAtsScore> | null = null;
-  if (clientMounted) {
-    try {
-      liveScore = computeLiveAtsScore(isEN ? usStoreSnap : mapBrStoreForAts(brStoreSnap));
-    } catch { /* silent */ }
-  }
+  try {
+    liveScore = computeLiveAtsScore(isEN ? usStoreSnap : mapBrStoreForAts(brStoreSnap));
+  } catch { /* silent */ }
   const scoreColor = liveScore ? atsLabelColor(liveScore.label) : "#9ca3af";
 
   // Auto-scroll
@@ -839,12 +838,12 @@ export default function GringoWriter({ locale, previewHref }: Props) {
       {/* ── Progress bar ── */}
       <ProgressBar step={currentStep} locale={locale} />
 
-      {/* ── BR live score — same pill component as AskGringoButton (Option B) ── */}
-      {!isEN && clientMounted && (() => {
-        const brLabel: Record<string, string> = { Strong: "Forte", Good: "Bom", Building: "Em construção", Weak: "Fraco", "Not Started": "Não iniciado" };
-        const score  = liveScore?.score ?? 0;
-        const label  = liveScore?.label ?? "Not Started";
-        const color  = liveScore ? scoreColor : "#9ca3af";
+      {/* ── BR live score — always visible, same pill as AskGringoButton (Option B) ── */}
+      {!isEN && (() => {
+        const brLabel: Record<string, string> = { Strong: "Forte", Good: "Bom", Building: "Em construção", Weak: "Fraco", "Not Started": "Iniciando..." };
+        const score = liveScore?.score ?? 0;
+        const label = liveScore?.label ?? "Not Started";
+        const color = scoreColor;
         return (
           <div className="flex items-center justify-between px-4 py-2 bg-green-50 border-b border-green-100">
             <span className="text-[11px] font-semibold text-green-800">Força do currículo</span>
@@ -855,7 +854,7 @@ export default function GringoWriter({ locale, previewHref }: Props) {
               <span className="text-[10px] font-bold" style={{ color }}>Pontuação</span>
               <span className="text-sm font-black" style={{ color }}>{score}</span>
               <span className="text-[9px] font-medium text-neutral-400">/75</span>
-              <span className="text-[9px] font-medium" style={{ color }}>— {brLabel[label] || label}</span>
+              <span className="text-[9px] font-medium" style={{ color }}>— {brLabel[label] ?? label}</span>
             </div>
           </div>
         );
