@@ -28,8 +28,23 @@ export default function ResumePreviewPage() {
   const [loading, setLoading] = useState(false);
   const [downloadsUsed, setDownloadsUsed] = useState<number | null>(null);
   const [revoked, setRevoked] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
   const previewRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+
+  function requestDownload() {
+    if (typeof window !== "undefined" && localStorage.getItem("tp_download_confirmed")) {
+      handleDownloadPDF();
+    } else {
+      setShowConfirmModal(true);
+    }
+  }
+
+  function confirmAndDownload() {
+    localStorage.setItem("tp_download_confirmed", "1");
+    setShowConfirmModal(false);
+    handleDownloadPDF();
+  }
 
   // Load current download count on mount
   useEffect(() => {
@@ -229,10 +244,17 @@ export default function ResumePreviewPage() {
             Design Style: <span className="text-blue-600 font-bold">{selectedTemplate?.replace('-', ' ') || 'Default'}</span>
           </p>
         </div>
-        <div className="flex gap-4 items-center">
-          <Link href="/resume/personal" className="px-4 py-2 border rounded hover:bg-gray-50 transition">Edit Details</Link>
-          <button 
-            onClick={handleDownloadPDF} 
+        <div className="flex flex-col items-end gap-2">
+          <Link href="/resume/personal" className="px-4 py-2 border rounded hover:bg-gray-50 transition text-sm">Edit Details</Link>
+          {/* AI Disclaimer */}
+          <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 text-sm text-amber-900 max-w-xs">
+            <span className="text-amber-500 text-lg leading-none mt-0.5">⚠️</span>
+            <p>
+              <strong>Please review before downloading.</strong> AI-generated content may contain errors. Verify all details before sending to an employer.
+            </p>
+          </div>
+          <button
+            onClick={requestDownload}
             disabled={loading || remaining === 0}
             className="px-6 py-2 bg-blue-600 text-white rounded font-bold shadow-lg hover:bg-blue-700 disabled:bg-slate-400 transition"
           >
@@ -258,9 +280,9 @@ export default function ResumePreviewPage() {
 
       <div ref={previewRef} className="bg-white shadow-2xl rounded-lg overflow-hidden border">
         {TemplateComponent ? (
-          <TemplateComponent 
-            data={previewData} 
-            mode="preview" 
+          <TemplateComponent
+            data={previewData}
+            mode="preview"
             premiumUnlocked={premiumUnlocked}
             showWatermark={showWatermark}
           />
@@ -270,6 +292,32 @@ export default function ResumePreviewPage() {
           </div>
         )}
       </div>
+
+      {/* First-download confirmation modal */}
+      {showConfirmModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-8">
+            <h2 className="text-xl font-bold text-neutral-900 mb-3">Before You Download</h2>
+            <p className="text-sm text-neutral-600 leading-relaxed mb-6">
+              AI-generated resumes are a great starting point, but please take a moment to review your resume carefully before sending it to an employer. Check all dates, job titles, skills, and contact information for accuracy.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={confirmAndDownload}
+                className="flex-1 px-5 py-2.5 bg-neutral-900 text-white text-sm font-semibold rounded-md hover:bg-neutral-700 transition"
+              >
+                I&apos;ll Review It First
+              </button>
+              <button
+                onClick={() => setShowConfirmModal(false)}
+                className="flex-1 px-5 py-2.5 border border-neutral-300 text-neutral-700 text-sm font-semibold rounded-md hover:bg-neutral-50 transition"
+              >
+                Go Back
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
