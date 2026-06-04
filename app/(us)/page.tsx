@@ -352,6 +352,57 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* SCHOOLS & WORKFORCE */}
+      <section id="schools" className="w-full bg-white border-t border-neutral-200 py-16 px-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-8">
+            <span className="inline-block bg-blue-50 text-blue-700 text-xs font-bold px-3 py-1 rounded-full mb-4 uppercase tracking-wide border border-blue-200">
+              Schools &amp; Workforce Programs
+            </span>
+            <h2 className="text-2xl md:text-3xl font-semibold mb-3">
+              TradePro for Schools &amp; Workforce Programs
+            </h2>
+            <p className="text-neutral-600 max-w-2xl mx-auto">
+              Helping students enter the workforce with confidence — not just a piece of paper.
+            </p>
+          </div>
+
+          <div className="bg-neutral-50 border border-neutral-200 rounded-xl p-8 mb-8 text-sm leading-relaxed text-neutral-700 space-y-4">
+            <p>
+              TradePro Technologies is proud to partner with schools, BOCEs, and workforce training programs across the region. Our platform is purpose-built for tradespeople and young professionals — understanding trade terminology, multilingual input, and the kind of real-world experience that doesn't always fit a traditional resume template.
+            </p>
+            <p>
+              Our AI assistant CV-1 walks students through every step — from scratch or from an existing resume — and helps them communicate their skills the way employers actually want to see them.
+            </p>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-5">
+              <div className="text-2xl mb-3">🎓</div>
+              <p className="font-semibold text-neutral-900 text-sm mb-1">Free Workshop Available</p>
+              <p className="text-neutral-600 text-sm">We'll come to you. Students leave with a real resume draft.</p>
+            </div>
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-5">
+              <div className="text-2xl mb-3">🔑</div>
+              <p className="font-semibold text-neutral-900 text-sm mb-1">Schools &amp; Program Code</p>
+              <p className="text-neutral-600 text-sm">
+                <span className="font-mono font-bold text-blue-700">BOCES2026</span> — Free trial of the full bundle
+              </p>
+            </div>
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-5">
+              <div className="text-2xl mb-3">📩</div>
+              <p className="font-semibold text-neutral-900 text-sm mb-1">Interested in a partnership?</p>
+              <Link
+                href="/contact"
+                className="inline-block mt-2 px-4 py-2 bg-neutral-900 text-white text-xs font-semibold rounded-md hover:bg-neutral-700 transition"
+              >
+                Contact Us
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* PRICING PREVIEW */}
       <section className="w-full bg-neutral-50 border-t border-neutral-300 py-16 px-4">
         <div className="max-w-5xl mx-auto text-center">
