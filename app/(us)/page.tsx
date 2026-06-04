@@ -369,25 +369,18 @@ export default function HomePage() {
 
           <div className="bg-neutral-50 border border-neutral-200 rounded-xl p-8 mb-8 text-sm leading-relaxed text-neutral-700 space-y-4">
             <p>
-              TradePro Technologies is proud to partner with schools, BOCEs, and workforce training programs across the region. Our platform is purpose-built for tradespeople and young professionals — understanding trade terminology, multilingual input, and the kind of real-world experience that doesn't always fit a traditional resume template.
+              TradePro Technologies is proud to partner with schools, trade schools, and workforce training programs across the region. Our platform is purpose-built for tradespeople and young professionals — understanding trade terminology, multilingual input, and the kind of real-world experience that doesn't always fit a traditional resume template.
             </p>
             <p>
               Our AI assistant CV-1 walks students through every step — from scratch or from an existing resume — and helps them communicate their skills the way employers actually want to see them.
             </p>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2">
             <div className="bg-blue-50 border border-blue-200 rounded-xl p-5">
               <div className="text-2xl mb-3">🎓</div>
               <p className="font-semibold text-neutral-900 text-sm mb-1">Free Workshop Available</p>
               <p className="text-neutral-600 text-sm">We'll come to you. Students leave with a real resume draft.</p>
-            </div>
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-5">
-              <div className="text-2xl mb-3">🔑</div>
-              <p className="font-semibold text-neutral-900 text-sm mb-1">Schools &amp; Program Code</p>
-              <p className="text-neutral-600 text-sm">
-                <span className="font-mono font-bold text-blue-700">BOCES2026</span> — Free trial of the full bundle
-              </p>
             </div>
             <div className="bg-blue-50 border border-blue-200 rounded-xl p-5">
               <div className="text-2xl mb-3">📩</div>
