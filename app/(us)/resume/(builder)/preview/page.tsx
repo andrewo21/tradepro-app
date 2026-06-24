@@ -260,6 +260,21 @@ export default function ResumePreviewPage() {
           >
             {loading ? "Generating..." : "Download Resume PDF"}
           </button>
+
+          {/* TradePro Nexus Discovery CTA */}
+          <div className="mt-2 flex flex-col items-end gap-1">
+            <a
+              href="https://www.tradepronexus.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 bg-orange-600 hover:bg-orange-500 text-white text-sm font-bold px-6 py-3 rounded-md shadow-md transition tracking-wide"
+            >
+              🚀 Post on TradePro Nexus — Get Discovered &amp; Hired Faster
+            </a>
+            <p className="text-xs text-neutral-500 text-right max-w-sm">
+              Share your profile on TradePro Nexus and connect directly with trade contractors and employers looking to hire now.
+            </p>
+          </div>
         </div>
       </div>
 

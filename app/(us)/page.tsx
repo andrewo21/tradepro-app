@@ -50,6 +50,22 @@ export default function HomePage() {
     <div className="min-h-screen flex flex-col bg-neutral-200 text-neutral-900">
       <CinematicIntro videoId="1196132428" />
 
+      {/* TradePro Nexus Portal Banner */}
+      <div className="w-full bg-neutral-900 border-b border-neutral-700 py-2 px-4 flex items-center justify-center gap-3">
+        <span className="text-neutral-400 text-xs hidden sm:inline">
+          Are you a trade contractor or business?
+        </span>
+        <a
+          href="https://www.tradepronexus.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold px-4 py-1.5 rounded-full transition tracking-wide"
+        >
+          <span>Enter TradePro Nexus</span>
+          <span>→</span>
+        </a>
+      </div>
+
       {/* Brazil region banner */}
       <div className="w-full bg-green-800 text-white text-xs py-2 px-4 text-center">
         🇧🇷 Você é do Brasil?{" "}
